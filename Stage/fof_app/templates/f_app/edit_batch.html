@@ -199,7 +199,7 @@
                         <div class="form-group col-md-6">
                             <label class="col-md-6 control-label" for="manage_fee_rate" style="padding-left:0;">管理费率</label>
                             <div class="col-md-6 input-append " style="padding-left:15px;">
-                                <input type="number" class="optional form-control col-md-12 col-xs-12" name="manage_fee_rate_str" placeholder="" min="0" step="0.01" value="{{ (batch.manage_fee_rate*100)  |round(2,'common') if batch.manage_fee_rate is not none  else  ''  }}"
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" name="manage_fee_rate_str" placeholder="" min="0" step="0.001" value="{{ (batch.manage_fee_rate*100)  |round(2,'common') if batch.manage_fee_rate is not none  else  ''  }}"
                                        data-parsley-trigger="change"
                                        data-parsley-required="true"
                                        data-parsley-required-message="管理费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
@@ -210,8 +210,8 @@
                             <label class="col-sm-3 control-label" for="manage_fee_calc_mode" style="padding-left:0;">计算基准</label>
                             <div class="col-md-4 input-append">
                                 <select class="form-control input-md col-md-9" name="manage_fee_calc_mode">
-                                    <option value="份额">份额</option>
-                                    <option value="市值">市值</option>
+                                    <option value="0">份额</option>
+                                    <option value="1">市值</option>
                                 </select>
                             </div>
                         </div>
@@ -220,7 +220,7 @@
                         <div class="form-group col-md-6">
                             <label class="col-md-6 control-label" for="custodian_fee_rate" style="padding-left:0;">托管费率</label>
                             <div class="col-md-6 input-append " style="padding-left:15px;">
-                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="custodian_fee_rate_str" min="0" step="0.01" value="{{ (batch.custodian_fee_rate*100)  |round(2,'common') if batch.custodian_fee_rate is not none  else  ''  }}"
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="custodian_fee_rate_str" min="0" step="0.001" value="{{ (batch.custodian_fee_rate*100)  |round(2,'common') if batch.custodian_fee_rate is not none  else  ''  }}"
                                        data-parsley-trigger="change"
                                        data-parsley-required="true"
                                        data-parsley-type="number"
@@ -232,8 +232,8 @@
                             <label class="col-sm-3 control-label" for="custodian_fee_calc_mode" style="padding-left:0;">计算基准</label>
                             <div class="col-md-4 input-append">
                                 <select class="form-control input-md col-md-9" name="custodian_fee_calc_mode">
-                                    <option value="份额">份额</option>
-                                    <option value="市值">市值</option>
+                                    <option value="0">份额</option>
+                                    <option value="1">市值</option>
                                 </select>
                             </div>
                         </div>
@@ -242,7 +242,7 @@
                         <div class="form-group col-md-6">
                             <label class="col-md-6 control-label" for="admin_fee_rate" style="padding-left:0;">行政管理费率</label>
                             <div class="col-md-6 input-append " style="padding-left:15px;">
-                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="admin_fee_rate_str" min="0" step="0.01" value="{{ (batch.admin_fee_rate*100)  |round(2,'common') if batch.admin_fee_rate is not none  else  ''  }}"
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="admin_fee_rate_str" min="0" step="0.001" value="{{ (batch.admin_fee_rate*100)  |round(2,'common') if batch.admin_fee_rate is not none  else  ''  }}"
                                        data-parsley-trigger="change"
                                        data-parsley-required="true"
                                        data-parsley-required-message="行政管理费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
@@ -263,7 +263,7 @@
                         <div class="form-group col-md-6">
                             <label class="col-md-6 control-label" for="storage_fee_rate" style="padding-left:0;">客户专项资金保管费</label>
                             <div class="col-md-6 input-append " style="padding-left:15px;">
-                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="storage_fee_rate_str" min="0" step="0.01" value="{{ (batch.storage_fee_rate*100)  |round(2,'common') if batch.storage_fee_rate is not none  else  ''  }}"
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="storage_fee_rate_str" min="0" step="0.001" value="{{ (batch.storage_fee_rate*100)  |round(2,'common') if batch.storage_fee_rate is not none  else  ''  }}"
                                        data-parsley-trigger="change"
                                        data-parsley-required="true"
                                        data-parsley-required-message="客户专项资金保管费不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
@@ -275,7 +275,7 @@
                             <div class="col-md-4 input-append">
                                 <select class="form-control input-md col-md-9" name="storage_fee_calc_mode">
                                     <option value="0">份额</option>
-                                    <option value="1">市值{{batch}}</option>
+                                    <option value="1">市值</option>
                                 </select>
                             </div>
                         </div>
@@ -307,7 +307,7 @@
                     <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12 ">认购/申购费率</label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                            <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="subscribe_fee_rate_str" min="0" step="0.01" value="{{ (batch.subscribe_fee_rate*100)  |round(2,'common') if batch.subscribe_fee_rate is not none  else  ''  }}"
+                            <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="subscribe_fee_rate_str" min="0" step="0.001" value="{{ (batch.subscribe_fee_rate*100)  |round(2,'common') if batch.subscribe_fee_rate is not none  else  ''  }}"
                                    data-parsley-trigger="change"
                                    data-parsley-required="true"
                                    data-parsley-required-message="认购/申购费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
@@ -317,7 +317,7 @@
                     <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12 ">赎回费率</label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                            <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="redemption_fee_rate_str" min="0" step="0.01" value="{{ (batch.redemption_fee_rate*100)  |round(2,'common') if batch.redemption_fee_rate is not none  else  ''  }}"
+                            <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="redemption_fee_rate_str" min="0" step="0.001" value="{{ (batch.redemption_fee_rate*100)  |round(2,'common') if batch.redemption_fee_rate is not none  else  ''  }}"
                                    data-parsley-trigger="change"
                                    data-parsley-required="true"
                                    data-parsley-required-message="赎回费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
