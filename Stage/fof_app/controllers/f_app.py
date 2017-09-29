@@ -352,19 +352,19 @@ def get_fof_mapping() -> object:
     logger.info("关键字-----{}".format(q))
     fof_mapping  = FUND_ESSENTIAL.query.whoosh_search(q, like=True).all()
     fof_model = FoFModel.query.whoosh_search(q, like=True).all()
-    if len(fof_mapping) == 0 and len(fof_model) == 0:
+    if len(fof_mapping) ==  0:
         logger.warning("没有查询到关键字{}".format(q))
         return jsonify(status='error')
     else:
-        if len(fof_mapping) > 0:
-            mapping_data = [{"wind_code": i.wind_code_s, "sec_name": i.sec_name_s} for i in fof_mapping]
-        else:
-            mapping_data = []
-        if len(fof_model) >  0:
-            fund_data = [{"wind_code": i.wind_code, "sec_name": i.sec_name} for i in fof_model]
-        else:
-            fund_data = []
-        data = [{"wind_code": i['wind_code'], "id": index, "sec_name": i['sec_name']} for index, i in enumerate(fund_data + mapping_data)]
+
+        data = [{"wind_code": i.wind_code_s, "sec_name": i.sec_name_s,"index":index} for index,i in enumerate(fof_mapping)]
+        # else:
+        #     mapping_data = []
+        # if len(fof_model) >  0:
+        #     fund_data = [{"wind_code": i.wind_code, "sec_name": i.sec_name} for i in fof_model]
+        # else:
+        #     fund_data = []
+        # data = [{"wind_code": i['wind_code'], "id": index, "sec_name": i['sec_name']} for index, i in enumerate(fund_data + mapping_data)]
         return jsonify(status='ok',items=data)
 
 

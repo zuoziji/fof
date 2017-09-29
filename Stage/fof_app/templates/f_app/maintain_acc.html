@@ -33,6 +33,7 @@
                       </thead>
                       </tbody>
                       {% for i in primary_list %}
+                          {% if i.nav_maintain_mode %}
                       <tr>
                           <td>{{ loop.index }}</td>
                           <td style="width: 25%;"><a class="" href="{{ url_for('f_app.asset_details',wind_code=i.wind_code) }}">{{ i.sec_name }}</a></td>
@@ -40,6 +41,7 @@
                           <td>{{ i.nav_date_latest }}</td>
                           <td>{{ i.nav_acc_latest }}</td>
                       </tr>
+                          {% endif %}
                       {% endfor %}
                       </tbody>
                     </table>
