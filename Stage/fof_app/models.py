@@ -247,6 +247,7 @@ class FoFModel(db.Model):
     fh_prod_manager = db.Column(db.String(20))
     fh_channel_manager = db.Column(db.String(20))
     mgrcomp_id = db.Column(db.INT)
+    nav_maintain_mode = db.Column(db.Boolean)
     file = db.relationship('FundFile', backref='fund_info', lazy='dynamic')
     fund_pct = db.relationship('FOF_FUND_PCT', backref='fund_info', lazy='dynamic')
     fund_stg = db.relationship('FUND_STG_PCT', backref='fund_info', lazy='dynamic')

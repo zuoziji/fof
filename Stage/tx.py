@@ -1,18 +1,18 @@
 import pandas as pd
 from pandas import DataFrame,Series
 import json
-# from werkzeug.contrib.cache import RedisCache
-#
-# cache = RedisCache(host="10.0.5.107", db=3,default_timeout=0)
-#
-#
-#
-#
-# # key_list = cache.get('13')
-# #
-# # for i in key_list:
-# #     print(i['primary'])
-# #     print(i['child'])
+from werkzeug.contrib.cache import RedisCache
+
+cache = RedisCache(host="10.0.5.107", db=3,default_timeout=0)
+
+
+
+
+key_list = cache.get('11')
+
+for i in key_list:
+    print(i['primary'])
+    print(i['child'])
 
 #
 # import pdfkit

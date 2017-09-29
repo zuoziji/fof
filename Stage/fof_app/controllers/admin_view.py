@@ -46,7 +46,7 @@ class FofAdmin(CustomView):
     form_columns = ['wind_code','sec_name','strategy_type','fund_setupdate','fund_maturitydate','fund_mgrcomp','fund_status','alias',
                     'fund_existingyear','fund_ptmyear','fund_type','fund_fundmanager','nav_acc_latest','nav_acc_mdd','sharpe',
                     'nav_date_latest','annual_return','scale_tot','scale_a','scale_b','priority_asset','inferior_asset',
-                    'priority_interest_rate','rank','file','fh_inv_manager','fh_prod_manager','fh_channel_manager']
+                    'priority_interest_rate','rank','file','fh_inv_manager','fh_prod_manager','fh_channel_manager','nav_maintain_mode']
 
     column_labels = dict(
         wind_code='基金代码',sec_name='基金名称',strategy_type='策略名称',fund_setupdate='成立时间',fund_maturitydate='终止日',
@@ -55,7 +55,7 @@ class FofAdmin(CustomView):
         nav_acc_latest='最新净值',nav_acc_mdd="最大回撤比",sharpe='夏普比',
                     nav_date_latest="最新净值日期",annual_return="年化收益率",scale_tot="总规模",scale_a="A类份额规模",scale_b="B类份额规模",
         priority_asset="优先级资产规模",inferior_asset="劣后级资产规模",fh_inv_manager="投资负责人",fh_prod_manager="产品负责人",fh_channel_manager="渠道负责人",
-                    priority_interest_rate="优先级年化收益率",rank="基金评级信息",file="文件")
+                    priority_interest_rate="优先级年化收益率",rank="基金评级信息",file="文件",nav_maintain_mode='净值模式')
 
     column_searchable_list = ('wind_code','sec_name')
     column_list = ('wind_code','sec_name','strategy_type','fund_setupdate','fund_maturitydate','fund_mgrcomp','fund_status')
