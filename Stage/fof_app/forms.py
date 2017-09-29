@@ -38,7 +38,8 @@ class FOFSummary(FlaskForm):
     fund_ptmyear = FloatField("存续年限")
     fund_type = StringField("基金类型")
     fund_fundmanager = StringField("基金管理人员")
-    fund_status = StringField("基金状态")
+    fund_status = BooleanField("基金状态")
+    nav_maintain_mode = BooleanField("净值维护方式")
     alias = StringField("别名")
     scale_tot = FloatField("总规模")
     scale_a = FloatField("A类份额规模")
@@ -59,6 +60,8 @@ class FOFSummary(FlaskForm):
     fh_inv_manager = StringField("投资管理人")
     fh_prod_manager = StringField("产品负责人")
     fh_channel_manager = StringField("渠道负责人")
+
+
 
 
     def validate(self):

@@ -228,7 +228,7 @@ class FoFModel(db.Model):
     fund_ptmyear = db.Column(MyReal)
     fund_type = db.Column(db.String(50))
     fund_fundmanager = db.Column(db.String(200))
-    fund_status = db.Column(db.String(50))
+    fund_status = db.Column(db.Boolean)
     alias = db.Column(db.String(50))
     scale_tot = db.Column(MyReal)
     scale_a = db.Column(MyReal)

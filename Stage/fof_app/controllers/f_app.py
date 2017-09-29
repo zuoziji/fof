@@ -200,67 +200,15 @@ def edit_summary(wind_code: str) -> object:
     :by hdhuang
     :return:
     """
-    fof = check_code_order(wind_code)
-    fof_list = cache.get(str(current_user.id))
-    form = FOFSummary()
-    if form.validate_on_submit():
-        fof.strategy_type = form.strategy_type.data
-        fof.fund_setupdate = form.fund_setupdate.data
-        fof.fund_maturitydate = form.fund_maturitydate.data
-        fof.fund_mgrcomp = form.fund_mgrcomp.data
-        fof.fund_existingyear = form.fund_existingyear.data
-        fof.fund_ptmyear = form.fund_ptmyear.data
-        fof.fund_type = form.fund_type.data
-        fof.fund_fundmanager = form.fund_fundmanager.data
-        fof.fund_status = form.fund_status.data
-        fof.alias = form.alias.data
-        fof.scale_tot = form.scale_tot.data
-        fof.scale_a = form.scale_a.data
-        fof.scale_b = form.scale_b.data
-        fof.priority_asset = form.priority_asset.data
-        fof.inferior_asset = form.inferior_asset.data
-        fof.priority_interest_rate = form.priority_interest_rate.data
-        fof.rank = form.rank.data
-        fof.annual_return = form.annual_return.data
-        fof.nav_acc_mdd = form.nav_acc_mdd.data
-        fof.sharpe = form.sharpe.data
-        fof.nav_acc_latest = form.nav_acc_latest.data
-        fof.nav_date_latest = form.nav_date_latest.data
-        fof.fh_inv_manager = form.fh_inv_manager.data
-        fof.fh_prod_manager = form.fh_prod_manager.data
-        fof.fh_channel_manager = form.fh_channel_manager.data
-        db.session.add(fof)
-        db.session.commit()
-        return redirect(url_for('f_app.details', wind_code=wind_code))
+    if request.method == 'GET':
+        fof = check_code_order(wind_code)
+        fof_list = cache.get(str(current_user.id))
+        return render_template('edit_summary.html',fof_list=fof_list,fof=fof.to_json())
+    elif request.method == 'POST':
+        data = request.form
+        print(data)
+        return "ok"
 
-    form.wind_code.data = fof.wind_code
-    form.sec_name.data = fof.sec_name
-    form.strategy_type.data = fof.strategy_type
-    form.fund_setupdate.data = fof.fund_setupdate
-    form.fund_maturitydate.data = fof.fund_maturitydate
-    form.fund_mgrcomp.data = fof.fund_mgrcomp
-    form.fund_existingyear.data = fof.fund_existingyear
-    form.fund_ptmyear.data = fof.fund_ptmyear
-    form.fund_type.data = fof.fund_type
-    form.fund_fundmanager.data = fof.fund_fundmanager
-    form.fund_status.data = fof.fund_status
-    form.alias.data = fof.alias
-    form.scale_tot.data = fof.scale_tot
-    form.scale_a.data = fof.scale_a
-    form.scale_b.data = fof.scale_b
-    form.priority_asset.data = fof.priority_asset
-    form.inferior_asset.data = fof.inferior_asset
-    form.priority_interest_rate.data = fof.priority_interest_rate
-    form.rank.data = fof.rank
-    form.annual_return.data = fof.annual_return
-    form.nav_acc_mdd.data = fof.nav_acc_mdd
-    form.sharpe.data = fof.sharpe
-    form.nav_acc_latest.data = fof.nav_acc_latest
-    form.nav_date_latest.data = fof.nav_date_latest
-    form.fh_inv_manager.data = fof.fh_inv_manager
-    form.fh_prod_manager.data = fof.fh_prod_manager
-    form.fh_channel_manager.data = fof.fh_channel_manager
-    return render_template("edit_summary.html", form=form, fof=fof, fof_list=fof_list)
 
 
 @f_app_blueprint.route('/add_child/<string:wind_code>', methods=['POST', 'GET'])

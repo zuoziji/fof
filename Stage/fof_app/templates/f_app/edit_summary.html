@@ -27,169 +27,179 @@
                 <div class="x_content">
                     <br />
                     <form class="form-horizontal form-label-left" method="POST" action="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">
-                             {{ form.hidden_tag() }}
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金代码</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.wind_code(class='form-control') }}
+                                {{ fof.wind_code }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金名称</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.sec_name(class='form-control') }}
+                                {{ fof.sec_name }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">策略类型</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.strategy_type(class='form-control') }}
+                                {{ fof.strategy_type }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">成立时间</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_setupdate(class='form-control') }}
+                                {{ fof.fund_setupdate }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">终止时间</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_maturitydate(class='form-control') }}
+                                {{ fof.fund_maturitydate }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金经理</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_mgrcomp(class='form-control') }}
+                                {{ fof.fund_mgrcomp }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">存在年限</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_existingyear(class='form-control') }}
+                                {{ fof.fund_existingyear }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">存续年限</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_ptmyear(class='form-control') }}
+                                {{ fof.fund_ptmyear }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金类型</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_type(class='form-control') }}
+                                {{ fof.fund_type }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金管理人员</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_fundmanager(class='form-control') }}
+                                {{ fof.fund_fundmanager }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金状态</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fund_status(class='form-control') }}
+                                {{ fof.fund_status }}
                             </div>
                         </div>
+
+                        <div class="form-group col-md-6">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12">基金状态</label>
+                            <div class="col-md-6 col-sm-9 col-xs-12">
+                                {{ fof.nav_maintain_mode }}
+                            </div>
+                        </div>
+
+
+
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金别名</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.alias(class='form-control') }}
+                                {{ fof.alias }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">总规模</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.scale_tot(class='form-control') }}
+                                {{ fof.scale_tot }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">A类份额规模</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.scale_a(class='form-control') }}
+                                {{ fof.scale_a }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">B类份额规模</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.scale_b(class='form-control') }}
+                                {{ fof.scale_b }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">优先级资产规模</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.priority_asset(class='form-control') }}
+                                {{ fof.priority_asset }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">劣后级资产规模</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.inferior_asset(class='form-control') }}
+                                {{ fof.inferior_asset }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">优先级年化收益率</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.priority_interest_rate(class='form-control') }}
+                                {{ fof.priority_interest_rate }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">基金评级</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.rank(class='form-control') }}
+                                {{ fof.rank }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">年货收益率</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.annual_return (class='form-control') }}
+                                {{ fof.annual_return  }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">最大回撤比</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.nav_acc_mdd(class='form-control') }}
+                                {{ fof.nav_acc_mdd }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">夏普比</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.sharpe(class='form-control') }}
+                                {{ fof.sharpe }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">最新净值</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.nav_acc_latest(class='form-control') }}
+                                {{ fof.nav_acc_latest }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">最新净值日期</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.nav_date_latest(class='form-control') }}
+                                {{ fof.nav_date_latest }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">投资管理人</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fh_inv_manager(class='form-control') }}
+                                {{ fof.fh_inv_manager }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">产品负责人</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fh_prod_manager(class='form-control') }}
+                                {{ fof.fh_prod_manager }}
                             </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="control-label col-md-3 col-sm-3 col-xs-12">渠道负责人</label>
                             <div class="col-md-6 col-sm-9 col-xs-12">
-                                {{ form.fh_channel_manager(class='form-control') }}
+                                {{ fof.fh_channel_manager }}
                             </div>
                         </div>
+
                         <!-- <div class="ln_solid"></div> -->
                         <div class="form-group col-md-12">
                             <div class="col-md-1 col-sm-9 col-xs-12 col-md-offset-5">
