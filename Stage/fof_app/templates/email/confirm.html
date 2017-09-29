@@ -1,0 +1,7 @@
+<p>Dear {{ user.username }},</p>
+<p>欢迎使用复华投资管理系统!</p>
+<p>激活你的账号请<a href="{{ url_for('auth.confirm', token=token, _external=True) }}">点击这里</a>.</p>
+<p>另外,你可以复制下面的链接到浏览器地址栏</p>
+<p>{{ url_for('auth.confirm', token=token, _external=True) }}</p>
+<p>复华投资FOF团队</p>
+<p><small>提示: 请勿回复邮件.</small></p>

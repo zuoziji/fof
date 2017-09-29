@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>复化投资 |请登录 </title>
+
+    <!-- Bootstrap -->
+    <link href="../../static/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../../static/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../../static/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link href="../../static/vendors/animate.css/animate.min.css" rel="stylesheet">
+    <!-- login Style -->
+    <link href="../../static/css/login.css" rel="stylesheet">
+  </head>
+
+  <body>
+  <div class="container">
+    <div class="col-md-10 col-md-offset-1 main">
+        <div class="col-md-6 left-side"><img src="../../static/images/log-bg.jpg"/></div>
+        <div class="col-md-6 right-side">
+            <p class="pull-right"><img src="../../static/images/logo.jpg"></p>
+            <h3>登陆</h3>
+            <form class="form" method="POST" action="{{ url_for('auth.login') }}">
+                      {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.email(class_="form-control input-lg") }}
+                </div>
+                {% if form.email.errors %}
+                {% for e in form.email.errors %}
+                <p class="col-sm-11 help-block text-left">{{ e }}</p>
+                {% endfor %}
+                {% endif %}
+                <div class="form-group">
+                    {{ form.password(class_='form-control input-lg') }}
+                </div>
+
+                {% if form.password.errors %}
+                {% for e in form.password.errors %}
+                <p class="col-sm-11 help-block text-left">{{ e }}</p>
+                {% endfor %}
+                {% endif %}
+
+                <div class="text-xs-center form-group">
+                    <a class="reset_pass" href="{{ url_for('auth.password_reset_request') }}">忘记密码?</a>
+                    {{ form.submit(class_="btn btn-deep-purple bg-info") }}
+                </div>
+
+
+                <div class="col-sm-12" style="padding:0">
+                    {% block flash_messages %}
+                    {%- with messages = get_flashed_messages(with_categories=true) -%}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    {% if category=='error' %}
+                    {% set category='danger' %}
+                    {% elif category == 'success' %}
+                    {% set category = 'success' %}
+                    {% elif category == 'info' %}
+                    {% set category = 'info' %}
+                    {% endif %}
+                    <div class="alert alert-{{ category }}">{{ message|safe }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {%- endwith %}
+                    {% endblock %}
+                </div>
+            </form>
+            <p class="browser">为了获得更好的用户体验,推荐使用<a title="chrome" target="_blank" data-legal-document="chrome"
+                                                  href="https://www.google.com/chrome/index.html">Chrome浏览器</a>。</p>
+            <p class="copyright">©2016 复化投资　版权所有.</p>
+        </div>
+    </div>
+</div>
+
+  </body>
+</html>
+
+  <script src="../../static/vendors/jquery/dist/jquery.min.js"></script>

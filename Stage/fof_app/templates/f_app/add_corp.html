@@ -1,0 +1,135 @@
+{% extends "main.html" %}
+
+{% block css %}
+{% endblock %}
+
+{% block manager %}
+{% endblock %}
+{% block content %}
+<div>
+    <div class="page-title">
+      <div class="title_left">
+        <h3>添加投顾</h3>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>请按照需求选择,　* 为必填项</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <!-- start project-detail sidebar -->
+
+            <form class="form-horizontal form-label-left" id="corpForm" enctype="multipart/form-data"  action="{{ url_for('f_app.add_corp') }}" method="POST" >
+                <div class="item form-group" >
+                　   <label class="control-label col-md-3 col-sm-3 col-xs-12">投顾名称 <span class="required">*</span></label>
+                　   <div class="col-md-6 col-sm-6 col-xs-12 SetError">
+                        <input id="name" type="text"  name="name" class="optional form-control col-md-7 col-xs-12" required="" data-parsley-palindrome="">
+                　   </div>
+                </div>
+                <div class="item form-group" >
+                　   <label class="control-label col-md-3 col-sm-3 col-xs-12">别名 <span class="required"> </span></label>
+                　   <div class="col-md-6 col-sm-6 col-xs-12 SetError">
+                        <input id="alias" type="text"  name="alias" class="optional form-control col-md-7 col-xs-12">
+                　   </div>
+                </div>
+                <div class="item form-group" >
+                　   <label class="control-label col-md-3 col-sm-3 col-xs-12">注册资本 <span class="required">*</span></label>
+                　   <div class="col-md-6 col-sm-6 col-xs-12 SetError">
+                        <input id="register_capital" type="number"  name="register_capital" class="optional form-control col-md-7 col-xs-12" required="" >
+                　   </div>
+                </div>
+                <div class="item form-group" >
+                　   <label class="control-label col-md-3 col-sm-3 col-xs-12">审核状态 <span class="required">*</span></label>
+                    <div class="col-md-6 col-sm-6 col-xs-12 SetError">
+                      <select name="status" id="status" class="form-control">
+                          <option value=0>未评审</option>
+                          <option value=1>基础池</option>
+                          <option value=2>观察池</option>
+                          <option value=4>核心池</option>
+                      </select>
+                  </div>
+                </div>
+                <div class="item form-group" >
+                　   <label class="control-label col-md-3 col-sm-3 col-xs-12">地址 <span class="required">*</span></label>
+                　   <div class="col-md-6 col-sm-6 col-xs-12 SetError">
+                        <input id="site" type="text"  name="site" class="optional form-control col-md-7 col-xs-12" required="">
+                　   </div>
+                </div>
+                <div class="item form-group" >
+                　   <label class="control-label col-md-3 col-sm-3 col-xs-12">描述 <span class="required">*</span></label>
+                　   <div class="col-md-6 col-sm-6 col-xs-12 SetError">
+                    <textarea name="description" id="description" cols="30" rows="3" class="optional form-control col-md-7 col-xs-12" required="" ></textarea>
+                　   </div>
+                </div>
+                <div class="ln_solid"></div>
+                <div class="form-group">
+                  <div class="col-md-6 col-md-offset-3">
+                      <button type="reset" class="btn btn-primary">重置</button>
+                      <button type="submit" class="btn btn-success">提交</button>
+                  </div>
+              </div>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script src="../../static/vendors/parsleyjs/dist/parsley.js"></script>
+    <script type="text/javascript">
+        $('#info_form').parsley({
+             errorsContainer: function (ParsleyField) {
+	            return ParsleyField.$element.attr("title");
+	        },
+	        errorsWrapper: false
+        });
+        window.Parsley.addValidator('palindrome', {
+          validateString: function(value) {
+            return value.split('').reverse().join('') === value;
+          },
+          messages: {
+            en: '中文中文',
+          }
+        });
+
+        window.Parsley.addValidator('multipleOf', {
+          validateNumber: function(value, requirement) {
+            return value % requirement === 0;
+          },
+          requirementType: 'integer',
+          messages: {
+            en: 'This value should be a multiple of %s.',
+            fr: "Ce nombre n'est pas un multiple de %s."
+          }
+        });
+
+        window.Parsley.addValidator('maxFileSize', {
+          validateString: function(_value, maxSize, parsleyInstance) {
+            if (!window.FormData) {
+              alert('You are making all developpers in the world cringe. Upgrade your browser!');
+              return true;
+            }
+            var files = parsleyInstance.$element[0].files;
+            return files.length != 1  || files[0].size <= maxSize * 1024;
+          },
+          requirementType: 'integer',
+          messages: {
+            en: 'This file should not be larger than %s Kb',
+            fr: 'Ce fichier est plus grand que %s Kb.'
+          }
+        });
+    $(function () {
+      $('#corpForm').parsley().on('field:validated', function() {
+        var ok = $('.parsley-error').length === 0;
+      })
+      .on('form:submit', function() {
+        return false;
+      });
+    });
+    </script>
+{% endblock  %}

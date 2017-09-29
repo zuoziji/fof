@@ -1,0 +1,77 @@
+{% extends "main.html" %}
+
+
+{% block manager %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="col-md-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>添加文件<small>添加新的文件</small></h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <br>
+            <form class="form-horizontal form-label-left" enctype="multipart/form-data" action="{{ url_for('f_app.append_file_upload',uid=corp.mgrcomp_id) }}" method="POST">
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">投顾名称 <span class="required">*</span></label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <input type="text" class="form-control" value="{{corp.name}}"  name="name" disabled>
+                </div>
+              </div>
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" >评估时间 <span class="required">*</span></label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <input id="assess_time" type="date" name="date" class="form-control col-md-7 col-xs-12" required="required">
+                </div>
+              </div>
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">文件类型 <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="form-control" id="file_type" name="type"></select>
+                </div>
+              </div>
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">上传报告 <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <input type="file" class="form-control" id="report" name="file" required="required">
+                </div>
+              </div>
+              <div class="ln_solid"></div>
+              <div class="form-group">
+                <div class="col-md-6 col-md-offset-3 btns">
+                  <button type="button" class="btn btn-primary">取消</button>
+                  <button type="reset" class="btn btn-primary">重置</button>
+                  <button type="submit" class="btn btn-success">提交</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+
+    <script src="../../static/vendors/moment/moment.js"></script>
+    <script src="../../static/vendors/validator/validator.js"></script>
+<script>
+  var fileType = {{ file_type | tojson }};
+  $(document).ready(function () {
+      $.each(fileType,function(index,value){
+          $('#file_type').append('<option>'+ value +'</option>');
+      });
+      $(".btns").children().eq(0).on('click',function(){
+          history.back(-1);
+      });
+     var  today  = moment().format('YYYY-MM-DD');
+     $('#assess_time').val(today);
+
+  })
+</script>
+{% endblock %}

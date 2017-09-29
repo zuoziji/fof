@@ -1,0 +1,421 @@
+{% extends "main.html" %}
+
+{% block css %}
+{% endblock %}
+
+{% block manager %}
+{% endblock %}
+{% block content %}
+<div class="">
+            <div class="page-title">
+              <div class="title_left">
+                <h3>投顾详情</h3>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2>{{ corp.name }}</h2>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    <div class="col-md-9 col-sm-9 col-xs-12 ACT">
+                      <div class="stats-overview">
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                          <span>公司产品:</span>
+                          <select class="SeInfo demo--content-block demo--class-display" id="fund_select" >
+                          </select>
+                        </div>
+                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5 btn-group">
+                          <button  class="btn  btn-xs active" value="0" >今年以来</button>
+                          <button  class="btn  btn-xs" value="1">最近一年</button>
+                          <button  class="btn  btn-xs" value="2">最近两年</button>
+                          <button  class="btn  btn-xs" value="3">最近三年</button>
+                          <button  class="btn  btn-xs" value="5">最近五年</button>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 btn-group">
+
+                          {% if current_user.is_admin %}
+                          <input class="btn-xs " id="changeRank" disabled value="未评级"/>
+                            <select name="" id="" class="form-control">
+                                <option value="0">未评级</option>
+                                <option value="1">不关注</option>
+                                <option value="2">观察</option>
+                                <option value="3">备选</option>
+                                <option value="4">核心池</option>
+                            </select>
+                           {% endif %}
+
+                        </div>
+                        <div class="clearfix"></div>
+                      </div>
+                      <br>
+                      <div id="main" style="height:400px"></div>
+                      <div>
+                        <h4>评估报告</h4>
+                        <!-- end of user messages -->
+                        <ul class="messages">
+
+                            {% for i in report %}
+                          <li>
+                            <div class="message_date">
+                              <p class="month">{{ i.upload_time }}</p>
+                            </div>
+                            <div class="message_wrapper">
+                              <h5 class="heading">{{ i.user }}</h5>
+                              <p class="message">{{ i.comments }}</p>
+                              <br>
+                              <p class="url">
+                                <span class="fs1 text-info" data-icon=""></span>
+                                <a href="{{ url_for('f_app.corp_download',fid=i.fid) }}"><i class="fa fa-paperclip"></i> {{ i.file_name }} </a>
+                              </p>
+                            </div>
+                          </li>
+                            {% endfor %}
+
+                        </ul>
+                        <!-- end of user messages -->
+                      </div>
+                    </div>
+                    <!-- start project-detail sidebar -->
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+                      <section class="panel">
+                        <div class="x_title">
+                          <h2>公司介绍</h2>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div class="panel-body">
+                        <form>
+                          <h4 class="green">{{ corp.name }} </h4>
+                           <p class="CompanyDescribeP">{{  corp.description if corp.description is not none else "暂无描述" }}</p>
+                            <input type="text" class="CompanyDescribeInput hideInt">
+                          <br>
+                          <div class="project_detail">
+                            <h5 class="title">地址</h5>
+                            <p class="titleP">{{ corp.address if corp.address is not none else "未知" }}</p>
+                            <input type="text" class="titleInput hideInt">
+
+                          <br>
+                          <div class="project_detail hover_sel">
+                                <div class="assessStatus" id="assessStatus">
+                                    <h2>{% if corp.review_status == 0 %}
+                                                {{ "未评审" }}
+                                            {% elif corp.review_status == 1 %}
+                                                {{ "基础池" }}
+                                            {% elif corp.review_status == 2 %}
+                                                {{ "观察池" }}
+                                            {% elif corp.review_status == 4 %}
+                                                {{ "核心池" }}
+                                            {% endif %}
+                                    </h2>&nbsp;&nbsp;
+                                    <br />
+                                    <select class="dropdown-select-version select" name="options" >
+                                        <option value="0">未评审</option>
+                                        <option value="1">基础池</option>
+                                        <option value="2">观察池</option>
+                                        <option value="4">核心池</option>
+                                    </select>
+
+                                </div>
+                              {% if current_user.is_admin %}
+                                <span class="glyphicon glyphicon-pencil amend" ></span>
+                              {% endif %}
+                                <ul id="button_group">
+                                    <li id="send_info" class="btn-success"><i class="glyphicon glyphicon-ok"></i></li>
+                                    <li id="cancel_send" class="btn-warning"><i class="glyphicon glyphicon-remove"></i></li>
+                                </ul>
+                            </div>
+                          </div>
+                          </form>
+                          </div>
+                          <br>
+                          <h5>投顾有关文件</h5>
+                          <ul class="list-unstyled project_files">
+                              {% for i in files %}
+                                  <li>{{ i.file_type }}&nbsp;<a href="{{ url_for('f_app.corp_download',fid=i.fid) }}"><i class="fa fa-file"></i>{{ i.file_name }}</a>
+                            </li>
+                              {% endfor %}
+
+                          </ul>
+                          <br/>
+                          <div>
+                            <a href="{{ url_for('f_app.corp_upload_file',uid=corp.mgrcomp_id) }}" class="btn btn-sm btn-primary">添加文件</a>
+                            <a href="{{ url_for('f_app.process',uid=corp.mgrcomp_id) }}" class="btn btn-sm btn-warning">评估报告</a>
+                          </div>
+                          </section>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+{% endblock %}
+{% block script %}
+    <script src="../../static/vendors/echarts/dist/echarts.js"></script>
+    <script src="../../static/js/shine.js"></script>
+    <script>
+    var fof = {{ fof | tojson }};
+    function getFofAcc(wind_code,timeRange) {
+        var obj = {"code":wind_code,'time_id':timeRange};
+        $.ajax({
+                url:'/f_app/get_fof_acc',
+                type:'POST',
+                contentType: 'application/json',
+                data:JSON.stringify(obj),
+                dataType:'json',
+                success:function (callback) {
+                    if(callback.status === 'ok'){
+                        var data_name = callback.data.data_name;
+                        var time_line = callback.data.time_line;
+                        var result = callback.data.result;
+                        var echartLine = echarts.init(document.getElementById('main'), "shine");
+              option = {
+                title : {
+                    text: '历史净值走势'
+                },
+                tooltip : {
+                    trigger: 'axis',
+                    formatter:function (obj) {
+                         var result = '';
+                         var date ;
+                            for(var i=0;i<obj.length;i++){
+                                var value;
+                                if(isNaN(obj[i].value)){
+                                   value  = "----";
+                                }else{
+                                    value = obj[i].data.toFixed(4)
+                                }
+                                if(i === (obj.length -1)){
+                                    date = obj[i].name;
+                                }
+                                result +=
+                                '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + obj[i].color +'"></span>'+obj[i].seriesName +'%&nbsp;'+ value +'<br>';
+                            }
+                        return "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+date+"<br />"+result
+                    }
+                },
+                legend: {
+                    left: 150,
+                    width : 700,
+                    padding: [0,0,25,0],
+                    data: data_name,
+                    itemGap: 4,
+                    itemHeight: 10
+                },
+                grid:{
+                    y2: 60,
+                    top: 100
+                },
+                toolbox: {
+                    show : true,
+                    feature : {
+                        mark : {show: true},
+                        dataView : {show: true, readOnly: false},
+                        magicType : {show: true, type: ['line', 'bar']},
+                        restore : {show: true},
+                        saveAsImage : {show: true}
+                    }
+                },
+                calculable : true,
+                xAxis : [
+                    {
+                        type : 'category',
+                        boundaryGap : false,
+                        data : time_line,
+                        splitLine:{
+                        　　　　show:true
+                        　　 }
+                    }
+                ],
+                yAxis : [
+                    {
+                        type : 'value',
+                        scale:true
+                    }
+                ],
+                series : [
+                ]
+            };
+          for(var i=0;i<result.length;i++){
+              var lineObj = {'name':result[i].name,"type":'line',"smooth":true,'data':result[i].data};
+              option.series.push(lineObj);
+          }
+           echartLine.setOption(option);
+                    }else{
+                        $('#main').text("暂时没有查询到数据,请稍后再试")
+                    }
+                }
+            });
+    }
+    $(window).ready(function () {
+
+
+
+       fof.forEach(function (data,index) {
+            $('#fund_select').append("<option value="+ data['wind_code']+">"+data['name']+"</option>")
+        });
+        var select_code = $( "#fund_select option:selected" ).val();
+        var timeRange = '0';
+        getFofAcc(select_code,timeRange);
+        $(".btn-group > button.btn").on("click", function(){
+            $(".btn-group > .btn").removeClass("active");
+            var timeId = this.value;
+            $(this).addClass('active');
+            getFofAcc(select_code,timeId);
+        });
+        $('#fund_select').on('change',function () {
+            var select_code = $( "#fund_select option:selected" ).val();
+            var timeRange = $('.active').val();
+            getFofAcc(select_code,timeRange);
+            select_fund()
+        });
+        
+        
+        $('#assessStatus').on("mouseover","h2",function () {
+            $(this).siblings('span').show()
+        });
+
+        var tmpStr = "";
+        $(".amend").click(function () {
+            $("#assessStatus .select").show();
+            $('form').find('input').show();
+            $('form').find('p').hide();
+            tmpStr = $("#assessStatus h2").html();
+            $(".CompanyDescribeInput").val($(".CompanyDescribeP").html());
+            $(".titleInput").val($(".titleP").html());
+            $("#button_group").show();
+            $(this).hide();
+        });
+
+        $("#assessStatus .select").mouseleave(function () {
+            var selectVal = $(this).val();
+            $("#assessStatus h2").html($(this).find("option:selected").text());
+        });
+
+        var tmpSelectStr = $("#assessStatus").find('h2').html();
+        var tmpComStr = $(".CompanyDescribeP").html();
+        var tmpSiteStr = $(".titleP").html();
+        $("#send_info").click(function(){
+            message("send")
+        });
+
+        $("#cancel_send").click(function(){
+            message("cancel")
+        });
+
+        function message(status){
+            if(status == "cancel"){
+                new PNotify({
+                    title: '未做修改',
+                    text: '内容未做任何修改',
+                    type: 'warning',
+                    styling: 'bootstrap3'
+                });
+                $("#assessStatus").find('h2').html(tmpSelectStr);
+                $(".CompanyDescribeP").html(tmpComStr);
+            $(".titleP").html(tmpSiteStr);
+            }else{
+                $(".CompanyDescribeP").html($(".CompanyDescribeInput").val());
+                $(".titleP").html($(".titleInput").val());
+                var corpId = {{ corp.mgrcomp_id }};
+                var obj = {'rank':$("form select").val(),"corp":corpId,'site':$(".titleInput").val(),"company":$(".CompanyDescribeInput").val()};
+                $.ajax({
+                    url:'/f_app/change_corp_rank',
+                    type:'POST',
+                    contentType: 'application/json',
+                    data:JSON.stringify(obj),
+                    dataType:'json',
+                    success:function (callback) {
+                        console.log(callback);
+                        new PNotify({
+                            title: '信息已修改',
+                            text: '详细内容请查看页面',
+                            type: 'success',
+                            styling: 'bootstrap3'
+                        });
+                    }});
+            }
+            $('form').find('input').hide();
+            $('form').find('p').show();
+            $('form').find('select').hide();
+            $("#button_group").hide();
+            $(".amend").show();
+        }
+        // 修改级别
+
+        // 修改按钮操作
+        if ($.trim($("#assessStatus").find('h2').html()) == "核心池"){
+            var fundVal;
+            $('#changeRank').removeAttr("disabled");
+            $('#changeRank').css({
+                "background": "rgb(92,142,237)"
+            });
+            $('#changeRank').on("click",function(){
+                fundVal = $("#fund_select").val();
+                $(this).hide();
+                $(this).siblings('select').show();
+            });
+            $('#changeRank').siblings('select').on('change',function () {
+                $(this).hide();
+                $(this).siblings('#changeRank').show();
+                $('#changeRank').val($(this).find("option:selected").text());
+                var odict = {"code":fundVal,"choose":$(this).val()};
+                $.ajax({
+                    url:'/f_app/select_corp_rank',
+                    type:'POST',
+                    contentType: 'application/json',
+                    data:JSON.stringify(odict),
+                    dataType:'json',
+                    success:function (callback) {
+                        console.log(callback);
+                    }});
+            })
+        }else{
+            $('#changeRank').parent().on('click',function () {
+                new PNotify({
+                    title: '无法修改',
+                    text: '核心投顾池的基金可以修改',
+                    type: 'warning',
+                    styling: 'bootstrap3'
+                });
+            });
+        }
+
+
+        function  select_fund() {
+            var tmpCode = $("#fund_select").val(),
+                changeRankHtml = "";
+
+            $.each(fof,function (k,v) {
+                if(v.wind_code == tmpCode){
+                    if(v.rank !== null){
+                        switch (Number(v.rank)){
+                            case 0: changeRankHtml = "未评级";
+                                    break;
+                            case 1: changeRankHtml = "不关注";
+                                    break;
+                            case 2: changeRankHtml = "观察";
+                                    break;
+                            case 3: changeRankHtml = "备选";
+                                    break;
+                            case 4: changeRankHtml = "核心池";
+                                    break;
+
+                            default:
+                                changeRankHtml = "核心池";
+                        }
+                    }else{
+                        changeRankHtml = " 未评级 ";
+                    }
+                }
+            });
+            $("#changeRank").val(changeRankHtml);
+        }
+        select_fund()
+
+    })
+    </script>
+{% endblock  %}

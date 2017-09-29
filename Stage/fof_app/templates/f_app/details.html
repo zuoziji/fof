@@ -1,0 +1,983 @@
+{% extends "main.html" %}
+
+
+
+{% block content %}
+
+<div >
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        {% if current_user.is_staff %}
+        <h4>{{  fof.sec_name  }}</h4>
+        {% else %}
+        <h4>{{  fof.sec_name if fof.alias is none else  fof.alias }} </h4>
+        {% endif %}
+      </div>
+      <div class="title_right">
+        <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+          <div class="input-group">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+
+          <div class="col-md-3 col-sm-3 col-xs-12 profile_left widget_tally_box " style=" padding: 0px;">
+            <div class="x_panel fixed_height_390">
+              <div class="x_title">
+                <h4>基金基本信息</h4>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                <ul class="list-inline widget_tally">
+                  <li class="col-xs-12">
+                    <span>基金管理人：</span><strong>{% if current_user.is_staff %}
+                    {{ fof.fund_mgrcomp  | default("",True) }}
+                    {% else %}
+                    {{ "*****"  | default("",True) }}
+                    {% endif %}
+                  </strong>
+                </li>
+                <li class="col-xs-12">
+                  <span>基金经理：</span><strong>{% if current_user.is_staff %}
+                  {{ fof.fund_fundmanager | default("",True)  }}
+                  {% else %}
+                  {{ "*****"  | default("",True) }}
+                  {% endif %}
+                </strong>
+              </li>
+              <li class="col-xs-12">
+                <span>基金策略类型：</span><strong>{{ fof.strategy_type | default("",True)  }}</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>基金初始规模：</span><strong>{{ fof.scale_tot | default("",True)  }}</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>成立日期：</span><strong>{{ fof.fund_setupdate | default("",True) }}</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>终止日期：</span><strong>{{ fof.fund_maturitydate | default("",True) }}</strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="x_panel f2qixed_height_390">
+          <div class="x_title">
+            <h4>负责人信息</h4>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <ul class="list-inline widget_tally">
+              <li class="col-xs-12">
+                <span>投资负责人：</span><strong>{{ fof.fh_inv_manager | default("",True)  }}</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>产品负责人：</span><strong>{{ fof.fh_prod_manager  | default("",True) }}</strong>
+              </li>
+              <li class="col-xs-12">
+
+                <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager  | default("",True) }} </strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="x_panel fixed_height_390">
+          <div class="x_title">
+            <h4>基本净值信息</h4>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <ul class="list-inline widget_tally">
+              <li class="col-xs-12">
+                <div class="col-md-4 col-xs-12" style="padding: 0px">
+                  <h3>{{ fof.nav_acc_latest | round(3,'floor')  if fof.nav_acc_latest  is not none else " "}}</h3>
+                </div>
+                <div class="col-md-8 col-xs-12">
+                  <div class="col-md-3 col-xs-12">
+                    {% if acc | length > 0  %}
+                    {% if   acc[-1]['pct']| float > 0 %}
+                    <span class="glyphicon glyphicon-arrow-up" aria-hidden="true" style="color: red;font-size: 40px;position: absolute;left: -16px;"></span>
+                    {% else %}
+                    <span class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="color: green;font-size: 40px;position: absolute;left: -16px;"></span>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-9 col-xs-12">
+                    {% if acc|length >= 2 %}
+                    <p>{{ (acc[-1]['nav'] | float -  acc[-2]['nav'] | float) | round(4,'floor')}}</p>
+                    {% else %}
+                    <p>{{ acc[0]['nav'] }}</p>
+                    {% endif %}
+                    <p>{{ acc[-1]['pct'] }}%</p>
+                  </div>
+                </div>
+                {% else  %}
+                {{ "" }}
+                {% endif %}
+              </li>
+              <li class="col-xs-12">
+                <span>最新净值日期：</span><strong>{{ fof.nav_date_latest  if fof.nav_date_latest is not none else  "" }}</strong>
+              </li>
+              <li class="col-xs-12">
+                {{ fof.anual_return }}
+                <span>年化收益：</span><strong>{{ fof.annual_return | round(3,'floor') if fof.anual_return is not none else  ""  }}</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>最大回撤：</span><strong>{{ (fof.nav_acc_mdd*100) |round(2,'floor') if fof.nav_acc_mdd is not none else ""}}%</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>夏普比率：</span><strong>{{ fof.sharpe  |round(3,'floor') if fof.sharpe is not none  else  "" }}</strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="col-md-9 col-sm-9 col-xs-12">
+
+
+        <div class="" role="tabpanel" data-example-id="togglable-tabs">
+          <ul id="myTab" class="nav nav-tabs nav-justified" role="tablist">
+            <li role="presentation" class="active"><a href="#tab_content4" id="home-tab" role="tab" data-toggle="tab" aria-expanded="true">净值信息</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content2" role="tab" id="profile" data-toggle="tab" aria-expanded="false">子基金信息</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content3" role="tab" id="profile-tab2" data-toggle="tab" aria-expanded="false">文件信息</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content1" role="tab" id="profile-tab3" data-toggle="tab" aria-expanded="false">策略信息</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content6" role="tab" id="profile-tab5" data-toggle="tab" aria-expanded="false">压力测试</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content7" role="tab" id="profile-tab6" data-toggle="tab" aria-expanded="false">归因分析</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content5" role="tab" id="profile-tab4" data-toggle="tab" aria-expanded="false">资产信息</a>
+            </li>
+          </ul>
+          <div id="myTabContent" class="tab-content">
+            <div role="tabpanel" class="tab-pane active in" id="tab_content4" aria-labelledby="home-tab">
+              <div class="dashboard_graph x_panel">
+                <div class="x_content">
+                  <div class="demo-container" style="height:400px" id="mainUp">
+                   <div id="main" style="height:375px;"></div>
+                 </div>
+               </div>
+             </div>
+             <!-- end of user-activity-graph -->
+             <div class="contentStr col-xs-12">
+              <ul class="list-group">
+                <li><b class="col-md-2 col-sm-2"> 截止：</b><span  class="col-md-10 col-sm-10" style="padding-left: 0;">{{ date_latest }}</span></li>
+                <li><b class="col-md-2">最新净值：</b><span class="col-md-10 col-sm-10" style="padding-left: 0;">
+                 <ul style="padding-left: 0;">
+                   {% for i in fund_rr %}
+                   <li class="">{{ i | join('') | safe}}</li>
+                   {% endfor %}
+                 </ul>
+
+
+               </span></li>
+             </ul>
+           </div>
+
+           <table class="table table-bordered center-all" id="tab4" width="100%"  >
+            <thead>
+              <tr>
+                <th>净值时间</th>
+                <th>单位净值</th>
+                <th>累计净值</th>
+                <th>增长</th>
+              </tr>
+            </thead>
+          </table>
+
+
+        </div>
+        <div role="tabpanel" class="tab-pane fade  " id="tab_content1" aria-labelledby="profile-tab">
+          <!-- start recent activity -->
+          <div id="t1chart" style="height:500px;padding:10px;"></div>
+          <table class="table table-bordered " id="tab1" width="100%">
+            <thead>
+              <tr>
+                <th>策略</th>
+                <th>规模</th>
+                <th>交易日期</th>
+              </tr>
+            </thead>
+
+          </table>
+          <!-- end recent activity -->
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="profile-tab"  style="position: relative;">
+          <!-- start user projects -->
+
+          <div id="t2chart" style="height:500px;padding:10px;">
+
+          </div>
+          <div class="col-lg-5 col-md-5 col-sm-5 btn-group" id="t2button" style="position: absolute;top:50px;left:150px;">
+            <button class="btn btn-xs" value="batch" >批次</button>
+            <button class="btn btn-xs btn-info active" value="fund">基金</button>
+          </div>
+          <table class="table table-bordered center-all " id="tab2" width="100%" >
+            <thead>
+              <tr>
+                <th>基金名称</th>
+                <th>规模</th>
+                <th>日期</th>
+              </tr>
+            </thead>
+
+          </table>
+
+          <!-- end user projects -->
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="tab_content3" aria-labelledby="profile-tab">
+          <table class="table table-bordered center-all" id="tab3" width="100%">
+            <thead>
+              <tr>
+                <th>文件名称</th>
+                <th>文件类型</th>
+                <th>上传时间</th>
+                <th></th>
+              </tr>
+            </thead>
+
+          </table>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="tab_content5" aria-labelledby="profile-tab">
+          <div id="capital_data" style="height:500px;padding:10px;"></div>
+          <div id="factor_data" style="height:500px;padding:10px;"></div>
+          <table class="table table-bordered center-all" id="tab5" width="100%">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Estimate</th>
+                <th>Std.Error</th>
+                <th>t.Value </th>
+                <th>Pr(>|t|) </th>
+              </tr>
+            </thead>
+          </table>
+          <div id="ci_dist_data" style="height:600px;padding:10px;"></div>
+          <div id="ci_dist_pie" style="height:500px;padding:10px;"></div>
+          <div id="ci_expo_data" style="height:600px;padding:10px;"></div>
+          <div id="ci_expo_pie" style="height:600px;padding:10px;"></div>
+          <div id="ci_expo_earn" style="height:600px;padding:10px;"></div>
+
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="tab_content6" aria-labelledby="profile-tab">
+          <div id="t6chart" style="height:500px;padding:10px;"></div>
+          <div id="t6cchart" style="height:500px;padding:10px;"></div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane fade" id="tab_content7" aria-labelledby="profile-tab">
+          <div id="t7chart" style="height:500px;padding:10px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="../../static/vendors/echarts/dist/echarts.min.js"></script>
+<script src="../../static/js/shine.js"></script>
+<script src="../../static/js/details.js"></script>
+<script>
+
+  var child = {{ child | tojson }};
+  var stg = {{ stg | tojson }};
+  var fund_file = {{ fund_file | tojson }};
+  var time_line = {{ time_line | tojson }};
+  var result = {{ result | tojson }};
+  var data_name = {{ data_name | tojson }};
+  var acc = {{ acc | tojson }};
+  var stgCharts = {{ stg_charts | tojson }};
+  var fhs = {{ fhs_obj | tojson }};
+  var copula = {{ copula_obj |tojson }};
+  var multi = {{ multi_obj | tojson }};
+  var capital_data = {{ capital_data | tojson }};
+
+
+  function  t2charts(wind_code,displayType) {
+   var obj = {"wind_code":wind_code,'disPlayType':displayType};
+   $.ajax({
+    url:'/f_app/get_child_charts',
+    type:'POST',
+    contentType: 'application/json',
+    data:JSON.stringify(obj),
+    dataType:'json',
+    success:function (callback) {
+      if(callback.status === 'ok') {
+        if(callback.data.date.length == 0 && callback.data.value.length == 0){
+          $('#t2chart').hide();
+          $('#t2button').hide();
+          $('#tab2_wrapper').css({
+            paddingTop: '10px'
+          })
+        }
+        var date = callback.data.date;
+        var result = callback.data.value;
+        var t2chart = echarts.init(document.getElementById('t2chart'),"shine");
+        option = {
+          timeline : {
+            data : date,
+            axisType: 'category',
+            label : {
+              formatter: function (s) {
+               var d = new Date(s);
+               var mon = d.getMonth() +1;
+               var tDate = mon  + '月' + d.getDate() + '日';
+               return tDate
+             }
+           },
+           tooltip : {
+            trigger: 'item',
+            formatter:  " {b} "
+          }
+        },
+        options : []
+      };
+      var value = result;
+      for(var i=0;i<value.length;i++){
+        var legend = value[i].map(function (obj) {
+          return obj.name
+        });
+        var op =  {
+          title : {
+            text: '子基金比例',
+            subtext: ''
+          },
+          tooltip : {
+            trigger: 'item',
+            formatter:  "{a} <br/>{b} : {c} ({d}%)"
+          },
+          legend: {
+            left: 150,
+            width : 700,
+            padding: [0,0,25,0],
+            data:legend,
+            itemGap: 4,
+            itemHeight: 10
+          },
+          series: [
+          {
+            name: "持仓比例",
+            type: 'pie',
+            data:value[i],
+            radius : '60%',
+            center: ['50%', '55%'],
+            itemStyle: {
+              emphasis: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            },
+            label: {
+              normal: {
+                formatter: '{b} {c}\n占比:{d}%',
+                textStyle:{
+                  fontSize:13
+                }
+              }
+            }
+
+          }
+          ],
+          toolbox: {
+            show : true,
+            feature : {
+              mark : {show: true},
+              dataView : {show: true, readOnly: false},
+              magicType : {
+                show: true,
+                type: ['pie', 'funnel'],
+                option: {
+                  funnel: {
+                    x: '25%',
+                    width: '50%',
+                    funnelAlign: 'left',
+                    max: 1700
+                  }
+                }
+              },
+              restore : {show: true},
+              saveAsImage : {show: true}
+            }
+          }
+        };
+        option.options.push(op);
+      }
+      t2chart.setOption(option);
+    }else{
+      $('#t2chart').html("<p>暂时没有找到可用的数据</p> ");
+    }
+  }});
+ }
+
+ $(document).ready(function() {
+    //tab1
+
+    if(capital_data !== null){
+      capital_charts(capital_data);
+      factor_charts(capital_data);
+      ci_dist_charts(capital_data);
+      ci_expo_charts(capital_data);
+      ci_expo_earn_charts(capital_data);
+      tab5(capital_data)
+    }else{
+      $('#profile-tab4').hide()
+    }
+  });
+
+
+
+
+ var table1 = $('#tab1').DataTable({
+   "info":false,
+   "paging": false,
+   'data':stg,
+   "language": {
+    "lengthMenu": "每页 _MENU_ 条记录",
+    "zeroRecords": "没有找到记录",
+    "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+    "infoEmpty": "无记录",
+    "search": "搜索：",
+    "infoFiltered": "(从 _MAX_ 条记录过滤)",
+    "paginate": {
+      "previous": "上一页",
+      "next": "下一页"
+    }
+  },
+  columns: [
+  { data: 'type' },
+  { data: 'scale'},
+  {data:'date'}
+
+  ],
+  "columnDefs": [{
+    "visible": false,
+    "targets": 2
+  },{
+    targets: "_all",
+    orderable: false
+  }
+  ],
+  "order": [[2, 'asc']],
+  "displayLength": 10,
+  "drawCallback": function(settings) {
+    var api = this.api();
+    var rows = api.rows({
+      page: 'current'
+    }).nodes();
+    var last = null;
+
+    api.column(2, {
+      page: 'current'
+    }).data().each(function(group, i) {
+      if (last !== group) {
+        $(rows).eq(i).before('<tr class="group"><td colspan="5">' + group + '</td></tr>');
+        last = group;
+      }
+    });
+  }
+});
+
+
+ if(stgCharts.date.length > 0 ){
+   var t1chart = echarts.init(document.getElementById('t1chart'),"shine");
+   option = {
+    timeline : {
+      data : stgCharts.date,
+      axisType: 'category',
+      label : {
+        formatter: function (s) {
+         var d = new Date(s);
+         var mon = d.getMonth() +1;
+         var tDate = mon  + '月' + d.getDate() + '日';
+         return tDate
+       }
+     },
+     tooltip : {
+      trigger: 'item',
+      formatter:  " {b} "
+    }
+  },
+  options : []
+};
+var stg_legend = stg.map(function (obj) {
+  return obj.type
+});
+for(var i=0;i<stgCharts.value.length;i++){
+
+  var stg_op =  {
+    title : {
+      text: '策略比例',
+      subtext: ''
+    },
+    tooltip : {
+      trigger: 'item',
+      formatter:  "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+      data:stg_legend
+    },
+    toolbox: {
+      show : true,
+      feature : {
+        mark : {show: true},
+        dataView : {show: true, readOnly: false},
+        magicType : {
+          show: true,
+          type: ['pie', 'funnel'],
+          option: {
+            funnel: {
+              x: '25%',
+              width: '50%',
+              funnelAlign: 'left',
+              max: 1700
+            }
+          }
+        },
+        restore : {show: true},
+        saveAsImage : {show: true}
+      }
+    }
+  };
+
+  for(var j=0;j<stgCharts.value[i].length;j++){
+    stgCharts.value[i][j].value=Math.round(stgCharts.value[i][j].value)
+  }
+  stg_op.series = [{"name":"策略比例","type":'pie',label: {
+    normal: {
+      formatter: '{b} {c}\n占比:{d}%',
+      textStyle:{
+        fontSize:13
+      }
+    }
+  },"data":stgCharts.value[i]}];
+  option.options.push(stg_op);
+}
+t1chart.setOption(option);
+}else{
+  $('#t1chart').html("<p>暂时没有找到可用的数据</p> ")
+}
+    //tab2
+    var table2 = $('#tab2').DataTable({
+      "info":false,
+      "search":false,
+      "paging": true,
+      'data':child,
+      "language": {
+        "lengthMenu": "每页 _MENU_ 条记录",
+        "zeroRecords": "没有找到记录",
+        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+        "infoEmpty": "无记录",
+        "search": "搜索：",
+        "infoFiltered": "(从 _MAX_ 条记录过滤)",
+        "paginate": {
+          "previous": "上一页",
+          "next": "下一页"
+        }
+      },
+      columns: [
+      { data: 'name',
+      "render": function(data, type, row) {
+
+        var name = row['code'];
+        if(name === 'fh0000'){
+          return row['name']
+        }else{
+          return "<a href=/f_app/details/"+name+">"+data;}
+        }},
+        { data: 'scale'},
+        { data: 'date' }
+        ],
+        "columnDefs": [{
+          "visible": false,
+          "targets": 2
+        },{
+          targets: "_all",
+          orderable: false
+        }
+
+        ],
+        "order": [[2, 'desc']],
+        "displayLength": 10,
+        "drawCallback": function(settings) {
+          var api = this.api();
+          var rows = api.rows({
+            page: 'current'
+          }).nodes();
+          var last = null;
+
+          api.column(2, {
+            page: 'current'
+          }).data().each(function(group, i) {
+            if (last !== group) {
+              $(rows).eq(i).before('<tr class="group info" ><td colspan="5">' + group + '</td></tr>');
+              last = group;
+            }
+          });
+        }
+      });
+
+            // 根据组排序
+            //tab3
+            if (fund_file !== undefined ) {
+              var tab3 = $('#tab3').DataTable({
+                "info": false,
+                "paging": false,
+                "data": fund_file,
+                "search": false,
+                "filter": false,
+                "language": {
+                  "lengthMenu": "每页 _MENU_ 条记录",
+                  "zeroRecords": "没有找到记录",
+                  "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                  "infoEmpty": "无记录",
+                  "search": "搜索：",
+                  "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                  "paginate": {
+                    "previous": "上一页",
+                    "next": "下一页"
+                  }
+                },
+                "columns": [
+                {"data": "name"},
+                {"data": "type"},
+                {"data": "date"},
+                {
+                  data: 'action',
+                  "render": function (data, type, row) {
+                    return '<a href=/f_app/read_file/?id='+data + '><button type="button" class="btn btn-info btn-xs">查看</button></a>' +
+                    '<button type="button" class="btn btn-success btn-xs delfile">删除</button>';
+                  }
+                }
+                ],
+                "columnDefs": [
+                { "width": "45%", "targets": 0 }
+                ]
+              })
+            }else{
+             var tab3 = $('#tab3').DataTable({
+              "info": false,
+              "paging": false,
+              "data": fund_file,
+              "search": false,
+              "filter": false,
+              "columns": [
+              {"data": "name"},
+              {"data": "type"},
+              {"data": "date"},
+              {"data": 'action'}
+              ]
+            })
+           }
+           $('#tab3 tbody').on( 'click', '.delfile', function (e) {
+            var data = tab3.row( $(this).parents('tr') ).data();
+            var obj = {"fid":data['action']};
+            e.preventDefault();
+            if (confirm("确定要删除文件?")) {
+             tab3.row($(this).parents('tr')).remove().draw();
+             $.ajax({
+              url:'/f_app/del_file',
+              type:'POST',
+              contentType: 'application/json',
+              data:JSON.stringify(obj),
+              dataType:'json',
+              success:function (callback) {
+              }
+            });
+           }});
+           $('#tab4').DataTable({
+             "scrollX": false,
+             "info":false,
+             "paging": false,
+             "data": acc,
+             "search":false,
+             "filter":false,
+             "columns": [
+             {"data": "nav_date"},
+             {"data": "nav_acc"},
+             {"data": "nav"},
+             {"data":"pct"}
+             ]
+           });
+
+
+           $('#profile').on('click',function () {
+            var wind_code = {{ fof.wind_code | tojson}};
+            t2charts(wind_code,'fund');
+          });
+
+           $("#t2button > button.btn").on("click", function(){
+            $(".btn-group > .btn").removeClass("active btn-info");
+            var disPlayType = this.value;
+            $(this).addClass('active btn-info');
+            var wind_code = {{ fof.wind_code | tojson}};
+            t2charts(wind_code,disPlayType);
+          });
+
+
+           if (time_line.length > 0  ){
+            var echartLine = echarts.init(document.getElementById('main'), "shine");
+            option = {
+              title : {
+                text: '历史净值走势',
+                subtext: '一年内历史净值走势'
+              },
+              tooltip : {
+                trigger: 'axis',
+                formatter:function (obj) {
+                 var result = '';
+                 var date ;
+                 for(var i=0;i<obj.length;i++){
+                  var value;
+                  if(isNaN(obj[i].value)){
+                   value  = "----";
+                 }else{
+                  value = obj[i].data.toFixed(4)
+                }
+                if(i === (obj.length -1)){
+                  date = obj[i].axisValue;
+                }
+                result +=
+                '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + obj[i].color +'"></span>'+obj[i].seriesName +'%&nbsp;'+ value +'<br>';
+              }
+              return "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+date+"<br />"+result
+            }
+          },
+          dataZoom: [
+            {
+              type: 'slider',
+              show: true,
+              xAxisIndex: [0],
+              start: 0,
+              end: 100
+            }
+          ],
+          legend: {
+            left: 150,
+            width : 700,
+            padding: [0,0,25,0],
+            data: data_name,
+            itemGap: 4,
+            itemHeight: 10,
+          },
+          grid:{
+            y2: 90,
+            top: 80
+          },
+          toolbox: {
+            show : true,
+            feature : {
+              mark : {show: true},
+              dataView : {show: true, readOnly: false},
+              magicType : {show: true, type: ['line', 'bar']},
+              restore : {show: true},
+              saveAsImage : {show: true}
+            }
+          },
+          calculable : true,
+          xAxis : [
+          {
+            type : 'category',
+            boundaryGap : false,
+            data : time_line,
+            splitLine:{
+              　　　　show:true
+            　　 },
+              axisLabel: {
+                   interval:0,
+                   rotate:35,
+                   fontSize:5
+                }
+          }
+          ],
+          yAxis : [
+          {
+            type : 'value',
+            scale:true
+
+          }
+          ],
+          series : [
+
+          ]
+        };
+        for(var i=0;i<result.length;i++){
+          var lineObj = {'name':result[i].name,"type":'line',"smooth":true,'data':result[i].data};
+          option.series.push(lineObj);
+        }
+        echartLine.setOption(option);
+      }else{
+        $('#mainUp').hide()
+      }
+     //t2chart
+
+   // fhs chart
+   if (fhs.time !== undefined){
+    var timeLine = fhs.time;
+    var t6chart = echarts.init(document.getElementById('t6chart'),"shine");
+    var show_count = fhs.show_count;
+    if(show_count <=10) {
+      show_count = 1000;
+    }
+    option = {
+      title : {
+        text: 'FHS-GARCH压力测试分析',
+        subtext: '基于'+show_count+'次压力测试结果分位数显示'
+      },
+      tooltip : {
+        trigger: 'axis',
+        formatter:function(obj){
+          var result = '';
+          var i = obj.length;
+          while(i--){
+            result +=
+            '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + obj[i].color +'"></span>'+obj[i].seriesName * 100+'%&nbsp;'+ obj[i].data.toFixed(4)+'<br>';
+          }
+          return result
+        }
+      },
+      toolbox: {
+        show : true,
+        feature : {
+          mark : {show: true},
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      calculable : true,
+      xAxis : [
+      {
+        type : 'category',
+        boundaryGap : false,
+        data : timeLine,
+        splitLine:{
+          　　　　show:true
+        　　 }
+      }
+      ],
+      yAxis : [
+      {
+        type : 'value',
+        scale:true
+      }
+      ],
+      series : [
+      ]
+    };
+    for(var x=0;x<fhs.data.length;x++){
+      var name = fhs.data[x].name;
+      var data = fhs.data[x].data;
+      option.series.push({"name":name,"type":"line","data":data,"smooth":true})
+    }
+    t6chart.setOption(option);
+
+  }else{
+            //$("#t6chart").hide();
+            $("#t6chart").html("<p>FHS-GARCH压力测试暂时没有找到可用的数据</p> ")
+          }
+          if (copula.x  !== undefined){
+            var echartBar = echarts.init(document.getElementById('t6cchart'), "shine");
+            echartBar.setOption({
+              title: {
+                text: "Copula压力测试分析",
+                subtext: '基于1000次压力测试结果'
+              },
+              tooltip: {
+                trigger: 'axis'
+              },
+              legend: {
+                data: ['sales', 'purchases']
+              },
+              toolbox: {
+                show : true,
+                feature : {
+                  mark : {show: true},
+                  dataView : {show: true, readOnly: false},
+                  magicType : {show: true, type: ['line', 'bar']},
+                  restore : {show: true},
+                  saveAsImage : {show: true}
+                }
+              },
+              calculable: false,
+              xAxis: [{
+                type: 'category',
+                data:copula.x
+
+              }],
+              yAxis: [{
+                type: 'value',
+                scale:true
+              }],
+              series : [
+              {
+                name:'频率',
+                type:'bar',
+                data:copula.y
+              }
+              ]
+            });
+          }else{
+            $("#t6cchart").html("<p>copula压力测试暂时没有找到可用的数据</p> ")
+          }
+
+        // tab7
+        if (multi.legend.length >0){
+         var echartRadar = echarts.init(document.getElementById('t7chart'), "shine");
+         echartRadar.setOption({
+          title: {
+            text: '多因子分析'
+          },
+          tooltip: {
+            trigger: 'item'
+          },
+          legend: {
+            orient: 'vertical',
+            x: 'top',
+            y: 'bottom',
+            data: multi.legend
+          },
+          toolbox: {
+            show: true,
+            feature: {
+              restore: {
+                show: true,
+                title: "Restore"
+              },
+              saveAsImage: {
+                show: true,
+                title: "Save Image"
+              }
+            }
+          },
+          polar: [{
+            indicator: multi.indicator
+          }],
+          calculable: true,
+          series: [{
+            name: '多因子分析',
+            type: 'radar',
+            data: multi.series
+          }]
+        });
+       }else{
+        $('#t7chart').html("<p>暂时没有找到可用的数据</p> ")
+      }
+    //
+
+  </script>
+  {% endblock %}

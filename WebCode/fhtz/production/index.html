@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>东方恒泰 | </title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="../vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+	
+    <!-- bootstrap-progressbar -->
+    <link href="../vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet">
+    <!-- JQVMap -->
+    <link href="../vendors/jqvmap/dist/jqvmap.min.css" rel="stylesheet"/>
+    <!-- bootstrap-daterangepicker -->
+    <link href="../vendors/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+    <link href="../build/css/style.css" rel="stylesheet">
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="index.html" class="site_title"><i class="fa fa-paw"></i> <span>东方恒泰</span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <div class="profile clearfix">
+              <div class="profile_pic">
+                <img src="images/img.png" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Welcome,</span>
+                <h2>John Doe</h2>
+              </div>
+            </div>
+            <!-- /menu profile quick info -->
+
+            <br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              <div class="menu_section">
+                <!-- <h3>General</h3>  --> <!--这里是显示权限地方--> 
+                <ul class="nav side-menu">
+                  <li><a href="index.html"><i class="fa fa-home"></i> 首页 </a></li>
+                  <li><a href="form.html"><i class="fa fa-edit"></i> 要闻检索</a></li>
+                  <li><a href="general_elements.html"><i class="fa fa-desktop"></i> 宏观研究 </a></li>
+                  <li><a href="tables.html"><i class="fa fa-table"></i> 市场纵览 </a> </li>
+                  <li><a><i class="fa fa-bar-chart-o"></i> 股票分析 <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="fixed_sidebar.html">1号分析</a></li>
+                      <li><a href="fixed_footer.html">2号分析</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+              <div class="menu_section">
+<!--                 <h3>Live On</h3> -->
+                <ul class="nav side-menu">
+                  <li><a><i class="fa fa-bug"></i> 数据更新 <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="project_detail_news.html">要闻更新</a></li>
+                      <li><a href="project_detail_share.html">股票池</a></li>
+                      <li><a href="project_detail_other.html">其他</a></li>
+                    </ul>
+                  </li>
+                  <li><a href="level2.html"><i class="fa fa-sitemap"></i> 账号维护 </a></li>                  
+                  <li><a href="login.html"><i class="fa fa-laptop"></i> 退出 </a></li>
+                </ul>
+              </div>
+
+            </div>
+
+              <!-- /menu footer buttons -->
+              <div class="sidebar-footer hidden-small">
+                  <a data-toggle="tooltip" data-placement="top" title="Settings">
+                      <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                  </a>
+                  <a data-toggle="tooltip" data-placement="top" title="FullScreen">
+                      <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
+                  </a>
+                  <a data-toggle="tooltip" data-placement="top" title="Lock">
+                      <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                  </a>
+                  <a data-toggle="tooltip" data-placement="top" title="Logout" href="login.html">
+                      <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                  </a>
+              </div>
+<!--  -->
+          </div>
+        </div>
+
+        <!-- top navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+            <nav>
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+
+              <ul class="nav navbar-nav navbar-right">
+                <li class="">
+                  <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <img src="images/img.png" alt="">John Doe
+                    <span class=" fa fa-angle-down"></span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-usermenu pull-right">
+                    <li><a href="javascript:;"> Profile</a></li>
+                    <li>
+                      <a href="javascript:;">
+                        <span class="badge bg-red pull-right">50%</span>
+                        <span>Settings</span>
+                      </a>
+                    </li>
+                    <li><a href="javascript:;">Help</a></li>
+                    <li><a href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                  </ul>
+                </li>
+
+
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        <div class="right_col" role="main">
+          <!-- top tiles -->
+          <!-- /top tiles -->
+
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="row">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="TopLeft col-xs-4">
+                            <h3>鑫隆FOF</h3>
+                            <ul style="list-style: none;padding-left: 0px;">
+                                <li>&nbsp;</li>
+                                <li><span>基金规模： </span><strong>47.15</strong></li>
+                                <li><span>基金管理人： </span><strong>***</strong></li>
+                                <li><span>年化收益： </span><strong>10.2</strong>%</li>
+                            </ul>
+                        </div>
+                        <div class="TopCont  col-xs-6">
+                            <div class="TopContT">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td>最新净值日期：</td>
+                                            <td>2017-03-08</td>
+                                            <td style="padding-left: 20px;">成立日期：</td>
+                                            <td>2017-02-02</td>
+                                        </tr>
+                                        <tr>
+                                            <td rowspan="3"><h3>1.02</h3></td>
+                                            <td>+0.002</td>
+                                            <td style="padding-left: 20px;">终止日期：</td>
+                                            <td>永续</td>
+                                        </tr>
+                                        <tr>
+                                            <td>+0.02<i>%</i></td>
+                                            <td style="padding-left: 20px;">基金状态：</td>
+                                            <td>开放</td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="TopContF">
+                                <ul style="list-style: none;padding-left: 0px;">
+                                    <li><span>基金类型：</span>购票多头(未来会变成现实多策略名称)</li>
+                                    <li><span>基金经理：</span>***</li>
+                                    <li><span>最大回撤：</span>10.2<i>%</i></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="TopRight  col-xs-2">复华方负责人：<span>岳震东</span></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="contentLeft col-xs-7">
+                            <div class="contentImg col-xs-12">
+                                <!-- -->
+
+                                <div class="dashboard_graph x_panel">
+
+                                    <div class="x_content">
+                                        <div class="demo-container" style="height:250px">
+                                            <div id="chart_plot_03" class="demo-placeholder" style="padding: 0px; position: relative;">
+                                                <canvas class="flot-base" width="968" height="280" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 968px; height: 280px;"></canvas>
+                                                <div class="flot-text" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; font-size: smaller; color: rgb(84, 84, 84);">
+                                                <div class="flot-x-axis flot-x1-axis xAxis x1Axis" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; display: block;">
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 17px; text-align: center;">2016-03-01</div>
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 134px; text-align: center;">2016-05-01</div>
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 252px; text-align: center;">2016-07-01</div>
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 369px; text-align: center;">2016-09-01</div>
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 487px; text-align: center;">2016-11-01</div>
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 601px; text-align: center;">2017-01-01</div>
+                                                    <div class="flot-tick-label tickLabel" style="position: absolute; max-width: 96px; top: 262px; left: 718px; text-align: center;">2017-03-01</div>
+                                                </div>
+                                                    <div class="flot-y-axis flot-y1-axis yAxis y1Axis" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; display: block;">
+                                                        <div class="flot-tick-label tickLabel" style="position: absolute; top: 249px; left: 8px; text-align: right;">0.75</div>
+                                                        <div class="flot-tick-label tickLabel" style="position: absolute; top: 218px; left: 8px; text-align: right;">1</div>
+                                                        <div class="flot-tick-label tickLabel" style="position: absolute; top: 187px; left: 1px; text-align: right;">1.25</div>
+                                                        <div class="flot-tick-label tickLabel" style="position: absolute; top: 156px; left: 1px; text-align: right;">1.5</div>
+                                                    </div>
+                                                </div>
+                                                <canvas class="flot-overlay" width="968" height="280" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 968px; height: 280px;"></canvas>
+                                                <div class="legend">
+                                                    <div style="position: absolute; width: 86px; height: 17px; top: 14px; right: 13px; background-color: rgb(255, 255, 255); opacity: 0.85;"> </div>
+                                                    <table style="position:absolute;top:14px;right:13px;;font-size:smaller;color:#545454">
+                                                        <tbody>
+                                                        <tr>
+                                                            <td class="legendColorBox">
+                                                                <div style="border:1px solid #ccc;padding:1px">
+                                                                    <div style="width:4px;height:0;border:5px solid rgb(38,185,154);overflow:hidden"></div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="legendLabel">Registrations</td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- -->
+                            </div>
+
+                            <div class="clearfix"></div>
+                            <br/>
+                            <div class="contentStr col-xs-12">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td>累计收益：</td>
+                                            <td>43.50<i>%</i></td>
+                                            <td style="padding-left: 20px;">同期恒生指数：</td>
+                                            <td>0.31<i>%</i></td>
+                                            <td style="padding-left: 20px;"> 截止：</td>
+                                            <td>2017-03-24</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                        <div class="contentRight col-xs-5">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>净值时间</th>
+                                    <th>单位净值</th>
+                                    <th>复权净值</th>
+                                    <th>增长率</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>2017.03.24</td>
+                                    <td>14.350</td>
+                                    <td>14.350</td>
+                                    <td>0.70%</td>
+                                </tr>
+                                <tr>
+                                    <td>2017.03.24</td>
+                                    <td>14.350</td>
+                                    <td>14.350</td>
+                                    <td>0.70%</td>
+                                </tr>
+                                <tr>
+                                    <td>2017.03.24</td>
+                                    <td>14.350</td>
+                                    <td>14.350</td>
+                                    <td>0.70%</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <br/>
+                <div class="x_title"> <!--分割线处理--> </div>
+                <div>
+                    <ul>
+                        <li>
+                            <h4><a href="#">策略信息</a></h4>
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>阿尔法策略</th>
+                                    <th>cta策略</th>
+                                    <th>股票多头策略</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>2017-03-24</td>
+                                    <td>50</td>
+                                    <td>30</td>
+                                    <td>20</td>
+                                </tr>
+                                <tr>
+                                    <td>2017-03-24</td>
+                                    <td>50</td>
+                                    <td>50</td>
+                                    <td>0</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </li>
+                        <li>
+                            <h4><a href="#">子基金信息</a></h4>
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>阿尔法策略</th>
+                                    <th>cta策略</th>
+                                    <th>股票多头策略</th>
+                                    <th>现金</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>2017-03-24</td>
+                                    <td>6000</td>
+                                    <td>2000</td>
+                                    <td>8000</td>
+                                    <td>0</td>
+                                </tr>
+                                <tr>
+                                    <td>2017-03-24</td>
+                                    <td>2000</td>
+                                    <td>4000</td>
+                                    <td>6000</td>
+                                    <td>8000</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </li>
+                        <li>
+                            <h4><a href="#">文件信息</a></h4>
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>上传时间</th>
+                                    <th>文件类型</th>
+                                    <th>文件名称</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>2017-03-24</td>
+                                    <td>基本合同</td>
+                                    <td>**合同</td>
+                                </tr>
+                                <tr>
+                                    <td>2017-03-24</td>
+                                    <td>投资指南</td>
+                                    <td>**协议</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+          </div>
+          <br />
+
+ 
+
+        <!-- footer content -->
+<!--         <footer>
+          <div class="pull-right">
+            Gentelella - Bootstrap Admin Template by <a href="https://colorlib.com">Colorlib</a>
+          </div>
+          <div class="clearfix"></div>
+        </footer> -->
+        <!-- /footer content -->
+      </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+    <!-- Chart.js -->
+    <script src="../vendors/Chart.js/dist/Chart.min.js"></script>
+    <!-- gauge.js -->
+    <script src="../vendors/gauge.js/dist/gauge.min.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="../vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+    <script src="../vendors/iCheck/icheck.min.js"></script>
+    <!-- Skycons -->
+    <script src="../vendors/skycons/skycons.js"></script>
+    <!-- Flot -->
+    <script src="../vendors/Flot/jquery.flot.js"></script>
+    <script src="../vendors/Flot/jquery.flot.pie.js"></script>
+    <script src="../vendors/Flot/jquery.flot.time.js"></script>
+    <script src="../vendors/Flot/jquery.flot.stack.js"></script>
+    <script src="../vendors/Flot/jquery.flot.resize.js"></script>
+    <!-- Flot plugins -->
+    <script src="../vendors/flot.orderbars/js/jquery.flot.orderBars.js"></script>
+    <script src="../vendors/flot-spline/js/jquery.flot.spline.min.js"></script>
+    <script src="../vendors/flot.curvedlines/curvedLines.js"></script>
+    <!-- DateJS 影响出图-->
+    <script src="../vendors/DateJS/build/date.js"></script>
+    <!-- JQVMap -->
+    <script src="../vendors/jqvmap/dist/jquery.vmap.js"></script>
+    <script src="../vendors/jqvmap/dist/maps/jquery.vmap.world.js"></script>
+    <script src="../vendors/jqvmap/examples/js/jquery.vmap.sampledata.js"></script>
+    <!-- bootstrap-daterangepicker 日历-->
+    <script src="../vendors/moment/min/moment.min.js"></script>
+    <script src="../vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="../build/js/custom.min.js"></script>
+	
+  </body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>复华投资 | </title>
+
+    <!-- Bootstrap -->
+    <link href="../../static/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../../static/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../../static/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link href="../../static/vendors/animate.css/animate.min.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="../../static/css/custom.min.css" rel="stylesheet">
+  </head>
+
+  <body class="login">
+    <div>
+      <a class="hiddenanchor" id="signup"></a>
+      <a class="hiddenanchor" id="signin"></a>
+
+      <div class="login_wrapper">
+
+
+        <div id="register" class="animate form login_form ">
+          <section class="login_content">
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                {{ form.hidden_tag() }}
+              <h1>Create Account</h1>
+               <div>
+
+                  {{ form.username(class_="form-control") }}
+                </div>
+                <div class="form-group">
+
+                  {{ form.password(class_='form-control') }}
+                </div>
+                <div class="form-group">
+
+                  {{ form.confirm(class_='form-control') }}
+                </div>
+
+
+                <div class="form-group">
+
+                        <div class="col-md-8">
+                           {{ form.verification_code(class_='form-control') }}
+                        </div>
+
+                  <label class="control-label col-md-4">
+                            <a href="javascript:void(0)" id="code"><img id="authcode_img" src="{{ url_for('auth.get_code') }}"></a>
+                        </label>
+               </div>
+
+
+                <div>
+                     <input class="btn btn-primary" type="submit" value="Register">
+                </div>
+
+
+
+              <div class="clearfix"></div>
+
+              <div class="separator">
+                <p class="change_link">Already a member ?
+                  <a href="#signin" class="to_register"> Log in </a>
+                </p>
+
+                <div class="clearfix"></div>
+                <br />
+
+                <div>
+                  <p>©2016 复华投资　版权所有</p>
+                </div>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+  <script src="../../static/vendors/jquery/dist/jquery.min.js"></script>
+<script>
+
+    function get_code() {
+        $("#authcode_img").empty();
+        document.getElementById('authcode_img').src ='/code';
+    }
+
+
+    $(document).ready(function () {
+        $('#code').click(function () {
+            $.ajax({
+                url: '/code',
+                type: 'get',
+                contentType: 'application/image/jpeg',
+                success: function (callback) {
+                    $('#authcode_img').attr('src','/code')
+                }
+
+            })
+        })
+    })
+</script>

@@ -1,0 +1,410 @@
+{% extends "main.html" %}
+       {% block css %}
+        <link href='../../static/vendors/fullcalendar-3.4.0/fullcalendar.min.css' rel='stylesheet' />
+        <link href='../../static/vendors/fullcalendar-3.4.0/fullcalendar.print.css' rel='stylesheet' media='print' />
+        <link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" />
+        <link href="../../static/vendors/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css" rel="stylesheet" />
+{% endblock %}
+
+
+
+{% block content %}
+     <div class="">
+            <div class="page-title">
+              <div class="title_left">
+                                <h2>{{ fof.sec_name}}  日程</h2>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                      <div class="form-group">
+                          <label>
+                               <b><i class="fa fa-battery-0"></i>创建</b>
+                      <b><i class="fa fa-battery-2"></i>开始</b>
+                      <b><i class="fa fa-battery-full"></i>到期</b>
+                          </label>
+                      </div>
+                  </div>
+                  <div class="x_content">
+                 <div id='calendar'></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <div class="modal fade" id="crud">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="error"></div>
+                        <form class="form-horizontal" id="crud-form">
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="title">事件类型</label>
+                                <div class="col-md-10">
+                                    <select class="form-control input-md" id="title">
+                                        <option>现金管理</option>
+                                        <option>投资事项</option>
+                                        <option>投后事项</option>
+                                        <option>法务事项</option>
+                                        <option>其他事项</option>
+                                    </select>
+                                 <!--   <input id="title" name="title" type="text" class="form-control input-md" /> -->
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="time">创建时间</label>
+                                <div class="col-md-10 input-append ">
+                                    <input id="create" name="create" type="date" class="form-control input-md" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="time">提醒时间</label>
+                                <div class="col-md-10 input-append ">
+                                    <input id="start" name="start" type="date" class="form-control input-md" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="time">到期时间</label>
+                                <div class="col-md-10 input-append ">
+                                    <input id="end" name="end" type="date" class="form-control input-md" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="description">详细</label>
+                                <div class="col-md-10">
+                                    <textarea class="form-control" id="description" name="description"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="color">事件颜色</label>
+                                <div class="col-md-10">
+                                    <input id="color" name="color" type="text" class="form-control input-md" readonly="readonly" />
+                                    <span class="help-block">点击选择一种颜色类型</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="color">公共/私有</label>
+                                <div class="col-md-10" id="r1">
+                                      <label class="radio-inline"><input type="radio" name="r1" value="private" id="private" >私有</label>
+                                          <label class="radio-inline"><input type="radio" name="r1" value="public" id="public">公共</label>
+
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+{% endblock %}
+
+
+{% block script %}
+        <script src="../../static/vendors/moment/moment.js"></script>
+        <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
+        <script src="../../static/vendors/fullcalendar-3.4.0/fullcalendar.js"></script>
+        <script src='../../static/vendors/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js'></script>
+        <script src='../../static/vendors/bootstrap-timepicker/js/bootstrap-timepicker.min.js'></script>
+        <script src="../../static/vendors/fullcalendar-3.4.0/locale/zh-cn.js"></script>
+    <script>
+
+
+    function  privateCheck(typeStr) {
+        if(typeStr === "private"){
+            return true
+        }else{
+            return false
+        }
+    }
+
+    $('#crud').on('hidden.bs.modal', function () {
+            $('#crud-form').bootstrapValidator('resetForm', true);
+        });
+
+    $(function(){
+    var currentDate; // Holds the day clicked when adding a new event
+    var currentEvent; // Holds the event object when editing an event
+    $('#color').colorpicker(); // Colopicker
+
+    $('#calendar').fullCalendar({
+
+         header: {
+					left: 'today ',
+					center: 'prev title  next',
+					right: 'month,agendaWeek'
+				  },
+        // Get all events stored in database
+        // Handle Day Click
+{#        events: {url: '/f_app/query_cal/'+ {{ wind_code |tojson }} + "/"#}
+{#                        },#}
+        eventRender: function(event, element){
+                var today = moment();
+                element.find('.fc-time').hide();
+
+                    if(today.isAfter(event.start,'d')){
+                   element.find('.fc-title').append(" " + event.tag  +"<br/><del>" + event.desc+"</del>");
+
+                }else{
+                    element.find('.fc-title').append("  " + event.tag  +"<br/>" + event.desc);
+                }
+
+
+
+
+            },
+        events: function(start, end, timezone, callback) {
+        $.ajax({
+            url: '/f_app/query_cal/'+ {{ wind_code |tojson }} +'/',
+            type:'GET',
+            contentType: 'application/json',
+            dataType:'json',
+            data: {
+                // our hypothetical feed requires UNIX timestamps
+                start: start.unix(),
+                end: end.unix()
+            },
+            success: function(doc) {
+
+                callback(doc);
+            }
+        });
+    },
+        dayClick: function(date, event, view) {
+
+            currentDate = date.format();
+            // Open modal to add event
+            modal({
+                // Available buttons when adding
+                buttons: {
+                    add: {
+                        id: 'add-event', // Buttons id
+                        css: 'btn-success', // Buttons class
+                        label: '添加' // Buttons label
+                    }                },
+                title: '添加新的事件 (' + date.format() + ')' // Modal title
+            });
+        },
+        // Event Mouseover
+        eventMouseover: function(calEvent, jsEvent, view){
+            var tooltip;
+            if(calEvent.user){
+                tooltip = '<div class="event-tooltip">由' +  calEvent.user+"创建</br>" + calEvent.desc + '</div>';
+            }else{
+                tooltip = '<div class="event-tooltip">' +  calEvent.desc + '</div>';
+            }
+            $("body").append(tooltip);
+            $(this).mouseover(function(e) {
+                $(this).css('z-index', 10000);
+                $('.event-tooltip').fadeIn('500');
+                $('.event-tooltip').fadeTo('10', 1.9);
+            }).mousemove(function(e) {
+                    $('.event-tooltip').css('top', e.pageY + 10);
+                    $('.event-tooltip').css('left', e.pageX + 20);
+                });
+        },
+        eventMouseout: function(calEvent, jsEvent) {
+            $(this).css('z-index', 8);
+            $('.event-tooltip').remove();
+        },
+        // Handle Existing Event Click
+        eventClick: function(calEvent, jsEvent, view) {
+            // Set currentEvent variable according to the event clicked in the calendar
+            currentEvent = calEvent;
+            // Open modal to edit or delete event
+            modal({
+                // Available buttons when editing
+                buttons: {
+                    delete: {
+                        id: 'delete-event',
+                        css: 'btn-danger',
+                        label: '删除'
+                    },
+                    update: {
+                        id: 'update-event',
+                        css: 'btn-success',
+                        label: '更新'
+                    }
+                },
+                title: '编辑事件 "' + calEvent.title + '"',
+                event: calEvent
+            });
+        }
+    });
+
+
+
+
+    function modal(data) {
+        // Set modal title
+        $('.modal-title').html(data.title);
+        // Clear buttons except Cancel
+        $('.modal-footer button:not(".btn-default")').remove();
+        // Set input values
+        $('#title').val(data.event ? data.event.title  : '');
+        if( ! data.event) {
+            var now = new Date();
+        } else {
+            var start = moment(data.event.start).format('YYYY-MM-DD');
+            var end = data.event.end_time;
+            var create = data.event.create_time;
+            var startTime = data.event.start_time;
+            var Private = data.event.Private;
+        }
+        $('#start').val(startTime);
+        $("#end").val(end);
+        $('#description').val(data.event ? data.event.desc : '');
+        $('#color').val(data.event ? data.event.color : '#3a87ad');
+        $('#create').val(create);
+        if(Private === true){
+            $('#private').prop("checked",true)
+        }else{
+            $('#public').prop("checked",true)
+        }
+        $('#crud-form').bootstrapValidator({
+            excluded: ':disabled',
+        feedbackIcons: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields: {
+            title: {
+                validators: {
+                    notEmpty: {
+                        message: '这个字段不能为空'
+                    }
+                }
+            },
+            description: {
+                validators: {
+                    notEmpty: {
+                        message: '这个字段不能为空'
+                    }
+                }
+            },
+            create: {
+                    validators: {
+                        notEmpty: {
+                            message: '这个字段不能为空'
+                        },
+                        date: {
+                            format: 'MM/DD/YYYY',
+                            max:'start',
+                            message: '创建时间不能大于提醒时间'
+                        }
+                    }
+                },
+            start: {
+                    validators: {
+                        notEmpty: {
+                            message: '这个字段不能为空'
+                        },
+                        date: {
+                            format: 'MM/DD/YYYY',
+                            max: 'end',
+                            message: '提醒时间不能大于过期时间'
+                        }
+                    }
+                },
+             end: {
+                    validators: {
+                        notEmpty: {
+                            message: '这个字段不能为空'
+                        },
+                        date: {
+                            format: 'MM/DD/YYYY',
+                            min: 'start',
+                            message: '过期时间不能小于提醒时间'
+                        }
+                    }
+                },
+             r1: {
+                validators: {
+                    notEmpty: {
+                        message: '这个字段不能为空'
+                    }
+                }
+            }
+        }
+        });
+
+        // Create Butttons
+        $.each(data.buttons, function(index, button){
+            $('.modal-footer').prepend('<button type="button" id="' + button.id  + '" class="btn ' + button.css + '">' + button.label + '</button>')
+        });
+        //Show Modal
+        $('.modal').modal('show');
+
+    }
+    // Handle Click on Add Button
+    $('.modal').on('click', '#add-event',  function(e){
+        var bv = $('#crud-form').data('bootstrapValidator');
+        bv.validate();
+        if(bv.isValid()) {
+            $.post('/f_app/add_cal/'+{{ wind_code |tojson }}, {
+                title: $('#title').val(),
+                description: $('#description').val(),
+                color: $('#color').val(),
+                start:$('#start').val(),
+                end:$("#end").val(),
+                create:$("#create").val(),
+                Private:privateCheck($('#r1 input:checked').val())
+
+            }, function(result){
+                $('.modal').modal('hide');
+                $('#calendar').fullCalendar("refetchEvents");
+            });
+        }
+    });
+    // Handle click on Update Button
+    $('.modal').on('click', '#update-event',  function(e){
+            // Use Ajax to submit form data
+            var bv = $('#crud-form').data('bootstrapValidator');
+            bv.validate();
+            if(bv.isValid()){
+                 $.post('/f_app/edit_cal/'+{{ wind_code |tojson }}, {
+                id: currentEvent._id,
+                title: $('#title').val(),
+                description: $('#description').val(),
+                color: $('#color').val(),
+                start:$('#start').val(),
+                end:$("#end").val(),
+                create:$("#create").val(),
+                Private:privateCheck($('#r1 input:checked').val())
+            }, function(result){
+                $('.modal').modal('hide');
+                $('#calendar').fullCalendar("refetchEvents");
+            });
+            }
+        });
+
+
+    // Handle Click on Delete Button
+    $('.modal').on('click', '#delete-event',  function(e){
+        $.get('/f_app/del_cal?id=' + currentEvent._id, function(result){
+            $('.modal').modal('hide');
+            $('#calendar').fullCalendar("refetchEvents");
+        });
+    });
+
+});
+
+
+
+    </script>
+{% endblock %}

@@ -1,0 +1,400 @@
+body > .body > .main_container > .left_col {
+    margin-top: 57px;
+}
+body > .body   .nav_menu .floatL > a{
+    color: #fff !important;
+}
+body > .body > .main_container > .left_col > .scroll-view{
+    width: 100%;
+}
+
+.floatL {
+    float: left;
+}
+.site_title i {
+    border: 1px solid #fff;
+}
+.nav_menu {
+    background: rgb(59,120,231);
+}
+
+.nav li li.current-page a {
+    color: #000 !important;
+}
+.left_col {
+    background: #fafafa;
+}
+.top_nav .nav .open>a, .top_nav .nav .open>a:focus, .top_nav .nav .open>a:hover, .top_nav .nav>li>a:focus, .top_nav .nav>li>a:hover {
+    background: rgb(59,120,231);
+}
+.sidebar-footer {
+    background: #d6d6d6;
+}
+.sidebar-footer a {
+    background: #fafafa;
+}
+body {
+    background: #fafafa;
+    font-family: "Helvetica Neue",Roboto,Arial,"Droid Sans",sans-serif;
+
+}
+.nav.child_menu>li>a, .nav.side-menu>li>a {
+    color: #3b3b3b;
+}
+.main_menu span.fa {
+    color: #3b3b3b;
+}
+
+.fixed_height_390 {
+    height: auto !important;
+}
+ul.widget_tally li {
+    padding: 2px 10px 4px;
+    border-bottom: none;
+}
+
+.nav.side-menu>li.active, .nav.side-menu>li.current-page {
+    border-right: 0px;
+}
+.nav li.current-page {
+    /*background: rgb(209,224,247);*/
+}
+.nav.navbar-nav>li>a {
+    color: #fff !important;
+}
+/* 这里是hover */
+#sidebar-menu > .active > .nav > li > a:hover, #sidebar-menu > .active > .nav > li > a:focus {
+    background-color: #ECF5FF !important;
+	color: #000 !important;
+}
+/* 这行代码是多的需要删除掉 */
+/*.nav>li>a:focus,.nav>li>a:hover {
+    background-color: rgb(59,120,231) !important;
+}*/
+body .container.body .right_col {
+    background: #fff;
+}
+/*这两行颜色出现问题调试了*/
+.profile_info span {
+    font-size: 15px;
+    color: #000;
+}
+.profile_info h2 {
+    font-size: 16px;
+    color: #000;
+}
+.top_nav .navbar-right {
+    width: 20%;
+}
+
+.nav-md ul.nav.child_menu li::before {
+    background: #b6b6b6;
+}
+.nav-sm ul.nav.child_menu {
+    background: #fafafa !important;
+}
+.main > .row > .Img{
+    width: 100%;
+    height: 88px;
+}
+.nav_menu > nav > .search > input {
+    margin-top: 10px ;
+    background: rgb(92,142,237);
+    width: 96%;
+    text-indent: 30px;
+}
+.nav_menu > nav > .search > span{
+    position: relative;
+    top: 20px;
+    left: 25px;
+    color: #fff;
+}
+
+table.projects tr th{
+    text-align :center;
+}
+table.projects tr td{
+    text-align :center;
+}
+
+.navbar-center
+{
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    margin: auto;
+}
+
+.nav.side-menu>li.active>a {
+    text-shadow: rgba(0,0,0,.25) 0 -1px 0;
+    background: #C4E1FF !important;
+
+}
+
+/* data list */
+.spinner {
+    margin: 0 auto;
+    width: 300px;
+    height: 60px;
+    text-align: center;
+    font-size: 10px;
+}
+
+.spinner > div {
+    background-color: #67CF22;
+    height: 100%;
+    width: 6px;
+    display: inline-block;
+
+    -webkit-animation: stretchdelay 1.2s infinite ease-in-out;
+    animation: stretchdelay 1.2s infinite ease-in-out;
+}
+
+.spinner .rect2 {
+    -webkit-animation-delay: -1.1s;
+    animation-delay: -1.1s;
+}
+
+.spinner .rect3 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+}
+
+.spinner .rect4 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+}
+
+.spinner .rect5 {
+    -webkit-animation-delay: -0.8s;
+    animation-delay: -0.8s;
+}
+
+@-webkit-keyframes stretchdelay {
+    0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+    20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes stretchdelay {
+    0%, 40%, 100% {
+        transform: scaleY(0.4);
+        -webkit-transform: scaleY(0.4);
+    }  20% {
+           transform: scaleY(1.0);
+           -webkit-transform: scaleY(1.0);
+       }
+}
+/* /data list */
+.swiper-container {
+    width: 100%;
+    margin: 20px auto;
+    padding-top: 50px;
+}
+
+.col-md-2 {
+width: 12% !important;
+}
+
+i, cite, em, var, address, dfn {
+    font-style: normal;
+}
+
+body .row .ACT .active{
+    color: #000 !important;
+}
+
+
+body .row .ACT .SeInfo{
+  -webkit-tap-highlight-color: transparent;
+  background-color: #fff;
+  border-radius: 5px;
+  border: solid 1px #e8e8e8;
+  box-sizing: border-box;
+  clear: both;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: normal;
+  height: 28px;
+  line-height: 26px;
+  outline: none;
+  padding-left: 8px;
+  padding-right: 20px;
+  position: relative;
+  text-align: left !important;
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  white-space: nowrap;
+  width: auto;
+}
+
+body .row .ACT .stats-overview{
+    border-bottom: 2px solid #E6E9ED;
+    padding-bottom: 10px;
+}
+
+#tab4{
+    text-align: center;
+}
+
+#tab4 thead tr th{
+    text-align: center;
+}
+
+.nav-tabs.nav-justified>.active>a, .nav-tabs.nav-justified>.active>a:focus, .nav-tabs.nav-justified>.active>a:hover{
+    border: 2px solid rgb(150,150,150);
+}
+
+.nav-tabs.nav-justified>.active>a, .nav-tabs.nav-justified>.active>a:focus, .nav-tabs.nav-justified>.active>a:hover{
+    border-bottom-color: #fff;
+}
+
+.nav-tabs.nav-justified>li>a {
+    border-bottom: 2px solid rgb(150,150,150);
+}
+
+body .row .ACT .btn-group button{
+    margin-right: 6px;
+}
+
+body .row .ACT .stats-overview .btn-group{
+    margin-top: 3px;
+    padding-left: 0px;
+}
+
+body .row .ACT .stats-overview .btn-group button{
+    background: rgb(92,142,237);
+    color: #fff;
+}
+
+
+
+/**/
+.select,
+.download-target {
+  width: 20em;
+}
+.select {
+  position: relative;
+  display: block;
+  height: 3em;
+  line-height: 3;
+  background: #fff;
+  overflow: hidden;
+  border-radius: .25em;
+  display: inline-block;
+  border: 1px solid #667780;
+  margin: 1em 0;
+}
+.dropdown .select{
+  width: 60%;
+  height: 30px;
+  margin: 0 0 10px 0;
+  padding: 0 0 0 .5em;
+  color: #000;
+  cursor: pointer;
+}
+
+body .panel .hover_sel #assessStatus h2,span{
+    display: inline-block;
+}
+
+body .panel .hover_sel #assessStatus h2, span.selection{
+    width: 100%;
+}
+
+body .row .ACT .stats-overview .btn-group #changeRank {
+    border: none;
+    padding: 2px 20px;
+    background: #b6b6b6;
+    color: #fff;
+    width: 80px;
+}
+body .panel form input.hideInt{
+    display: none;
+}
+
+body .panel .hover_sel #assessStatus select{
+    display: none;
+    width:42%;
+    height: 26px;
+    margin-top: 0px;
+}
+
+#fund_select-styled{
+    height: 18px;
+    font-size: 14px;
+}
+
+#button_group{
+    color: #fff;
+    list-style: none;
+    padding-left: 0px;
+    display:none;
+}
+#button_group> li{
+    padding:3px 25px;
+    display:inline;
+    font-size:16px;
+    color:#fff;
+}
+#button_group> li:first-of-type
+{
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+#button_group> li:last-of-type
+{
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+body .row .ACT .stats-overview .btn-group .form-control {
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    height: 28px;
+    padding: 0px 5px;
+    display: none;
+}
+
+/*add_fund 页面ｃｓｓ处理*/
+body .row .item .SetError ul li{
+    width: 150px;
+    position: relative;
+    left: 102%;
+    top: -16px;
+    color: #CE5454;
+    line-height: 0px;
+    margin-top: 0px;
+    padding-top: 0px;
+}
+
+body .fundForm .marginTop{
+    margin-top: 8px;
+}
+body .fundForm .marginTopSix{
+    margin-top: 16px;
+}
+body .fundForm input, body .fundForm textarea{
+    display: none;
+}
+body .fundForm .item > .control-label{
+    text-align: left!important;
+}
+body .item .marginTop > ul{
+    padding-left: 0px;
+    list-style: none;
+}
+body .x_content .fundForm > div:first-child{
+    border-right: 2px solid #E6E9ED;
+}
+
+table.center-all td,th{
+    text-align :center;
+}

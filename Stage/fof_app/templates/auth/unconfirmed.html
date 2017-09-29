@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>复化投资 | </title>
+
+    <!-- Bootstrap -->
+    <link href="../../static/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../../static/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../../static/vendors/nprogress/nprogress.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="../../static/css/custom.min.css" rel="stylesheet">
+  </head>
+
+  <body class="nav-md">
+  {% for message in get_flashed_messages() %}
+            <div class="alert alert-warning">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+    <div class="container body">
+      <div class="main_container">
+        <!-- page content -->
+        <div class="col-md-12">
+          <div class="col-middle">
+            <div class="text-center">
+            <div class="container">
+              <h1>Hello,{{ current_user.username }}!</h1>
+              <h3>你的账号还没有激活</h3>
+               <h4>
+                    在你访问本网站之前，需要确认你的帐户。请检查你的收件箱，应该已收到一封电子邮件与确认链接。
+                </h4>
+                <h4>
+                    需要另一个确认邮件吗？
+                    <a href="{{ url_for('auth.resend_confirmation') }}">点击这里</a>
+                </h4>
+            </div>
+                     <div>
+              </div>
+          </div>
+        </div>
+        <!-- /page content -->
+      </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../../static/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../../static/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="../../static/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../../static/vendors/nprogress/nprogress.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="../../static/js/custom.min.js"></script>
+  </body>
+</html>

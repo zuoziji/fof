@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Gentelella Alela! | </title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- bootstrap-daterangepicker -->
+    <link href="../vendors/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+    
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+    <link href="../build/css/style.css" rel="stylesheet">
+  </head>
+
+  <body class="nav-md">
+    <table class="table "  id="NewTables"  width="100%">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>warning_line</th>
+                <th>warding_line</th>
+                <th>date</th>
+                <th>现金</th>
+            </tr>
+        </thead>
+      <tbody id="Tbody">
+        <tr>
+            <td>2017-03-24</td>
+            <td>6000</td>
+            <td>2000</td>
+            <td>8000</td>
+            <td>0</td>
+        </tr>
+      </tbody>
+    </table>
+<!--       <input type="date"> -->
+  </body>
+   <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+    <!-- morris.js -->
+    <script src="../vendors/raphael/raphael.min.js"></script>
+    <script src="../vendors/morris.js/morris.min.js"></script>
+    <!-- Flot -->
+    <script src="../vendors/Flot/jquery.flot.js"></script>
+    <script src="../vendors/Flot/jquery.flot.pie.js"></script>
+    <script src="../vendors/Flot/jquery.flot.time.js"></script>
+    <script src="../vendors/Flot/jquery.flot.stack.js"></script>
+    <script src="../vendors/Flot/jquery.flot.resize.js"></script>
+
+    <!-- bootstrap-progressbar -->
+    <script src="../vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="../vendors/moment/min/moment.min.js"></script>
+    <script src="../vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+<!--     
+Custom Theme Scripts
+<script src="../build/js/custom.min.js"></script>
+DateJS 影响出图
+<script src="../vendors/DateJS/build/date.js"></script> -->
+    <script src="../vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+<!--   <script>
+  var data = [
+        {"name": "别名1", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-12", "scale": 100000.0}, 
+        {"name": "别名1", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-12", "scale": 2222.0}, 
+        {"name": "4号", "warning_line": "None", "winding_line": "None", "date": "2017-04-04", "scale": 10000.0}, 
+        {"name": "五号", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-04", "scale": 3333.0}
+      ]
+    $('#example').DataTable( {
+          "aaData": data,
+          "aoColumns": [
+              { "mDataProp": 'name'},
+              { "mDataProp": 'position'},
+              { "mDataProp": 'salary'},
+              { "mDataProp": 'office'},
+              { "mDataProp": 'office2'}
+          ]
+    } );    
+</script> -->
+  <script>
+   $(document).ready(function() {
+      var jsonStr = [
+          {"name": "别名1", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-12", "scale": 100000.0}, 
+          {"name": "别名1", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-12", "scale": 2222.0}, 
+          {"name": "4号", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-04", "scale": 10000.0}, 
+          {"name": "五号", "warning_line": 1.0, "winding_line": 1.0, "date": "2017-04-04", "scale": 3333.0}
+        ]
+      var table = $('#NewTables').DataTable({
+/*          "searching": false,
+          "bFilter": false,
+          "bInfo":false,
+          "bPaginate":false,
+          "aaData": jsonStr,
+          "aoColumns": [
+            { "mDataProp": "name" },
+            { "mDataProp": "warning_line" },
+            { "mDataProp": "winding_line" },
+            { "mDataProp": "date" },
+            { "mDataProp": "scale" }
+          ],*/
+          "info": false,
+          "paging": false,
+           "data": jsonStr,
+           "columns": [
+               
+               { "data": "name" },
+               { "data": "warning_line" },
+               { "data": "winding_line" },
+               { "data": "date" },
+               { "data": "scale" }
+           ],
+
+          "columnDefs": [
+              { "visible": false, "targets": 3 }
+          ],
+          "order": [[ 3, 'asc' ]],
+          "displayLength": 25,
+          "drawCallback": function ( settings ) {
+              var api = this.api();
+              var rows = api.rows( {page:'current'} ).nodes();
+              var last=null;
+   
+              api.column( 3, {page:'current'} ).data().each( function ( group, i ) {
+                  if ( last !== group ) {
+                      $(rows).eq( i ).before(
+                          '<tr class="group"><td colspan="5">'+group+'</td></tr>'
+                      );
+   
+                      last = group;
+                  }
+              } );
+          }
+      } );
+   
+/*      $('#NewTables').on( 'draw.dt', function () {
+          console.log( 'Redraw occurred at: '+new Date().getTime() );
+      } );*/
+
+      // Order by the grouping
+      $('#NewTables tbody').on( 'click', 'tr.group', function () {
+          var currentOrder = table.order()[0];
+          if ( currentOrder[0] === 2 && currentOrder[1] === 'asc' ) {
+              table.order( [ 2, 'desc' ] ).draw();
+          }
+          else {
+              table.order( [ 2, 'asc' ] ).draw();
+          }
+      } );
+  } );
+  </script>
+  </html>

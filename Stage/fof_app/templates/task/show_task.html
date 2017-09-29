@@ -1,0 +1,124 @@
+{% extends "/f_app/main.html" %}
+
+{% block css %}
+    <link type="text/css" href="../../static/vendors/select2/dist/css/select2.css" rel="stylesheet">
+    <link type="text/css" href="../../static/vendors/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0;
+    color: black;
+    background-color: ghostwhite;
+}
+</style>
+{% endblock %}
+
+{% block manager %}
+{% endblock %}
+
+{% block content %}
+      <div class="x_title">
+                 <h2>异步任务管理</h2>
+                <div class="clearfix"></div>
+            </div>
+    <div class="row">
+              <div class="col-md-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                      <h4>当前任务</h4>
+                      <p> WebSocket连接状态
+                      <span class="label label-success " id="connect">READY</span>
+                      <span class="label label-danger" id="disconnect">断开</span>
+                      </p>
+                      <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+
+                  </div>
+                </div>
+                  <div class="x_content">
+                    <div class="input-group col-md-3">
+                        <select class="form-control select2" id="normal_task">
+                        </select>
+                      <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="run">RUN!</button>
+                      </span>
+                    </div>
+                  </div>
+              </div>
+            </div>
+    <div id="log">
+    <pre id="content" style="height: 500px">
+
+    </pre>
+    </div>
+
+{% endblock %}
+
+
+
+{% block script %}
+    <script src="../../static/js/socket.io.js"></script>
+    <script src="../../static/vendors/select2/dist/js/select2.full.js"></script>
+    <script>
+    var normal_task = {{ normal_task |tojson }}
+    $(document).ready(function () {
+            namespace = '/stream';
+            var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+            socket.on('connect', function() {
+                socket.emit('my_event', {data: 'I\'m connected!'});
+            });
+            socket.on('my_response', function(msg) {
+                var pre = $("#content");
+                pre.scrollTop( pre.prop("scrollHeight") );
+                if(msg.states === 'connect'){
+                    $('#content').removeClass('hide');
+                    $("#disconnect").addClass("hide");
+                    if(msg.log){
+                        $('#content').append('<br>' + $('<div/>').text( msg.log.asctime + "  "+
+                                msg.log.levelname + "  " + msg.log.name + "  " +msg.log.message).html());
+                    }
+                }else{
+                     $("#content").addClass("hide");
+                     $("#disconnect").removeClass("hide");
+                }
+
+            });
+            $("#normal_task").select2({
+                data:normal_task
+            });
+            $('#run').on('click',function () {
+                var task = $('#normal_task').select2('data')[0].text;
+                var obj = {"name":task};
+                $.ajax({
+                    url:'/task/manual_execute',
+                        type:'POST',
+                        contentType: 'application/json',
+                        data:JSON.stringify(obj),
+                        dataType:'json',
+                        success:function (callback) {
+                        console.log(callback)
+                        }
+                })
+            });
+{#            $('#current').on('click',function () {#}
+{#                var obj = {"data":"current"};#}
+{#                $.ajax({#}
+{#                    url:'/task/current',#}
+{#                    contentType: 'application/json',#}
+{#                    type:'POST',#}
+{#                    data:JSON.stringify(obj),#}
+{#                    dataType:'json',#}
+{#                    success:function (callback) {#}
+{#                        if(callback.task === 0){#}
+{#                            $('#message').append("<span>队列中没有任务</span>")#}
+{#                        }else{#}
+{#                        }#}
+{#                    }#}
+{#                })#}
+{#            })#}
+    })
+    </script>
+{% endblock %}

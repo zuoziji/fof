@@ -1,0 +1,771 @@
+{% extends "main.html" %}
+{% block css %}
+<link href="../../static/vendors/select2/dist/css/select2.css" rel="stylesheet">
+<link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" />
+<style>
+ table input{
+    text-align: center;
+    border: none!important;
+    background-color: #fff!important;
+    box-shadow: none!important;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="x_title">
+    {% if current_user.is_staff %}
+    <h2>{{ fof.sec_name}} 修改子基金</h2>
+    {% else %}
+    <h2>{{ fof.alias }}  修改子基金</h2>
+    {% endif %}
+    <div class="clearfix"></div>
+</div>
+<div id="app">
+    <add-child></add-child>
+    <script type="text/x-template" id="v-select">
+        <div style="position:relative;">
+            <select class="form-control select2 select2-hidden-accessible" id="fof_child" required="" tabindex="-1" aria-hidden="true">
+                <option v-text="fund.val"  name="name" ></option>
+            </select>
+            <span class="select2 select2-container select2-container--default  " :class="[flag.state?open:close]" dir="ltr">
+                <span class="selection" style="width:100%">
+                    <span style="min-height: 34px;" @click="toggle" aria-owns="select2-fof_child-results" class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="true" tabindex="0" aria-labelledby="select2-fof_child-container">
+                        <span class="select2-selection__rendered" id="select2-fof_child-container">
+                            <span class="select2-selection__placeholder" v-text="fund.val"></span>
+                        </span>
+                        <span class="select2-selection__arrow" role="presentation">
+                            <b role="presentation"></b>
+                        </span>
+                    </span>
+                </span>
+                <span class="dropdown-wrapper" aria-hidden="true"></span>
+            </span>
+            <span class="select2-container select2-container--default" style="position: absolute;top:34px;" v-show="flag.state" @click.stop :class="[flag.state?open:close]">
+                <span class="select2-dropdown select2-dropdown--below" dir="ltr">
+                    <span class="select2-search select2-search--dropdown">
+                        <input class="select2-search__field" type="search" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="textbox" @keyup="getOptions(search)" v-model="search">
+                    </span>
+                    <span class="select2-results">
+                        <ul class="select2-results__options" role="tree" id="select2-fof_child-results" aria-expanded="true" aria-hidden="false">
+                            <li class="select2-results__option item" role="treeitem" aria-selected="false" v-for="(item,index) in searchItems" @click="selectOption(index)" :class="{'select2-results__option--highlighted':index==0}">
+                                <div class="select2-result-repository clearfix">
+                                    <div class="select2-result-repository__meta">
+                                        <div class="select2-result-repository__title" v-text="item.sec_name"></div>
+                                        <div class="select2-result-repository__statistics">
+                                            <div class="select2-result-repository__stargazers">
+                                                <i class="fa fa-star"></i><span v-text="item.wind_code" style="display:inline!important;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==0">searching...</li>
+                            <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==1&&warn">至少输入一个字符,如果没有找到你要的选项,可能你需要添加一个批次 <a href="#" class="btn btn-xs btn-danger newData" @click="addNew" style="margin-bottom:-3px">添加新批次</a></li>
+                            <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==2&&searchItems.length==0&&warn">没有找到相关信息,可能你需要添加一个新的批次<a href="#" class="btn btn-xs btn-danger newData" @click="addNew" style="margin:-3px">添加新批次</a></li>
+                            <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==1&&!warn">至少输入一个字符</li>
+                            <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==2&&searchItems.length==0&&!warn">未找到结果</li>
+                        </ul>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </script>
+    <script type="text/x-template" id="add-child">
+        <div>
+            <div class="panel panel-default">
+                <div class="panel-heading">点击<span class="glyphicon glyphicon-plus gs">
+                    </span>添加一个新的基金,点击<span class="glyphicon glyphicon-minus gs"></span>移除一个已有的基金
+                    选择修改日期
+                </div>
+                <div class="panel-body">
+                    <div class="form-group addChild">
+                        <div class="col-sm-1 text-right">
+                            <label class="control-label" style="padding-top:8px;">基金名称</label>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                <v-select v-on:select="selectVal" :url="url" :warn="warn" :flag="flag2" :fund="fund"></v-select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="fof_code"  name="code" value="" placeholder="基金代码" readonly  v-model="code">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <input type="number" class="form-control" min="0" name="scale" value="" placeholder="投资规模" v-model="scale">
+                            </div>
+                        </div>
+                        <div class="col-sm-1 text-center">
+                            <button class="btn btn-success btn-sm" id="add_child" type="button" @click="add" style="margin-top:2px;">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <hr>
+                    <form class="form-horizontal" method="POST" action="{{ url_for('f_app.add_child',wind_code=wind_code) }}" v-show="childItems.length!=0">
+                        <div id="form_content">
+                            <div class="form-group">
+                                <div class="col-sm-1 col-sm-offset-9 text-right">
+                                    <label class="control-label">修改日期</label>
+                                </div>
+                                <div class="col-sm-2" style="padding-right: 0">
+                                    <input type="date" name="change_date" class="form-control" required id="datePicker" @change="changeDate">
+                                </div>
+                            </div>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                      <th>基金名称</th>
+                                      <th>基金代码</th>
+                                      <th>投资规模</th>
+                                      <th>操作</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item,index) in childItems">
+                                      <td class="col-sm-3"><input type="text" class="form-control" name="name" v-bind:value="item.name" placeholder="基金" readonly v-bind:index="index"></td>
+                                      <td class="col-sm-3"><input type="text" class="form-control" name="code" v-bind:value="item.code" placeholder="基金代码" readonly></td>
+                                      <td class="col-sm-2"><input type="number" class="form-control" min="0" name="scale" v-model="item.scale" placeholder="投资规模"></td>
+                                      <td class="col-sm-2 text-center"><button class="btn btn-sm btn-danger" type="button" @click="deleteChild(index)"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="form-group">
+                                <div class="col-sm-2 col-sm-offset-8 text-right">
+                                    <label class="control-label" for="total_scale">总投资规模</label>
+                                </div>
+                                <div class="col-sm-2" style="padding-right: 0">
+                                    <div class="form-group">
+                                        <input type="number" class="form-control"  name="total_scale" v-model="total" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-1 col-sm-9 col-xs-12 col-md-offset-5">
+                                <input type="submit" class="btn btn-primary" value="更新">
+                            </div>
+                             <div class="col-md-2 col-sm-7 col-xs-12 ">
+                                 <a href="{{ url_for('f_app.details',wind_code=wind_code) }}">
+                                     <input type="button" class="btn btn-success" value="取消编辑">
+                                 </a>
+                            </div>
+                        </div>
+                    </form>
+                    <!-- /form  -->
+                </div>
+            </div>  
+            <div class="modal fade" id="crud">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" @click="closeModal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                            <h4 class="modal-title">添加一个新的批次</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="error"></div>
+                            <form class="form-horizontal" id="crud-form">
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label">基金名称</label>
+                                    <div class="col-md-8">
+                                        <v-select v-on:select="selectVal2" :warn="warn2" :url="url2" :flag="flag3" :fund="fund2"></v-select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="m_code">基金代码</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="wind_code" name="wind_code" class="form-control input-md" v-model="code2" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="m_name">批次名称</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="sec_name_s" name="sec_name_s" class="form-control input-md" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="m_code1">批次代码</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="wind_code_s" name="wind_code_s"  class="form-control input-md" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="date_start">开始时间</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="date_start" name="date_start" type="date" class="form-control input-md"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="m_warn_line">预警线</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="warning_line" name="warning_line" type="number" class="form-control input-md" step=0.0001 min="0" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="m_wind_line">清盘线</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="winding_line" name="winding_line" type="number" class="form-control input-md" step=0.0001 min="0"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="day_count_4_calc_fee">管理费计算基础天数</label>
+                                    <div class="col-md-8 input-append ">
+                                        <select class="form-control input-md" id="day_count_4_calc_fee" name="day_count_4_calc_fee">
+                                            <option value="365">365</option>
+                                            <option value="366">366</option>
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row" style="padding-left:0;">
+                                    <div class="form-group col-md-6">
+                                        <label class="col-md-6 control-label" for="manage_fee_rate" style="padding-left:0;">管理费率</label>
+                                        <div class="col-md-6 input-append " style="padding-left:15px;">
+                                            <input id="manage_fee_rate" name="manage_fee_rate" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="col-sm-4 control-label" for="manage_fee_calc_mode">计算基准</label>
+                                        <div class="col-md-6 input-append">
+                                            <select class="form-control input-md col-md-9" name="manage_fee_calc_mode">
+                                                <option value="0">份额</option>
+                                                <option value="1">市值</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="padding-left:0;">
+                                    <div class="form-group col-md-6">
+                                        <label class="col-md-6 control-label" for="custodian_fee_rate" style="padding-left:0;">托管费率</label>
+                                        <div class="col-md-6 input-append " style="padding-left:15px;">
+                                            <input id="custodian_fee_rate" name="custodian_fee_rate" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="col-sm-4 control-label" for="custodian_fee_calc_mode">计算基准</label>
+                                        <div class="col-md-6 input-append">
+                                            <select class="form-control input-md col-md-9" name="custodian_fee_calc_mode">
+                                                <option value="0">份额</option>
+                                                <option value="1">市值</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="padding-left:0;">
+                                    <div class="form-group col-md-6">
+                                        <label class="col-md-6 control-label" for="admin_fee_rate" style="padding-left:0;">行政管理费率</label>
+                                        <div class="col-md-6 input-append " style="padding-left:15px;">
+                                            <input id="admin_fee_rate" name="admin_fee_rate" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="col-sm-4 control-label" for="admin_fee_calc_mode">计算基准</label>
+                                        <div class="col-md-6 input-append">
+                                            <select class="form-control input-md col-md-9" name="admin_fee_calc_mode">
+                                                <option value="0">份额</option>
+                                                <option value="1">市值</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="padding-left:0;">
+                                    <div class="form-group col-md-6">
+                                        <label class="col-md-6 control-label" for="storage_fee_rate" style="padding-left:0;">客户专项资金保管费</label>
+                                        <div class="col-md-6 input-append " style="padding-left:15px;">
+                                            <input id="storage_fee_rate" name="storage_fee_rate" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="col-sm-4 control-label" for="storage_fee_calc_mode">计算基准</label>
+                                        <div class="col-md-6 input-append">
+                                            <select class="form-control input-md col-md-9" name="storage_fee_calc_mode">
+                                                <option value="0">份额</option>
+                                                <option value="1">市值</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="subscribe_fee_rate">认购/申购费率</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="subscribe_fee_rate" name="subscribe_fee_rate" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="redemption_fee_rate">赎回费率</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="redemption_fee_rate" name="redemption_fee_rate" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="invest_amount">初始确认金额</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="invest_amount" name="invest_amount" type="number" class="form-control input-md" step=0.01 min="0"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" for="share_confirmed">初始确认份额</label>
+                                    <div class="col-md-8 input-append ">
+                                        <input id="share_confirmed" name="share_confirmed" type="number" class="form-control input-md" step=0.01 min="0"/>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success" id="add_new_order"  @click="sendBatch">确认</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal" @click="closeModal">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+</div>
+{% endblock %}
+{% block script %}
+<script src="../../static/js/vue.js"></script>
+<script src="../../static/js/vue-resource@1.3.4.js"></script>
+<script src="../../static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
+<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
+<script>
+    Vue.component("v-select", {
+        data: function() {
+            return {
+                searchItems: [],
+                search: "",
+                state: 1,
+                open: "select2-container--open",
+                close: "select2-container--below",
+                active: "select2-results__option--highlighted"
+            }
+        },
+        methods: {
+            selectOption: function(index){
+                this.fund.val=this.searchItems[index].sec_name;
+                this.$emit("select",this.searchItems[index].sec_name,this.searchItems[index].wind_code);
+                this.searchItems=[];
+                this.flag.state=false;
+                this.search="";
+                this.state=1;
+            },
+            toggle: function(e){
+                e.stopPropagation();
+                this.flag.state = !this.flag.state;
+                if(this.flag.state){
+                    $(document).on('mouseenter','.select2-results__option.item',function(){
+                        $(this).addClass('select2-results__option--highlighted').siblings('li').removeClass('select2-results__option--highlighted');
+                    })
+                }
+                document.onclick = () => {
+                    this.flag.state=false;
+                }
+                this.search="";
+                this.searchItems=[];
+                this.state=1;
+            },
+            beforeSend: function(){
+                this.state = 0;
+            },
+            getOptions: function(params) {
+                $.ajax({
+                    url:this.url,
+                    type:'get',
+                    data:{q:params},
+                    dataType:'json',
+                    beforeSend: this.beforeSend,
+                    success: (resp) => {
+                        if(resp.status=='ok'||resp.items&&resp.items.length!=0){
+                            this.searchItems = resp.items.slice(0,30);
+                            this.state = null;
+                        }else{
+                            this.searchItems = [];
+                            this.state = 2;
+                        }
+                    },
+                    error: () => {
+                            this.searchItems = [];
+                            this.state = 2;
+                    }
+                });
+            },
+            addNew: function(){     //添加新批次
+                this.flag.state=false;
+                $('#crud').modal();
+                $("#crud-form").bootstrapValidator({            //表单验证
+                    feedbackIcons: {
+                        valid: 'glyphicon glyphicon-ok',
+                        invalid: 'glyphicon glyphicon-remove',
+                        validating: 'glyphicon glyphicon-refresh',
+                        framework: 'bootstrap'
+                    }, fields: {
+                        sec_name_s: {
+                            validators: {
+                                notEmpty: {
+                                    message: '批次名称不能为空'
+                                },
+                                regexp: {
+                                    regexp: /^[\S]{1,30}$/,
+                                    message: '不允许有空格'
+                                },
+                                stringLength: {
+                                    /*长度提示*/
+                                    min: 4,
+                                    max: 30,
+                                    message: '批次名称长度必须在4到30之间'
+                                },
+                                threshold: 4,//只有4个字符以上才发送ajax请求
+                                remote: {
+                                    url: "/f_app/mapping/checkName",
+                                    message: '该组合名称已使被使用，请使用其他组合名称'
+                                }
+                            }
+                        },
+                        wind_code_s: {
+                            validators: {
+                                notEmpty: {
+                                    message: '批次代码不能为空'
+                                },
+                                regexp: {
+                                    regexp: /^[\S]{1,30}$/,
+                                    message: '不允许有空格'
+                                },
+                                stringLength: {
+                                    /*长度提示*/
+                                    min: 4,
+                                    max: 30,
+                                    message: '批次代码长度必须在4到30之间'
+                                },
+                                threshold: 4,//只有4个字符以上才发送ajax请求
+                                remote: {
+                                    url: "/f_app/mapping/checkCode",
+                                    message: '该组合代码已使被使用，请使用其他组合代码'
+                                }
+                            }
+                        },
+                        warning_line: {
+                            validators: {
+                                notEmpty: {
+                                    message: '预警线不能为空'
+                                }
+                            }
+                        },
+                        winding_line: {
+                            validators: {
+                                notEmpty: {
+                                    message: '清盘线不能为空'
+                                }
+                            }
+                        },
+                        date_start: {
+                            validators: {
+                                notEmpty: {
+                                    message: '开始时间不能为空'
+                                }
+                            }
+                        },
+                        day_count_4_calc_fee: {
+                            validators: {
+                                notEmpty: {
+                                    message: '管理费计算基础天数不能为空'
+                                }
+                            }
+                        },
+                        manage_fee_rate: {
+                            validators: {
+                                notEmpty: {
+                                    message: '管理费率不能为空'
+                                }
+                            }
+                        },
+                        manage_fee_calc_mode: {
+                            validators: {
+                                notEmpty: {
+                                    message: '计算基准不能为空'
+                                }
+                            }
+                        },
+                        custodian_fee_rate: {
+                            validators: {
+                                notEmpty: {
+                                    message: '托管费率不能为空'
+                                }
+                            }
+                        },
+                        custodian_fee_calc_mode: {
+                            validators: {
+                                notEmpty: {
+                                    message: '计算基准不能为空'
+                                }
+                            }
+                        },
+                        admin_fee_rate: {
+                            validators: {
+                                notEmpty: {
+                                    message: '行政管理费率不能为空'
+                                }
+                            }
+                        },
+                        admin_fee_calc_mode: {
+                            validators: {
+                                notEmpty: {
+                                    message: '计算基准不能为空'
+                                }
+                            }
+                        },
+                        storage_fee_rate: {
+                            validators: {
+                                notEmpty: {
+                                    message: '客户专项资金保管费不能为空'
+                                }
+                            }
+                        },
+                        storage_fee_calc_mode: {
+                            validators: {
+                                notEmpty: {
+                                    message: '计算基准不能为空'
+                                }
+                            }
+                        },
+                        subscribe_fee_rate: {
+                            validators: {
+                                notEmpty: {
+                                    message: '认购/申购费率不能为空'
+                                }
+                            }
+                        },
+                        redemption_fee_rate: {
+                            validators: {
+                                notEmpty: {
+                                    message: '赎回费率不能为空'
+                                }
+                            }
+                        },
+                         invest_amount: {
+                            validators: {
+                                notEmpty: {
+                                    message: '初始确认金额不能为空'
+                                }
+                            }
+                        },
+                         share_confirmed: {
+                            validators: {
+                                notEmpty: {
+                                    message: '初始确认份额不能为空'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        },
+        template: "#v-select",
+        props:['fund','warn','url','flag']
+    });
+    Vue.component("add-child", {
+        data:function(){
+            return {
+                code: "",
+                scale: "",
+                childItems: {{ child |tojson }},
+            fund: {
+                val:"选择一个子基金"
+            },
+            fund2: {
+                val:"选择一个子基金"
+            },
+            code2: "",
+                flag: false,
+                flag2: {
+                state: false
+            },
+            flag3: {
+                state: false
+            },
+            warn: true,
+                warn2: false,
+                url: "/f_app/get_fof_mapping",
+                url2: "/f_app/get_fof"
+        }
+        },
+        methods: {
+            changeDate: function(){
+                let date = $("#datePicker").val();
+                let obj = {};
+                obj.date = date;
+                obj.wind_code = {{ wind_code |tojson|safe }}
+                $.ajax({
+                    url: '/f_app/get_child_status',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(obj),
+                    dataType: 'json',
+                    success: function (callback) {
+                        if (callback.status === 'ok') {
+                        }
+                    }
+                });
+            },
+            selectVal: function(fund,code){
+                this.fund.val=fund;
+                this.code=code;
+            },
+            selectVal2: function(fund,code){
+                this.fund2.val=fund;
+                this.code2=code;
+            },
+            add: function(){
+                if(this.fund.val==="选择一个子基金"||this.code===""||this.scale===""){
+                    showNotice("提示","内容不允许为空","info","2000");
+                    return;
+                }
+                if(JSON.stringify(this.childItems).indexOf(JSON.stringify(this.fund.val))!=-1){
+                    showNotice("提示","此条基金已经添加","info","2000");
+                } else {
+                    this.childItems.push({
+                        name: this.fund.val,
+                        code: this.code,
+                        scale: this.scale
+                    });
+                    this.fund.val = '选择一个子基金 ';
+                    this.code = '';
+                    this.scale = '';
+                }
+            },
+            deleteChild: function(index){
+                if(index==-1){
+                    this.childItems = [];
+                }else if(this.childItems.length==1){
+                    showNotice("提示","最少需要一条数据","info","2000");
+                }else{
+                    this.childItems.splice(index,1);
+                }
+            },
+            closeModal: function () {
+                this.fund2.val="选择一个子基金 ";
+                this.code2="";
+                $('#m_code').val("");
+                $('#m_name').val("");
+                $('#m_code1').val("");
+                $("#m_warn_line").val("");
+                $("#m_wind_line").val("");
+                $('#crud').modal();
+                $("#crud-form").data("bootstrapValidator").resetForm();
+            },
+            sendBatch: function(){           //提交批次
+                var bv = $('#crud-form').data('bootstrapValidator');
+                bv.validate();
+                if(bv.isValid()){
+                    $.post('/f_app/add_mapping', {
+                        wind_code:$('#wind_code').val(),
+                        sec_name_s: $('#sec_name_s').val(),
+                        wind_code_s: $('#wind_code_s').val(),
+                        warning_line:$("#warning_line").val(),
+                        winding_line:$("#winding_line").val(),
+                        date_start:$('#date_start').val(),
+                        day_count_4_calc_fee:$('#day_count_4_calc_fee').val(),
+                        manage_fee_rate:div($('#manage_fee_rate').val(),100),
+                        custodian_fee_rate:div($('#custodian_fee_rate').val(),100),
+                        admin_fee_rate:div($('#admin_fee_rate').val(),100),
+                        storage_fee_rate:div($('#storage_fee_rate').val(),100),
+                        subscribe_fee_rate:div($('#subscribe_fee_rate').val(),100),
+                        redemption_fee_rate:div($('#redemption_fee_rate').val(),100)
+                    }, function(result){
+                        $('.modal').modal('hide');
+                        $(".select2-selection__placeholder").eq(1).html("选择一个子基金");
+                        this.code2 = "";
+                        $('#wind_code').val("");
+                        $('#sec_name_s').val("");
+                        $('#wind_code_s').val("");
+                        $("#warning_line").val("");
+                        $("#winding_line").val("");
+                        $('#date_start').val();
+                        $('#day_count_4_calc_fee').val();
+                        $('#manage_fee_rate').val();
+                        $('#custodian_fee_rate').val();
+                        $('#admin_fee_rate').val();
+                        $('#storage_fee_rate').val();
+                        $('#subscribe_fee_rate').val();
+                        $('#redemption_fee_rate').val();
+                        $("#crud-form").data("bootstrapValidator").resetForm();
+                    });
+                }
+            }
+        },
+        computed: {             //计算总投资规模
+            total: function(){
+                var sum = 0;
+                for(var i=0;i<this.childItems.length;i++) {
+                    sum += parseInt(this.childItems[i].scale);
+                };
+                return sum
+            }
+        },
+        template: "#add-child",
+    });
+    var vm=new Vue({
+        el: "#app",
+        methods: {
+        },
+        mounted: function(){
+            var now = new Date();
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+            var today = now.getFullYear() + "-" + (month) + "-" + (day);
+            $('#datePicker').val(today);
+        }
+    })
+    function mul(a, b) {
+        var c = 0,
+            d = a.toString(),
+            e = b.toString();
+        try {
+            c += d.split(".")[1].length;
+        } catch (f) {}
+        try {
+            c += e.split(".")[1].length;
+        } catch (f) {}
+        return Number(d.replace(".", "")) * Number(e.replace(".", "")) / Math.pow(10, c);
+    }
+
+    function div(a, b) {
+        var c, d, e = 0,
+            f = 0;
+        try {
+            e = a.toString().split(".")[1].length;
+        } catch (g) {}
+        try {
+            f = b.toString().split(".")[1].length;
+        } catch (g) {}
+        return c = Number(a.toString().replace(".", "")), d = Number(b.toString().replace(".", "")), mul(c / d, Math.pow(10, f - e));
+    }
+    function showNotice(title,text,type,delay){
+        var stack_topright = {"dir1": "down", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
+        var opts = {
+            type: type,
+            title: title,
+            text: text,
+            delay: delay,
+            width: "20%",
+            min_height: "100px",
+            styling: {
+                container: "alert",
+                notice: "btn-warning",
+                notice_icon: "glyphicon glyphicon-exclamation-sign",
+                info: "btn-dark",
+                info_icon: "glyphicon glyphicon-info-sign",
+                success: "btn-success",
+                success_icon: "glyphicon glyphicon-ok-sign",
+                error: "btn-danger",
+                error_icon: "glyphicon glyphicon-warning-sign"
+            },
+            addclass: "stack-topright",
+            stack: stack_topright
+        };
+        new PNotify(opts);
+    }
+</script>
+{% endblock %}

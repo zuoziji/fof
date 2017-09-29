@@ -1,0 +1,284 @@
+[{% extends "main.html" %}
+{% block css %}
+   <link href="../../static/vendors/selectze/selectize.bootstrap3.css" rel="stylesheet">
+
+      {% endblock %}
+{% block manager %}
+{% endblock %}
+{% block content %}
+
+                <div class="row">
+                    <div class="col-md-9 col-xs-12">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>压力测试结果</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <form class="form-horizontal ">
+                                    <div class="form-group" >
+                                        <label class="control-label col-md-2" for="selectmodel">选择一个组合</label>
+                                    <div class="col-md-5 col-sm-9 col-xs-12">
+                                        <select class="form-control" id="selectmodel"></select>
+                                    </div>
+                            </div>
+
+                                </form>
+                                <div class="x_content">
+                                                 <div class="form-group" id="scheme_content">
+                                                    <div class="col-md-10" id="scheme_content">
+                                                         <label class="control-label col-md-3" id="scheme_name"></label>
+                                                        <button class="btn btn-sm btn-danger hide col-md-1" id="del_scheme" >删除</button>
+                                                    </div>
+                                                    <div class="col-md-10 col-md-offset-1">
+                                                        <br>
+                                                         <div class="x_content">
+                                                        <table class="table">
+                                          <thead>
+                                          </thead>
+                                          <tbody>
+                                          </tbody>
+                                        </table>
+                                                    </div>
+                                                    </div>
+
+                            </div>
+                                </div>
+
+                                <div class="x_content">
+
+                                     <div id="copula_chart" style="height: 500px"></div>
+                                     <div id="fhs_chart" style="height: 500px"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-xs-12">
+                    </div>
+                </div>
+
+{% endblock %}
+
+
+{% block script %}
+
+    <script src="../../static/vendors/selectze/selectize.js"></script>
+    <script src="../../static/vendors/echarts/dist/echarts.min.js"></script>
+    <script src="../../static/js/shine.js"></script>
+    <script>
+    var result = {{ result | tojson }};
+    $(document).ready(function () {
+        $('#selectmodel').selectize({
+             valueField: 'scheme_name',
+                labelField: 'scheme_name',
+                options:result,
+                placeholder:"请选择一个子基金",
+                create: false,
+            preload: true,
+                render: {
+                    option: function(item, escape) {
+                        var html = '<div>' +
+                    '<span class="title">' +
+                        '<span class="text-success">ID: ' + escape(item.scheme_name) + '</span>' +
+                    '</span>' +
+                    '<ul class="meta">' +
+                        '<li class="text-info">state: ' + escape(item.task) + '</li>' +
+                        '<li class="forks"><span>user: ' + escape(item.user) + '</span></li>' +
+                    '</ul>' +
+                '</div>';
+
+                    return html
+            }
+                }
+            });
+
+
+         $('#selectmodel').change(function() {
+
+             PNotify.removeAll();
+             var selectize = $("#selectmodel")[0].selectize;
+             var schemeName = selectize.getValue();
+
+             var obj = {"schemeName":schemeName};
+              $.ajax({
+                url:'/f_app/show_testing',
+                type:'POST',
+                contentType: 'application/json',
+                data:JSON.stringify(obj),
+                dataType:'json',
+                success:function (data) {
+                    if(data.status === 'ok'){
+                        $('tbody').empty();
+                         var pctScheme = data.pct_scheme;
+                        $('#scheme_name').text(schemeName);
+                        $('#del_scheme').removeClass('hide');
+                    for(i=0; i<pctScheme.length; i++){
+                       var content = "<tr><td>"+(i+1)+ "</td><td>" + pctScheme[i].wind_code +
+                           "</td><td>"+pctScheme[i].fund_name +"</td><td>"+pctScheme[i].scale +"</td></tr>";
+                        $('tbody').append(content);
+                    }
+                    $('#fhs_chart').removeClass('hide');
+                    $('#copula_chart').removeClass('hide');
+                    var copula = data.copula;
+                    var fhs = data.fhs;
+                    if (copula.x  !== undefined){
+                        var echartBar = echarts.init(document.getElementById('copula_chart'), "shine");
+                                  echartBar.setOption({
+                                        title: {
+                                          text: "Copula压力测试分析",
+                                          subtext: '基于1000次压力测试结果'
+                                        },
+                                        tooltip: {
+                                          trigger: 'axis'
+                                        },
+                                        legend: {
+                                          data: ['sales', 'purchases']
+                                        },
+                                        toolbox: {
+                                show : true,
+                                feature : {
+                                    mark : {show: true},
+                                    dataView : {show: true, readOnly: false},
+                                    magicType : {show: true, type: ['line', 'bar']},
+                                    restore : {show: true},
+                                    saveAsImage : {show: true}
+                                }
+                            },
+                                        calculable: false,
+                                        xAxis: [{
+                                          type: 'category',
+                      data:copula.x
+
+                                        }],
+                                        yAxis: [{
+                                          type: 'value',
+                                          scale:true
+                                        }],
+                      series : [
+                            {
+                                name:'频率',
+                                type:'bar',
+                               data:copula.y
+                            }
+                        ]
+                                  });}else{
+                            $("#copula_chart").html("<p>copula压力测试暂时没有找到可用的数据</p> ")
+                    }
+
+            if(fhs.time !== undefined){
+                 var timeLine = fhs.time;
+            var fhs_chart = echarts.init(document.getElementById('fhs_chart'),"shine");
+            var show_count = fhs.show_count;
+            if(show_count <=10) {
+                show_count = 1000;
+            }
+            option = {
+                            title : {
+                                text: 'FHS-GARCH压力测试分析',
+                                subtext: '基于'+show_count+'次压力测试结果分位数显示'
+                            },
+                            tooltip : {
+                                trigger: 'axis',
+                                formatter:function(obj){
+                                    var result = '';
+                                    var i = obj.length;
+                                    while(i--){
+                                        result +=
+                                        '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + obj[i].color +'"></span>'+obj[i].seriesName * 100+'%&nbsp;'+ obj[i].data.toFixed(4)+'<br>';
+                                    }
+                                return result
+                            }
+                            },
+                            toolbox: {
+                                show : true,
+                                feature : {
+                                    mark : {show: true},
+                                    dataView : {show: true, readOnly: false},
+                                    magicType : {show: true, type: ['line', 'bar']},
+                                    restore : {show: true},
+                                    saveAsImage : {show: true}
+                                }
+                            },
+                            calculable : true,
+                            xAxis : [
+                                {
+                                    type : 'category',
+                                    boundaryGap : false,
+                                    data : timeLine,
+                                    splitLine:{
+                        　　　　show:true
+                        　　 }
+                                }
+                            ],
+                            yAxis : [
+                                {
+                                    type : 'value',
+                                    scale:true
+                                }
+                            ],
+                            series : [
+                            ]
+                        };
+            for(var x=0;x<fhs.data.length;x++){
+                var name = fhs.data[x].name;
+                var dataS = fhs.data[x].data;
+                option.series.push({"name":name,"type":"line","data":dataS,"smooth":true})
+            }
+            fhs_chart.setOption(option);
+            }else{
+                    $("#fhs_chart").html("<p>FHS-GARCH压力测试暂时没有找到可用的数据</p> ")
+            }
+
+
+                }else if(data.status === 'error'){
+                         var pctScheme = data.pct_scheme;
+                        $('#scheme_name').text(schemeName);
+                        $('#del_scheme').removeClass('hide');
+                        console.log("error")
+                    }
+                    else if(data.status === 'pending'){
+                          new PNotify({
+                                    title: 'PENDING...',
+                                    text: schemeName +'压力测试正在进行中,请稍后再试',
+                                    type: 'warn',
+                        			styling: 'bootstrap3'
+                                });
+                    }else if(data.status === 'del'){
+                         new PNotify({
+                                    title: '删除成功',
+                                    text:  '删除成功',
+                                    type: 'warn',
+                        			styling: 'bootstrap3'
+                                });
+                    }
+                }
+                })
+         });
+         $('#scheme_content').on('click','#del_scheme',function () {
+             var scheme = $('#scheme_name').text();
+             var obj = {"name":scheme};
+             $.ajax({
+                 url: '/f_app/del_scheme',
+                 type: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(obj),
+                 dataType: 'json',
+                 success:function (callback) {
+                     if(callback.status === 'ok'){
+                         var selectize = $("#selectmodel")[0].selectize;
+                            selectize.removeOption(scheme);
+                           $('#scheme_name').text('');
+                           $('tbody').empty();
+                           $('#del_scheme').addClass('hide');
+                           $('#fhs_chart').addClass("hide");
+                           $('#copula_chart').addClass("hide");
+                     }
+                 }
+             })
+         })
+
+    })
+
+    </script>
+{% endblock %}

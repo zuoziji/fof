@@ -1,0 +1,133 @@
+.hd {
+    max-width: 200px;
+    min-width: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+
+}
+
+ .hdtd {
+    text-align: center;
+}
+
+
+ .bg{background:url( '/static/images/login.jpg') no-repeat center center fixed;
+      -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+ }
+
+
+ .form-group input[type="checkbox"] {
+    display: none;
+}
+
+.form-group input[type="checkbox"] + .btn-group > label span {
+    width: 20px;
+}
+
+.form-group input[type="checkbox"] + .btn-group > label span:first-child {
+    display: none;
+}
+.form-group input[type="checkbox"] + .btn-group > label span:last-child {
+    display: inline-block;
+}
+
+.form-group input[type="checkbox"]:checked + .btn-group > label span:first-child {
+    display: inline-block;
+}
+.form-group input[type="checkbox"]:checked + .btn-group > label span:last-child {
+    display: none;
+}
+
+#tabli {
+    line-height: 42px;
+}
+
+#tabli li {
+    display: block;
+    float: left;
+}
+
+.form-control-inline {
+    min-width: 0;
+    width: auto;
+    display: inline;
+}
+
+.my_checkBox{
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height:1.4;
+    margin-right: 20px;
+
+}
+
+
+
+
+/* tab color */
+
+.nav-tabs1{
+
+
+
+}
+.nav-tabs1>li>a {
+  background-color: midnightblue;
+  border-color: #777777;
+  color:#fff;
+
+}
+
+
+/* active tab color */
+.nav-tabs1>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+  color: #fff;
+  background-color: #666;
+  border: 1px solid #888888;
+
+}
+
+
+
+/* hover tab color */
+.nav-tabs1>li>a:hover {
+  border-color: #000000;
+  background-color: #111111;
+}
+
+
+
+.my-container {
+    position: relative;
+    background: #5C97FF;
+    overflow: hidden;
+}
+
+
+
+tr.group,
+tr.group:hover {
+    background-color: gainsboro !important;
+    font-weight: 700;
+}
+
+
+body {
+   padding-bottom: 100px;/*有底部固定导航条时设置*/
+}
+table.center-all td,th{
+    text-align :center;
+}
+
+
+.test {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 200px;
+    color:white;
+    background-color: black;
+}

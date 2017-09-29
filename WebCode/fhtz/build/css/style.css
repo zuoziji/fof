@@ -1,0 +1,40 @@
+.clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
+.floatL{
+	float: left;
+}
+.floatR{
+	float: right;
+}
+.clearD{
+	list-style: none;
+}
+.col-md-12 .x_panel .col-xs-6 span{
+	float:left;
+}
+.right_col .contentStr td{
+	padding-left: 10px;
+}
+.profile_title .clearD .floatL{
+	margin-left:20px;
+}
+.box-shadow-1{
+	-webkit-box-shadow: 3px 3px 3px;
+	-moz-box-shadow: 3px 3px 3px;
+	box-shadow: 3px 3px 3px;
+}
+.button-set-up{
+	width: 100%;
+	/* height: 49%; */
+	font-size: 14px;
+	padding: 11px;
+}
+#displayNone,.displayNone{
+	display: none !important;
+}
+#displayBlock{
+	display: block !important;
+}
+.liMarginTop{
+	margin: 5px 0;
+	padding: 0px;
+}

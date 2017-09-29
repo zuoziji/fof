@@ -1,0 +1,8 @@
+Dear {{user.username}}
+欢迎使用复华投资管理系统!
+
+你可以复制下面的链接到浏览器地址栏
+{{ url_for('auth.confirm', token=token, _external=True) }}
+
+复华投资FOF团队
+提示: 请勿回复邮件

@@ -1,0 +1,122 @@
+{% extends "main.html" %}
+       {% block css %}
+        <link href='../../static/vendors/fullcalendar-3.4.0/fullcalendar.min.css' rel='stylesheet' />
+        <link href='../../static/vendors/fullcalendar-3.4.0/fullcalendar.print.css' rel='stylesheet' media='print' />
+        <link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" />
+        <link href="../../static/vendors/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block manager %}
+{% endblock %}
+{% block content %}
+     <div class="">
+            <div class="page-title">
+              <div class="title_left">
+                                <h2>全部日程</h2>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                      <div class="form-group">
+                          <label>
+                               <b><i class="fa fa-battery-0"></i>创建</b>
+                      <b><i class="fa fa-battery-2"></i>开始</b>
+                      <b><i class="fa fa-battery-full"></i>到期</b>
+                          </label>
+
+                      </div>
+                  </div>
+                  <div class="x_content">
+                 <div id='calendar'></div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+{% endblock %}
+
+
+{% block script %}
+        <script src="../../static/vendors/moment/moment.js"></script>
+        <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
+        <script src="../../static/vendors/fullcalendar-3.4.0/fullcalendar.js"></script>
+        <script src='../../static/vendors/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js'></script>
+        <script src='../../static/vendors/bootstrap-timepicker/js/bootstrap-timepicker.min.js'></script>
+        <script src="../../static/vendors/fullcalendar-3.4.0/locale/zh-cn.js"></script>
+    <script>
+
+
+
+    $('#crud').on('hidden.bs.modal', function () {
+            $('#crud-form').bootstrapValidator('resetForm', true);
+        });
+
+    $(function(){
+
+    $('#calendar').fullCalendar({
+         header: {
+					left: 'today ',
+					center: 'prev title  next',
+					right: 'month,agendaWeek'
+				  },
+        eventRender: function(event, element){
+                var today = moment();
+                element.find('.fc-time').hide();
+                    if(today.isAfter(event.start,'d')){
+                   element.find('.fc-title').append("   " + event.tag  +"<br/>"+ event.name+"</br><del>" + event.desc+"</del>");
+
+                }else{
+                    element.find('.fc-title').append("   " + event.tag  +"<br/>" +  event.name+"</br>"+event.desc);
+                }
+            },
+        events: function(start, end, timezone, callback) {
+        $.ajax({
+            url: '/f_app/query_all_cal/',
+            type:'GET',
+            contentType: 'application/json',
+            dataType:'json',
+            data: {
+                start: start.unix(),
+                end: end.unix()
+            },
+            success: function(doc) {
+                var events = [];
+
+                callback(doc);
+            }
+        });
+    },
+        eventMouseover: function(calEvent, jsEvent, view){
+            var tooltip;
+            if(calEvent.user){
+                tooltip = '<div class="event-tooltip">由' +  calEvent.user+"创建</br>" + calEvent.desc + '</div>';
+            }else{
+                tooltip = '<div class="event-tooltip">' +  calEvent.desc + '</div>';
+            }
+            $("body").append(tooltip);
+            $(this).mouseover(function(e) {
+                $(this).css('z-index', 10000);
+                $('.event-tooltip').fadeIn('500');
+                $('.event-tooltip').fadeTo('10', 1.9);
+            }).mousemove(function(e) {
+                    $('.event-tooltip').css('top', e.pageY + 10);
+                    $('.event-tooltip').css('left', e.pageX + 20);
+                });
+        },
+        eventMouseout: function(calEvent, jsEvent) {
+            $(this).css('z-index', 8);
+            $('.event-tooltip').remove();
+        }
+    });
+});
+
+
+
+    </script>
+{% endblock %}

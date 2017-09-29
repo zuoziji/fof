@@ -1,0 +1,190 @@
+{% extends "main.html" %}
+
+{% block css %}
+<style>
+   table input{
+    text-align: center;
+    border: none!important;
+    background-color: #fff!important;
+    box-shadow: none!important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="x_title">
+    {% if current_user.is_staff %}
+    <h2>{{ fof.sec_name}} 修改策略</h2>
+    {% else %}
+    <h2>{{ fof.sec_name if fof.alias is none else fof.alias }} 修改策略</h2>
+    {% endif %}
+    <div class="clearfix"></div>
+</div>
+<div id="app">
+    <add-child></add-child>
+</div>
+
+<script type="text/x-template" id="add-child">
+    <div class="panel panel-default">
+        <div class="panel-heading">点击<span class="glyphicon glyphicon-plus gs">
+            </span>添加一个新的基金,点击<span class="glyphicon glyphicon-minus gs"></span>移除一个已有的基金
+            选择修改日期
+        </div>
+        <div class="panel-body">
+            <div class="form-group addChild">
+                <div class="col-sm-2 text-right">
+                    <label class="control-label" style="padding-top:8px;">策略类型</label>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <select class="form-control" id="stg_type" v-model="option">      
+                            <option v-for="item in items" v-text="item"></option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-2 text-right">
+                    <label class="control-label" style="padding-top:8px;">策略比例</label>
+                </div>
+                <div class="col-sm-3 nopadding">
+                    <div class="form-group">
+                        <input type="number" class="form-control" name="scale" value="" placeholder="策略比例" max="100" min="0" v-model="scale">
+                    </div>
+                </div>
+                <div class="col-sm-1 text-center">
+                    <button class="btn btn-success btn-sm" type="button" id="add" @click="add" style="margin-top:2px;">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+
+            <hr>
+            <form class="form-horizontal" method="POST" action="{{ url_for('f_app.add_stg',wind_code=wind_code) }}" v-show="stgList.length!=0">
+                <div id="form_content">
+                    <div class="form-group">
+                        <div class="col-sm-1 col-sm-offset-9 text-right">
+                            <label class="control-label">修改日期</label>
+                        </div>
+                        <div class="col-sm-2" style="padding-right: 0">
+                            <input type="date" name="change_date" class="form-control" required id="datePicker">
+                        </div>
+                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                              <th>策略类型</th>
+                              <th>策略比例</th>
+                              <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item,index) in stgList">
+                                <td class="col-sm-3"><input type="text" class="form-control" name="stg" placeholder="策略类型" readonly v-bind:value="item.name"></td>
+                                <td class="col-sm-3"><input type="text" class="form-control" name="scale" placeholder="策略比例" max="100" min="0" readonly v-bind:value="item.scale"></td>
+                                <td class="col-sm-3 text-center"><button class="btn btn-danger btn-sm" type="button" @click="remove(index)"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-1 col-sm-3 col-xs-6 col-md-offset-5">
+                        <input type="submit" class="btn btn-primary" value="更新">
+                    </div>
+                    <div class="col-md-2 col-sm-7 col-xs-12 ">
+                        <a href="{{ url_for('f_app.details',wind_code=wind_code) }}">
+                            <input type="button" class="btn btn-success" value="取消编辑">
+                        </a>
+                    </div>
+                </div>
+            </form>
+            <!-- /form  -->
+        </div>
+    </div>
+
+</script>
+
+{% endblock %}
+
+{% block script %}
+    <script src="../../static/js/vue.js"></script>
+    <script>
+        Vue.component("add-child", {
+            data: function(){
+                return {
+                    option: {{ stg_type | tojson }}[0],
+                    scale: "",
+                    items: {{ stg_type | tojson }},
+                    stgList: []
+                }
+            },
+            methods: {
+                add: function(){
+                    console.log(JSON.stringify(this.stgList))
+                    console.log()
+                    if(this.scale==""){
+                        showNotice("提示","内容不允许为空","info","2000");
+                        return;
+                    }
+                    if(JSON.stringify(this.stgList).indexOf(JSON.stringify(this.option))!=-1){
+                        showNotice("提示","此条策略已经添加","info","2000");
+                    } else {
+                        this.stgList.push({
+                            name: this.option,
+                            scale: this.scale
+                        });
+                    }
+                },
+                remove: function(index){
+                    if(index==-1){
+                        this.stgList = [];
+                    }else if(this.stgList.length==1){
+                        showNotice("提示","最少需要一条数据","info","2000");
+                    }else{
+                        this.stgList.splice(index,1);
+                    }
+                }
+            },
+
+            template: "#add-child",
+        });
+        var vm=new Vue({
+            el: "#app",
+            methods: {
+            },
+            mounted: function(){
+                var now = new Date();
+                var day = ("0" + now.getDate()).slice(-2);
+                var month = ("0" + (now.getMonth() + 1)).slice(-2);
+                var today = now.getFullYear() + "-" + (month) + "-" + (day);
+                $('#datePicker').val(today);
+            }
+        })
+        function showNotice(title,text,type,delay){
+            var stack_topright = {"dir1": "down", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
+            var opts = {
+                type: type,
+                title: title,
+                text: text,
+                delay: delay,
+                width: "20%",
+                min_height: "100px",
+                styling: {
+                    container: "alert",
+                    notice: "btn-warning",
+                    notice_icon: "glyphicon glyphicon-exclamation-sign",
+                    info: "btn-dark",
+                    info_icon: "glyphicon glyphicon-info-sign",
+                    success: "btn-success",
+                    success_icon: "glyphicon glyphicon-ok-sign",
+                    error: "btn-danger",
+                    error_icon: "glyphicon glyphicon-warning-sign"
+                },
+                addclass: "stack-topright",
+                stack: stack_topright
+            };
+            new PNotify(opts);
+        }
+    </script>
+
+{% endblock %}

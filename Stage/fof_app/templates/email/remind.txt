@@ -1,0 +1,5 @@
+Dear {{user.username}}
+你的基金已经跌破裤衩
+Sincerely,
+The FOF Team
+Note: replies to this email address are not monitored.

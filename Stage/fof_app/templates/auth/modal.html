@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>复化投资</title>
+
+    <!-- Bootstrap -->
+    <link href="../../static/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../static/vendors/datatables.net/css/jquery.dataTables.min.css" rel="stylesheet">
+    <!-- <link href="../../static/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet"> -->
+</head>
+<body>
+    <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="display: block;">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Modal title</h4>
+        </div>
+        <div class="modal-body">
+            <table id="myTable" class="row-border hover stripe" cellspacing="0" width="100%"></table>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal" aria-label="Close" data-target="#myModal">确认</button>
+        </div>
+    </div>
+</div>
+</div>
+<script src="../../static/vendors/jquery/dist/jquery.min.js"></script>
+<script src="../../static/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="../../static/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#myModal').modal({
+            show: true,
+            backdrop: 'static', 
+            keyboard: false
+        });
+        $(".btn-primary").click(function(){
+            $("#myModal").modal("hide");
+        }) 
+    $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+        $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+    } );
+        var dataSet = [
+            [ "Tiger Nixon", "System Architect", "Edinburgh", "5421", "2011/04/25", "$320,800" ],
+            [ "Garrett Winters", "Accountant", "Tokyo", "8422", "2011/07/25", "$170,750" ],
+            [ "Ashton Cox", "Junior Technical Author", "San Francisco", "1562", "2009/01/12", "$86,000" ],
+            [ "Cedric Kelly", "Senior Javascript Developer", "Edinburgh", "6224", "2012/03/29", "$433,060" ],
+            [ "Airi Satou", "Accountant", "Tokyo", "5407", "2008/11/28", "$162,700" ],
+            [ "Brielle Williamson", "Integration Specialist", "New York", "4804", "2012/12/02", "$372,000" ]
+        ];
+        $('#myTable').DataTable({
+            "info":false,
+            "paging": true,
+            "displayLength": 20,
+                "language": {
+                "lengthMenu": "每页 _MENU_ 条记录",
+                "zeroRecords": "没有找到记录",
+                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                "infoEmpty": "无记录",
+                "search": "搜索：",
+                "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                "processing":"正在处理;....",
+                "paginate": {
+                    "previous": "上一页",
+                    "next": "下一页"
+                }
+            },
+            data: dataSet,
+            columns: [
+                { title: "Name" },
+                { title: "Position" },
+                { title: "Office" },
+                { title: "Extn." },
+                { title: "Start date" },
+                { title: "Salary" }
+            ]
+        });
+    });
+
+</script>
+</body>
+</html>
+

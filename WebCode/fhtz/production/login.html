@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>东方恒泰 | </title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link href="../vendors/animate.css/animate.min.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+    <link href="../build/css/style.css" rel="stylesheet">
+  </head>
+
+  <body class="login">
+    <div>
+      <a class="hiddenanchor" id="signup"></a>
+      <a class="hiddenanchor" id="signin"></a>
+
+      <div class="login_wrapper">
+        <div class="animate form login_form">
+          <section class="login_content">
+            <form>
+              <h1>Login Form</h1>
+              <div>
+                <input type="text" class="form-control" placeholder="用户名" required="" />
+              </div>
+              <div>
+                <input type="password" class="form-control" placeholder="密码" required="" />
+              </div>
+              <div>
+                <input type="text" id="code_input" class="form-control" placeholder="验证码" required="" />
+              </div>
+              <div id="v_container" style="width: 200px;height: 40px;"> <!--这里生成验证码--> </div>
+              <div>
+                <a class="btn btn-default submit" href="#" id="my_button">Log in</a>
+                <a class="reset_pass" href="#">Lost your password?</a>
+              </div>
+
+              <div class="clearfix"></div>
+
+              <div class="separator">
+                <!-- <p class="change_link">New to site?
+                  <a href="#signup" class="to_register"> Create Account </a>
+                </p> -->
+                <div class="col-xs-12">
+                  <div class="col-xs-4"><a href="#">外部链接1</a></div>
+                  <div class="col-xs-4"><a href="#">外部链接2</a></div>
+                  <div class="col-xs-4"><a href="#">外部链接3</a></div>
+                </div>
+
+                <div class="clearfix"></div>
+                <br />
+
+                <div>
+                  <!-- <h1><i class="fa fa-paw"></i> 东方恒泰</h1> -->
+                  <p>备案号123123123</p>
+                </div>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="../build/js/gVerify.js"></script>
+  <script>
+    var verifyCode = new GVerify("v_container");
+
+    document.getElementById("my_button").onclick = function(){
+      var res = verifyCode.validate(document.getElementById("code_input").value);
+      if(res){
+        window.location.href = "index.html"
+      }else{
+        alert("验证码错误");
+      }
+    }
+  </script>
+</html>

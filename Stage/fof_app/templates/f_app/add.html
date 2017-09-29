@@ -1,0 +1,1181 @@
+{% extends "main.html" %}
+{% block css %}
+    <link href="../../static/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="../../static/css/hd.css" rel="stylesheet">
+     <link href="../../static/css/bootstrap-slider.css" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+     <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2>添加新组合 <small>添加一个牛逼的新组合</small></h2>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    <!-- Smart Wizard -->
+                    <p>这个页面可以让你添加一个牛逼的新组合</p>
+                    <div id="wizard" class="form_wizard wizard_horizontal">
+                      <ul class="wizard_steps">
+                        <li>
+                          <a href="#step-1">
+                            <span class="step_no">1</span>
+                            <span class="step_descr">
+                                              子策略指数<br />
+                                              <small>选择至少一个策略</small>
+                                          </span>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#step-2">
+                            <span class="step_no">2</span>
+                            <span class="step_descr">
+                                               投资组合优化<br />
+                                              <small>优化</small>
+                                          </span>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#step-3">
+                            <span class="step_no">3</span>
+                            <span class="step_descr">
+                                              子基金选取<br />
+                                              <small>选取若干个子基金</small>
+                                          </span>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#step-4">
+                            <span class="step_no">4</span>
+                            <span class="step_descr">
+                                              子基金投资组合优化<br />
+                                              <small>优化</small>
+                                          </span>
+                          </a>
+                        </li>
+                          <li>
+                          <a href="#step-5">
+                            <span class="step_no">5</span>
+                            <span class="step_descr">
+                                              FOF整体组合分析<br />
+                                              <small>优化</small>
+                                          </span>
+                          </a>
+                        </li>
+                      </ul>
+                      <div id="step-1">
+
+                          {% for i in chunk_list %}
+                                <div class="[ col-md-4 ] ">
+                                     {% for s in i %}
+                                    <div class="[ form-group ]">
+                                        <input type="checkbox" name="{{ s }}"  id="{{ s }}"  autocomplete="off"  value="{{ s }}"/>
+                                        <div class="[ btn-group ]">
+                                            <label for="{{ s }}" class="[ btn btn-default ]">
+                                                <span class="[ glyphicon glyphicon-ok ]"></span>
+                                                <span> </span>
+                                            </label>
+                                            <label for="{{ s }}" class="[ btn btn-default  ]">
+                                                {{ s }}
+                                            </label>
+                                        </div>
+                                     </div>
+                                        {% endfor %}
+                                </div>
+                          {% endfor  %}
+                      </div>
+
+                      <div id="step-2" >
+                              <div class="panel panel-default ">
+                                  <div class="panel-heading">
+                                     <h3 >期望收益或期望风险</h3>
+                                  </div>
+                                  <div class="panel-body" >
+                                      <div>
+                                          <div class="col-md-2" >
+                                          <p>期望收益率</p>
+                                          <input class="knob"  name="annual_return"  data-width="120" data-height="120" data-angleOffset=0 data-linecap=round data-fgColor="#FF0000"  value="0">
+                                        </div>
+                                       <div class="col-md-2">
+                                          <p>CVaR</p>
+                                          <input class="knob"  name="cvar" data-width="120" data-height="120" data-angleOffset=0 data-linecap=round data-fgColor="#FF0000" value="0">
+                                        </div>
+                                       <div class="col-md-2">
+                                          <p>波动率</p>
+                                          <input class="knob" name="volatility" data-width="120" data-height="120" data-angleOffset=0 data-linecap=round data-fgColor="#FF0000" value="0" >
+                                        </div>
+                                        <div class="col-md-2">
+                                          <p>VaR</p>
+                                          <input class="knob"  name="var" data-width="120" data-height="120" data-angleOffset=0 data-linecap=round data-fgColor="#FF0000" value="0" >
+                                        </div>
+                                      </div>
+
+                                      <div class="clear">
+
+                                      </div>
+
+
+                                  </div>
+                                  <div class="panel-footer"><small>选择旋钮或者拖动或者旋转鼠标中键</small></div>
+
+                          <div>
+
+                           <div class="panel panel-default">
+
+                              <div class="panel-body">
+                                     <div id="education_fields">
+
+                                    </div>
+
+                                  <div class="con">
+
+                                      <div class="col-sm-3 nopadding">
+                              <div class="form-group">
+                                  <select class="form-control first one"  name="educationDate[]">
+                                  </select>
+                                </div>
+                              </div>
+
+
+                             <div class="col-sm-3 nopadding">
+                              <div class="form-group">
+                                  <select class="form-control first two" name="educationDate[]">
+                                  </select>
+                                </div>
+                              </div>
+                            <div class="col-sm-2 nopadding">
+                                <div class="form-group">
+                                  <select class="form-control  high"  name="educationDate[]">
+                                      <option>高</option>
+                                      <option>低</option>
+                                  </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-2 nopadding">
+                              <div class="form-group">
+                                <div class="input-group">
+                                   <input type="number" class="form-control"   name="Degree[]" value="" placeholder="%" >
+                                  <div class="input-group-btn">
+                                    <button class="btn btn-success " onclick="education_fields()" type="button" > <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          <div class="clear"></div>
+                      </div>
+                              </div>
+                              <div class="panel-footer"><small>点击<span class="glyphicon glyphicon-plus gs"></span>添加一个新的条件</small>, <small>点击<span class="glyphicon glyphicon-minus gs"></span>删除一个条件</small>
+                              <button  id="submit_button" class="btn btn-primary col-md-offset-8 ">测算投资最优组合</button></div>
+                            </div>
+                           <div id="tab2pie" class="x_content col-md-3" style="height: 600px" >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div id="step-3">
+                             <div class="row">
+          <div class="col-md-2" style="border-right: solid 2px gray;height:100px;">
+              <div class="form-group">
+                  <select  class="form-control" id="s3" >
+                  </select>
+              </div>
+          </div>
+
+          <div class="col-md-8" >
+              <div class="form-inline" style="margin-bottom: 30px">
+                  <div class="checkbox"  id="nianhua" style="margin-right: 30px">
+                        <label>
+                          <input type="checkbox"  ><b>复合年化收益率(%)</b>
+                        </label>
+                      </div>
+                  <input id="ex1" type="text"  value="" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="[10,80]"/> <b></b>
+              </div>
+              <div class="form-inline" style="margin-bottom: 30px" >
+                  <div class="checkbox"  style="margin-right: 95px" >
+                        <label>
+                          <input type="checkbox" id="year"><b>成立年限</b>
+                        </label>
+                      </div>
+                   <input id="ex2" type="text" value="" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="[1,3]"/> <b></b>
+              </div>
+              <div class="form-inline" style="margin-bottom: 30px">
+                  <div class="checkbox"  id="chehui" style="margin-right: 10px">
+                        <label class="my_checkBox">
+                          <input type="checkbox" ><b>最大值回撤比率(%)</b>
+                        </label>
+                      </div>
+                  <input id="ex3" type="text" value="" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="[10,80]"/> <b></b>
+
+              </div>
+
+                <div class="form-inline" >
+                  <div class="checkbox"   style="margin-right: 10px">
+                        <label class="my_checkBox">
+                          <input type="checkbox" id="rank" ><b>基金等级</b>
+                        </label>
+                      </div>
+                <input id="ex4" data-slider-id='ex4Slider' type="text" data-slider-min="0" data-slider-max="4" data-slider-step="1" data-slider-value="4"/>
+              </div>
+
+          </div>
+          <button class="btn btn-info" id="p3">确认</button>
+
+
+
+    </div>
+        <hr>
+   <div class="col-md-12" >
+       <div class="col-md-4 col-md-offset-3" id="tab3loading"></div>
+             <table id="t1" class="table table-striped table-bordered  center-all" cellspacing="0" width="100%">
+                 <thead>
+            <tr>
+                <th>子基金名称</th>
+                <th>主策略</th>
+                <th>日期</th>
+                <th></th>
+            </tr>
+
+        </thead>
+                 <tbody id="body">
+
+             </tbody>
+
+        </table>
+          </div>
+            <hr>
+            <br>
+            <div class="row" id="pr3" style="height: 150px">
+               </div>
+              </div>
+              <div id="step-4">
+                   <div class="col-md-12">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>已选择的策略和基金</h2>
+                                  <button class="btn btn-info col-md-offset-8" id="tab4submit">确认</button>
+                                <div class="clearfix"></div>
+                            </div>
+                              <div class="x_content" id="pr4">
+
+
+                              </div>
+                               <div class="x_content">
+
+                                    <div id="tab4chart" style="height: 500px"></div>
+                               </div>
+                        </div>
+                   </div>
+              </div>
+
+
+
+
+
+                         <div id="step-5">
+                             <div class="x_panel">
+                                  <div class="x_title">
+                                    <h2>已选择策略和子基金</h2>
+
+                                    <div class="clearfix"></div>
+                                  </div>
+                                 <div class="x_content">
+                                        <div id="pr5" class="col-md-12"></div>
+                                 </div>
+                                 <div class="x_content">
+
+                                     <div class="form-group" >
+                                            <label class="control-label col-md-1" >请输入组合名称</label>
+                                            <div class="col-md-3 col-sm-9 col-xs-12">
+                                                <input type="text" id="packName"> <label id="tab5info"></label>
+                                            </div>
+                                          </div>
+
+                                 </div>
+                             </div>
+
+                         </div>
+                    <!-- End SmartWizard Content -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="../../static/vendors/jQuery-Smart-Wizard/js/jquery.smartWizard.js"></script>
+    <script src="../../static/vendors/jquery-knob/dist/jquery.knob.min.js"></script>
+    <script src="../../static/vendors/echarts/dist/echarts.min.js"></script>
+    <script src="../../static/js/bootstrap-slider.js"></script>
+    <script src="../../static/js/spin.js"></script>
+
+
+    <script>
+
+    var theme = {
+				  color: [
+					  '#0f65d2', '#34495E', '#BDC3C7', '#3498DB',
+					  '#9B59B6', '#9B59B6', '#985f0d', '#985f0d'
+				  ],
+				  title: {
+					  itemGap: 8,
+					  textStyle: {
+						  fontWeight: 'normal',
+						  color: '#408829'
+					  }
+				  },
+
+				  dataRange: {
+					  color: ['#1f610a', '#97b58d']
+				  },
+
+				  toolbox: {
+					  color: ['#408829', '#408829', '#408829', '#408829']
+				  },
+
+				  tooltip: {
+					  backgroundColor: 'rgba(0,0,0,0.5)',
+					  axisPointer: {
+						  type: 'line',
+						  lineStyle: {
+							  color: '#408829',
+							  type: 'dashed'
+						  },
+						  crossStyle: {
+							  color: '#408829'
+						  },
+						  shadowStyle: {
+							  color: 'rgba(200,200,200,0.3)'
+						  }
+					  }
+				  },
+
+				  dataZoom: {
+					  dataBackgroundColor: '#eee',
+					  fillerColor: 'rgba(64,136,41,0.2)',
+					  handleColor: '#408829'
+				  },
+				  grid: {
+					  borderWidth: 0
+				  },
+
+				  categoryAxis: {
+					  axisLine: {
+						  lineStyle: {
+							  color: '#408829'
+						  }
+					  },
+					  splitLine: {
+						  lineStyle: {
+							  color: ['#eee']
+						  }
+					  }
+				  },
+
+				  valueAxis: {
+					  axisLine: {
+						  lineStyle: {
+							  color: '#408829'
+						  }
+					  },
+					  splitArea: {
+						  show: true,
+						  areaStyle: {
+							  color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
+						  }
+					  },
+					  splitLine: {
+						  lineStyle: {
+							  color: ['#eee']
+						  }
+					  }
+				  },
+				  timeline: {
+					  lineStyle: {
+						  color: '#408829'
+					  },
+					  controlStyle: {
+						  normal: {color: '#408829'},
+						  emphasis: {color: '#408829'}
+					  }
+				  },
+
+				  k: {
+					  itemStyle: {
+						  normal: {
+							  color: '#68a54a',
+							  color0: '#a9cba2',
+							  lineStyle: {
+								  width: 1,
+								  color: '#408829',
+								  color0: '#86b379'
+							  }
+						  }
+					  }
+				  },
+				  map: {
+					  itemStyle: {
+						  normal: {
+							  areaStyle: {
+								  color: '#ddd'
+							  },
+							  label: {
+								  textStyle: {
+									  color: '#c12e34'
+								  }
+							  }
+						  },
+						  emphasis: {
+							  areaStyle: {
+								  color: '#99d2dd'
+							  },
+							  label: {
+								  textStyle: {
+									  color: '#c12e34'
+								  }
+							  }
+						  }
+					  }
+				  },
+				  force: {
+					  itemStyle: {
+						  normal: {
+							  linkStyle: {
+								  strokeColor: '#408829'
+							  }
+						  }
+					  }
+				  },
+				  chord: {
+					  padding: 4,
+					  itemStyle: {
+						  normal: {
+							  lineStyle: {
+								  width: 1,
+								  color: 'rgba(128, 128, 128, 0.5)'
+							  },
+							  chordStyle: {
+								  lineStyle: {
+									  width: 1,
+									  color: 'rgba(128, 128, 128, 0.5)'
+								  }
+							  }
+						  },
+						  emphasis: {
+							  lineStyle: {
+								  width: 1,
+								  color: 'rgba(128, 128, 128, 0.5)'
+							  },
+							  chordStyle: {
+								  lineStyle: {
+									  width: 1,
+									  color: 'rgba(128, 128, 128, 0.5)'
+								  }
+							  }
+						  }
+					  }
+				  },
+				  gauge: {
+					  startAngle: 225,
+					  endAngle: -45,
+					  axisLine: {
+						  show: true,
+						  lineStyle: {
+							  color: [[0.2, '#86b379'], [0.8, '#68a54a'], [1, '#408829']],
+							  width: 8
+						  }
+					  },
+					  axisTick: {
+						  splitNumber: 10,
+						  length: 12,
+						  lineStyle: {
+							  color: 'auto'
+						  }
+					  },
+					  axisLabel: {
+						  textStyle: {
+							  color: 'auto'
+						  }
+					  },
+					  splitLine: {
+						  length: 18,
+						  lineStyle: {
+							  color: 'auto'
+						  }
+					  },
+					  pointer: {
+						  length: '90%',
+						  color: 'auto'
+					  },
+					  title: {
+						  textStyle: {
+							  color: '#333'
+						  }
+					  },
+					  detail: {
+						  textStyle: {
+							  color: 'auto'
+						  }
+					  }
+				  },
+				  textStyle: {
+					  fontFamily: 'Arial, Verdana, sans-serif'
+				  }
+			  };
+
+
+    function seValue() {
+        var selectValue = [];
+        $("input[type=checkbox]:checked").each(function(){
+            var model = $(this).attr("value");
+            selectValue.push(model);
+        });
+        return selectValue;
+    }
+
+
+    var room = 1;
+    function education_fields() {
+
+            room++;
+            var objTo = document.getElementById('education_fields');
+            var divtest = document.createElement("div");
+            divtest.setAttribute("class", "form-group con removeclass"+room);
+            var rdiv = 'removeclass'+room;
+            divtest.innerHTML = '<div class="col-sm-3 nopadding">' +
+                '<div class="form-group">' +
+                '<select class="form-control first one"  name="educationDate[]"></select>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-sm-3 nopadding">' +
+                '<div class="form-group"> ' +
+                '<select class="form-control first two" name="educationDate[]"></select>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-sm-2 nopadding">' +
+                '<div class="form-group"> ' +
+                '<select class="form-control"  name="educationDate[]"><option>高</option><option>低</option></select>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-sm-2 nopadding">' +
+                '<div class="form-group">' +
+                '<div class="input-group">' +
+                '<input type="number" class="form-control"  name="Degree[]" value="" placeholder="%">' +
+                '<div class="input-group-btn"> <button class="btn btn-danger" type="button" onclick="remove_education_fields('+ room +');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> </button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="clear"></div>';
+
+            objTo.appendChild(divtest);
+            data = seValue();
+            for(var i=0;i<data.length;i++){
+           $(".removeclass"+room +" .first").append("<option value="+data[i]+">"+data[i]+"</option>")
+           }
+        }
+
+
+    function remove_education_fields(rid) {
+           $('.removeclass'+rid).remove();
+       }
+
+
+
+    function createNewTable(data) {
+
+        var table =  $('#t1').DataTable({
+                paging: true,
+                ordering: true,
+                searching: true,
+                    "language": {
+                                "lengthMenu": "每页 _MENU_ 条记录",
+                                "zeroRecords": "没有找到记录",
+                                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                                "infoEmpty": "无记录",
+                                "infoFiltered": "(从 _MAX_ 条记录过滤)",　　　　　
+                                "paginate": {
+                                "next": "下一页",
+                                "previous":"上一页"}},
+                 'data':data,
+                 "columns": [
+                    { 'data': "name" },
+                    { 'data': "model" },
+                    { 'data': "date" },
+                    {'data':null}],
+                 "columnDefs": [ {
+                    "targets": -1,
+                    "data": null,
+                    "defaultContent": "<a class='details'>详细信息|</a> <a class='report'>评估报告|</a> " +
+                    "<a class='add btn'>添加</a>"},
+                         { "width": "25%", "targets": 0 },
+                 { "width": "20%", "targets": 3 }]
+                    });
+        $('#t1 tbody').on( 'click', '.details', function () {
+                var data = table.row( $(this).parents('tr') ).data();
+                alert( data.name );
+                });
+        $('#t1 tbody').on( 'click', '.report', function () {
+        var data = table.row( $(this).parents('tr') ).data();
+        alert( data.name + "baogao" );
+        });
+        $('#t1 tbody').on( 'click', '.add', function () {
+         var checkText=$("#s3").find("option:selected").text();
+         var data = table.row( $(this).parents('tr') ).data();
+          new PNotify({
+            title: checkText,
+            text: data.name +'已添加',
+            type: 'success',
+              history: false,
+              delay:800,
+            styling: 'bootstrap3'
+          });
+
+            $('h4').each(function () {
+                if ($(this).text() == checkText){
+                        $(this).parent().siblings('.x_content').children().append("<li>" + data.name + "<a class='dremove' href='javascript:void(0)' ><span class='glyphicon glyphicon-remove'></span></a></li>");
+                }
+            });
+            $(".dremove").on('click',function (index) {
+               var title =  $(this).parent().text();
+                $(this).parent().remove();
+{#                  new PNotify({#}
+{#                    title: checkText,#}
+{#                    text: title +'已删除',#}
+{#                    type: 'notice',#}
+{#                    styling: 'bootstrap3'#}
+{#                })#}
+{##}
+{##}
+        })
+        });
+        }
+
+
+
+
+        $(document).ready(function () {
+
+              var opts = {
+                              lines: 13 // The number of lines to draw
+                            , length: 28 // The length of each line
+                            , width: 14 // The line thickness
+                            , radius: 42 // The radius of the inner circle
+                            , scale: 1 // Scales overall size of the spinner
+                            , corners: 1 // Corner roundness (0..1)
+                            , color: '#000' // #rgb or #rrggbb or array of colors
+                            , opacity: 0.25 // Opacity of the lines
+                            , rotate: 0 // The rotation offset
+                            , direction: 1 // 1: clockwise, -1: counterclockwise
+                            , speed: 1 // Rounds per second
+                            , trail: 60 // Afterglow percentage
+                            , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+                            , zIndex: 2e9 // The z-index (defaults to 2000000000)
+                            , className: 'spinner' // The CSS class to assign to the spinner
+                            , top: '50%' // Top position relative to parent
+                            , left: '50%' // Left position relative to parent
+                            , shadow: false // Whether to render a shadow
+                            , hwaccel: false // Whether to use hardware acceleration
+                            , position: 'absolute' // Element positioning
+                            };
+              var target = document.getElementById('tab3loading');
+
+
+         function leaveAStepCallback(obj, context){
+             console.log(obj,context);
+                console.log("从"+context.fromStep,"到"+context.toStep);
+                var step_num= obj.attr('rel');
+             if(context.fromStep > context.toStep) {
+                 $('#m1').addClass('hidden');
+                 $('#pr3').empty();
+                 console.log(context.toStep);
+                 console.log("后退"+context.toStep);
+                 return validateSteps(context.toStep);
+             }
+
+                    //alert("Leaving step " + context.fromStep + " to go to step " + context.toStep);
+                     return true; // return false to stay on step and true to continue navigation
+                }
+
+    // Your Step validation logic
+    function validateSteps(stepnumber){
+
+
+        var isStepValid = true;
+
+
+        if(stepnumber == 1){
+            return  isStepValid
+
+
+        }
+        else if(stepnumber == 2){
+
+
+        }
+        else if(stepnumber == 3){
+        $('#t1').DataTable().destroy();
+        $('#t1 tbody').empty();
+
+         return  isStepValid
+        }
+        else if(stepnumber == 4){
+        if ($('.tab3h4 li').length > 0 ){
+                $('#pr3').clone().appendTo($('#pr4'));
+                $('#pr4 .dremove').remove();
+
+            }
+
+
+        }
+        return true;
+        // ...
+    }
+    function validateAllSteps(){
+        var isStepValid = true;
+        // all step validation logic
+        return isStepValid;
+    }
+
+    function showstep(steObj){
+         var step_num= steObj.attr('rel');
+        var s3 = new Set();
+        switch (step_num) {
+        case '1':
+           var not_exist = {{ not_exist| tojson }};
+           new PNotify({
+                              title: '这些策略暂时不可用',
+                              text: not_exist.toString()  ,
+                              type: 'warn',
+                              styling: 'bootstrap3'
+                          });
+           console.log(11111);
+           for(var i=0;i<not_exist.length;i++){
+              $('#'+not_exist[i]).attr("disabled","disabled");
+              $('#'+not_exist[i]).siblings().children('.btn').addClass('disabled').addClass("success");
+           }
+           var checktag = $('#step-1 input:checkbox');
+
+            checktag.on('change',function () {
+                if($(':checkbox:checked').length > 0){
+                    $('.buttonNext').removeClass('buttonDisabled');
+                }else{
+                    $('.buttonNext').addClass('buttonDisabled');
+                }
+            });
+            break;
+            case '2':
+             new PNotify({
+                          title: '投资组合优化',
+                          text: '至少需要选择一种预期,期望年化率和CVAR,波动率' ,
+                          type: 'info',
+                          styling: 'bootstrap3'
+                          });
+
+             $(".first").empty();
+             var selectValue = seValue();
+                for(var i=0;i<selectValue.length;i++){
+                    $(".first").append("<option value="+selectValue[i]+">"+selectValue[i]+"</option>")
+                }
+
+              $(".knob").each(function () {
+                  var self = $(this);
+                      self.knob({
+                      'release':''
+                      })
+             });
+
+            $('#submit_button').click(function () {
+                var result = {};
+                var expectations ={};
+                result["subjective_view"] = [];
+                result["strategies"] = selectValue;
+                $('.knob').each(function (){
+                    expectations[$(this)[0]['name']] = parseInt($(this)[0]['value']) / 100 ;
+
+                });
+                result['expectations'] = expectations;
+                var inputCheck = $('.con').children().find('input').val().length;
+                if(inputCheck >  0){
+                    $('.con').each(function () {
+                        var validator = {};
+                        validator["strategy1"] = $(this).children().find('.one :selected').text();
+                        validator["strategy2"] = $(this).children().find('.two :selected').text();
+                        validator["value"] = parseInt($(this).children().find('input').val()) / 100 ;
+                        result["subjective_view"].push(validator);
+                });
+                }else{
+                     new PNotify({
+                              title: '投资组合优化',
+                              text: '没有选择条件' ,
+                              type: 'info',
+                              delay:700,
+                              styling: 'bootstrap3'
+                          });
+                }
+                console.log(result);
+                $.ajax({
+                            url:'/f_app/tab2',
+                            type:'POST',
+                            contentType: 'application/json',
+                            data:JSON.stringify(result),
+                            dataType:'json',
+                            success:function (data) {
+			  var echartPie = echarts.init(document.getElementById('tab2pie'), theme);
+			  echartPie.setOption({
+				tooltip: {
+				  trigger: 'item',
+				  formatter: "{a} <br/>{b} : {c} ({d}%)"
+				},
+				legend: {
+				  x: 'center',
+				  y: 'bottom',
+				  data: data['legend']
+				},
+				toolbox: {
+				  show: true,
+				  feature: {
+					magicType: {
+					  show: true,
+					  type: ['pie', 'funnel'],
+					  option: {
+						funnel: {
+						  x: '25%',
+						  width: '50%',
+						  funnelAlign: 'left',
+						  max: 1548
+						}
+					  }
+					},
+					restore: {
+					  show: true,
+					  title: "Restore"
+					},
+					saveAsImage: {
+					  show: true,
+					  title: "Save Image"
+					}
+				  }
+				},
+				calculable: true,
+				series: [{
+				  name: '策略类型',
+				  type: 'pie',
+				  radius: '55%',
+				  center: ['50%', '48%'],
+				  data: data['result']
+				}]
+			  });
+			  var dataStyle = {
+				normal: {
+				  label: {
+					show: false
+				  },
+				  labelLine: {
+					show: false
+				  }
+				}
+			  };
+			  var placeHolderStyle = {
+				normal: {
+				  color: 'rgba(0,0,0,0)',
+				  label: {
+					show: false
+				  },
+				  labelLine: {
+					show: false
+				  }
+				},
+				emphasis: {
+				  color: 'rgba(0,0,0,0)'
+				}
+			  };
+			}
+                        })
+            });
+
+             break;
+
+            case '3':
+                $("#s3").empty();
+                    $("input[type=checkbox]:checked").each(function(){
+                    var model = $(this).attr("value");
+                        s3.add(model);
+                    $("#s3").append("<option value="+model+">"+model+"</option>");
+                    $("#s3").change(function () {
+                        $('#t1 tbody').remove();
+                        $('#t1').DataTable().destroy();
+                    })
+                });
+                     var FuHe   =   $("#ex1").slider({
+                       tooltip: 'always'
+               });
+
+                 var setupYears =   $("#ex2").slider({
+                   tooltip: 'always'
+               });
+
+                 var cheHuBiZhi =   $("#ex3").slider({
+                   tooltip: 'always'
+               });
+                   var fundRank =   $("#ex4").slider({
+                   tooltip: 'always'
+               });
+
+                $('#s3 option').each(function () {
+                $('#pr3').append("<div class='col-md-3 widget widegt_tally_box tab3h4'><div class='x_panel'>" +
+                    "<div class='x_title'><h4 class='strategy'>"+$(this).text()+"</h4></div><div class='x_content'><div><ul class='list-inline widget_tally'></ul></div>" +
+                    "</div></div></div>")
+                 });
+
+                $('#p3').click(function () {
+                    $('#tab3loading').show();
+                    var spinner = new Spinner(opts).spin(target);
+                    var data = {};
+                     data['name'] = $("#s3 option:selected").text();
+                    if ($('#year').is(':checked')) {
+                        data['years'] = setupYears.slider("getValue");
+                    }
+                    console.log();
+                    if ($('#rank').is(':checked')) {
+                        data['rank'] = fundRank.slider("getValue");
+                    }
+                    console.log(data);
+
+                    $.ajax({
+                        url:'/f_app/tab3',
+                        type:'POST',
+                        contentType: 'application/json',
+                        data:JSON.stringify(data),
+                        dataType:'json',
+                        success:function (data) {
+                            $('#t1 tbody').remove();
+                            $('#t1').DataTable().destroy();
+                            spinner.stop();
+                            $("#tab3loading").hide();
+                            createNewTable(data);
+                        }
+                    })
+                });
+
+                break;
+
+     case '4':
+           $('#pr4').empty();
+          if ($('.tab3h4 li').length > 0 ){
+                $('#pr3').clone().appendTo($('#pr4'));
+                $('#pr4 .dremove').remove();
+
+            }
+            $('#tab4submit').click(function () {
+                var tab4Data = [];
+                    $('#pr4 .tab3h4').each(function () {
+                        var nameObj = {};
+                        var nameArray = $('li',this).map(function () {
+                        return $(this).text()
+                    }).get();
+                        nameObj['fund'] = nameArray;
+                        nameObj['title'] = $("h4",this).text();
+                        tab4Data.push(nameObj);
+                    });
+                    $.ajax({
+                        url:'/f_app/tab4',
+                            type:'POST',
+                            contentType: 'application/json',
+                            data:JSON.stringify(tab4Data),
+                            dataType:'json',
+                            success:function (data) {
+                                console.log(data)
+                            }
+                    });
+
+                var t4chart = echarts.init(document.getElementById('tab4chart'), theme);
+                t4chart.setOption({
+                                tooltip : {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+                                legend: {
+                                    orient : 'vertical',
+                                    x : 'left',
+                                    data:['直达','营销广告','搜索引擎','邮件营销','联盟广告','视频广告','百度','谷歌','必应','其他']
+                                },
+                                toolbox: {
+                                    show : true,
+                                    feature : {
+                                        mark : {show: true},
+                                        dataView : {show: true, readOnly: false},
+                                        magicType : {
+                                            show: true,
+                                            type: ['pie', 'funnel']
+                                        },
+                                        restore : {show: true},
+                                        saveAsImage : {show: true}
+                                    }
+                                },
+                                calculable : false,
+                                series : [
+                                    {
+                                        name:'访问来源',
+                                        type:'pie',
+                                        selectedMode: 'single',
+                                        radius : [0, 70],
+
+                                        // for funnel
+                                        x: '20%',
+                                        width: '40%',
+                                        funnelAlign: 'right',
+                                        max: 1548,
+
+                                        itemStyle : {
+                                            normal : {
+                                                label : {
+                                                    position : 'inner'
+                                                },
+                                                labelLine : {
+                                                    show : false
+                                                }
+                                            }
+                                        },
+                                        data:[
+                                            {value:335, name:'儿儿妇我你'},
+                                            {value:679, name:'营销广告'},
+                                            {value:1548, name:'搜索引擎', selected:true}
+                                        ]
+                                    },
+                                    {
+                                        name:'访问来源',
+                                        type:'pie',
+                                        radius : [100, 140],
+
+                                        // for funnel
+                                        x: '60%',
+                                        width: '35%',
+                                        funnelAlign: 'left',
+                                        max: 1048,
+
+                                        data:[
+                                            {value:335, name:'直达'},
+                                            {value:310, name:'邮件营销'},
+                                            {value:234, name:'联盟广告'},
+                                            {value:135, name:'视频广告'},
+                                            {value:1048, name:'百度'},
+                                            {value:251, name:'谷歌'},
+                                            {value:147, name:'必应'},
+                                            {value:102, name:'其他'}
+                                        ]
+                                    }
+                                ]
+
+                            });
+
+            });
+
+
+
+
+
+
+
+
+
+         break;
+
+    case '5':
+        $('#pr5').empty();
+        if ($('.tab3h4 li').length > 0 ){
+                    $('#pr3').clone().appendTo($('#pr5'));
+                    $('#pr5 .dremove').remove();
+                    var tab5Data = [];
+                    $('#pr5 .tab3h4').each(function () {
+                        var nameObj = {};
+                        var nameArray = $('li',this).map(function () {
+                        return $(this).text()
+                    }).get();
+                        nameObj['fund'] = nameArray;
+                        nameObj['title'] = $("h4",this).text();
+                        tab5Data.push(nameObj);
+                    });
+
+
+                }
+                    //检查基金组合名称是否存在
+                $('#packName').blur(function () {
+                    if($('#packName').val().length > 0){
+                         $('#tab5info').removeClass().empty();
+                        var packName  = $('#packName').val().trim();
+                        $.ajax({
+                            url:'/checkName',
+                            type:'POST',
+                            contentType: 'application/json',
+                            data:JSON.stringify(packName),
+                            dataType:'json',
+                            success:function (callback) {
+
+                                if(callback == "ok"){
+                                    $('#tab5info').text("组合名称可以使用").addClass("bg-success");
+                                      $('.button-finish').removeClass('disabled');
+                                }else{
+                                     $('#tab5info').text("组合名称已存在").addClass("bg-danger")
+                                }
+                            },
+                            error:function (callback) {
+
+                            }
+                        })
+                    }
+                });
+                $(".buttonFinish").click(function () {
+                    var data = Object();
+                    data['name'] = tab5Data;
+                    data['packName'] = $('#packName').val().trim();
+
+                    $.ajax({
+                        url:'/finish',
+                        type:'POST',
+                        contentType: 'application/json',
+                        data:JSON.stringify(data),
+                        dataType:'json',
+                        success:function (callback) {
+                                alert('添加成功');
+                        }
+                    })
+                });
+
+
+
+
+        break;
+
+        default:
+            break;
+        }
+    }
+
+
+
+
+    $('#wizard').smartWizard({
+				onLeaveStep:leaveAStepCallback,
+                onShowStep:showstep,
+                keyNavigation: false,
+                labelNext:'下一步', // label for Next button
+                labelPrevious:'上一步', // label for Previous button
+                labelFinish:'完成'  // label for Finish button
+			});
+
+			$('.buttonNext').addClass('btn btn-info');
+			$('.buttonPrevious').addClass('btn btn-primary');
+			$('.buttonFinish').addClass('btn btn-default');
+
+        })
+
+
+
+
+    </script>
+{% endblock %}

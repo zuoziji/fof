@@ -1,0 +1,110 @@
+{% extends "main.html" %}
+{% block title %}
+ 主页
+{% endblock %}
+
+
+
+{% block manager %}
+    {% if fof_list is none %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+ <div class="">
+            <div class="page-title">
+              <div class="title_left">
+                <h3>基金列表</h3>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2>{{ fof_list | length }}支可管理</h2>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    <!-- start project list -->
+                    <table class="table table-striped projects">
+                      <thead>
+                        <tr>
+                          <th style="width: 1%"></th>
+                          <th style="width: 20%">基金名称</th>
+                          <th>基金成立日期/终止日期</th>
+                          <th>最新净值日期</th>
+                          <th>最新净值</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for i in fof_list %}
+                        <tr style="background: #dcf1fc;">
+                          <td>{{ loop.index }}</td>
+                          <td style="width: 25%;">
+                              {% if current_user.update_nav %}
+                              <p><a href="{{ url_for('f_app.change_acc',wind_code=i.primary.wind_code) }}">{{ i.primary.sec_name }}</a></p>
+                              {% else %}
+                                  <p>
+                                  <a href="{{ url_for('f_app.details',wind_code=i.primary.wind_code) }}">{{ i.primary.sec_name }} </a>
+                                  </p>
+                              {% endif %}
+                            <br>
+                          </td>
+
+                        <td>
+                            <p>{{ i.primary.fund_setupdate }}</p><P>{{ i.primary.fund_maturitydate }}</P>
+
+                        </td>
+                          <td>
+                            <p>{{ i.primary.nav_date_latest }}</p>
+                          </td>
+                            <td>
+                                {{ i.primary.nav_acc_latest  | round(3,'floor') }}
+                                &nbsp;&nbsp;<i class="fa fa-line-chart"></i>
+                            </td>
+                        {% for c in i.child %}
+                              <tr>
+                              <td></td>
+                              <td style="width: 25%;">
+                                  {% if current_user.update_nav %}
+                              <p><a href="{{ url_for('f_app.change_acc',wind_code=c.code) }}">{{ c.name }}</a></p>
+                              {% else %}
+                                  <p>
+                                  <a href="{{ url_for('f_app.details',wind_code=c.code) }}">{{ c.name }}</a>
+                                  </p>
+                              {% endif %}
+                              </td>
+                               <td>
+                            <p> {{ c.date }}</p>
+                          </td>
+                        <td>
+                            <p>{{ c.nav_date_latest  if c.nav_date_latest is not none else "" }}</p>
+                        </td>
+                          <td>
+                            <p>
+                                {{c.nav_acc_latest |round(3,'floor') if c.nav_acc_latest is not none  else  "" }}
+                                &nbsp;&nbsp;<i class="fa fa-line-chart"></i>
+                            </p>
+                          </td>
+                              </tr>
+                              {% endfor %}
+
+                        </tr>
+
+
+                        {% endfor %}
+
+                      </tbody>
+                    </table>
+                    <!-- end project list -->
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+{% endblock %}
+

@@ -1,0 +1,103 @@
+{% extends "main.html" %}
+
+
+
+{% block manager %}
+{% endblock %}
+{% block content %}
+
+
+
+<div class="row tile_count">
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-user"></i>大数据投顾池</span>
+              <div class="count">{{ all_data.all.length }}</div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-clock-o"></i> 归档投顾池</span>
+              <div class="count">{{ all_data.archive.length }}</div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-user"></i> 观察投顾池</span>
+              <div class="count green">{{ all_data.observe.length }}</div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-user"></i> 核心投顾池</span>
+              <div class="count">{{ all_data.core.length }}</div>
+            </div>
+
+          </div>
+        <div class="x_content">
+           <table class="table table-bordered center-all" id="invest_tab" width="100%" >
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>投顾名称</th>
+                <th>别名</th>
+                <th>已发行</th>
+                <th>存续期</th>
+                <th>活跃</th>
+                <th>当前状态</th>
+                <th></th>
+              </tr>
+              </thead>
+            </table>
+
+        </div>
+
+
+
+
+
+{% endblock %}
+
+
+
+{% block script %}
+ <script>
+
+   var all_data = {{ all_data| tojson }};
+   var all_invest = all_data.all;
+   $(document).ready(function () {
+        $('#invest_tab').DataTable({
+         "info":false,
+            "paging": true,
+            "displayLength": 20,
+                "language": {
+                "lengthMenu": "每页 _MENU_ 条记录",
+                "zeroRecords": "没有找到记录",
+                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                "infoEmpty": "无记录",
+                "search": "搜索：",
+                "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                "processing":"正在处理;....",
+                "paginate": {
+                    "previous": "上一页",
+                    "next": "下一页"
+                }
+            },
+         serverSide: true,   //启用服务器端分页
+         processing: true,  //隐藏加载提示,自行处理
+		 "sAjaxSource": "{{ url_for('f_app.get_corp') }}",
+          columns: [
+              { data: 'mgrcomp_id' },
+              { data: 'name'},
+              {data:'alias'},
+              {data:'fund_count_tot'},
+              {data:'fund_count_existing'},
+              {data:'fund_count_active'},
+              {data:"review_status"},
+              {data:null,
+                  "render": function(data, type, row) {
+                      var uid = data.mgrcomp_id;
+                      return '<a href=/f_app/corp/'+uid+'><button type="button" class="btn btn-info btn-xs">详细信息</button></a>';
+                  }
+              }
+          ]
+    });
+   })
+
+
+ </script>
+
+{% endblock %}

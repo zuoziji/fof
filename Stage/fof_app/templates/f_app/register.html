@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}复华投资{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon_fh.ico') }}"/>
+    <link rel="bookmark" href="{{ url_for('static', filename='images/favicon_fh.ico') }}"/>
+    <!-- Bootstrap -->
+    <link href="../../static/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="http://statics.uxmc.cn:2080/css/3rd/vue-element-ui.css?out-source-2017051701" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link type="text/css" href="../../static/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
+    <link type="text/css" href="../../static/vendors/parsleyjs/src/parsley.css" rel="stylesheet"/>
+    <link type="text/css" href="../../static/css/register.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="app">
+    <div class="body-main">
+        <div id="reg-box" class="reg-box">
+            <div id="reg-box" class="dialog-register">
+                <form  data-parsley-validate>
+                    <div class="section-title"><strong>基本信息</strong>
+                        <small>（注：带<i class="fa fa-asterisk"></i>的为必填项）</small>
+                    </div>
+                    <div class="row"><v-input :info="userinfo"></v-input></div>
+                    <div class="row"><v-input :info="pwdinfo"></v-input></div>
+                    <div class="row"><v-input :info="rpwdinfo"></v-input></div>
+                    <div class="row"><v-input :info="emailinfo"></v-input></div>
+                    <div class="row"><div class="row section-splitter"></div></div>
+                    <div class="section-title"><strong>投顾信息</strong>
+                        <small>（注：带<i class="fa fa-asterisk"></i>的为必填项）</small>
+                    </div>
+                    <div class="row">
+                        <v-input :info="investinfo"></v-input>
+                        <v-input :info="registinfo"></v-input>
+                    </div>
+                    <div class="row">
+                        <v-select :info="scaleinfo"></v-select>
+                        <v-select :info="staffinfo"></v-select>
+                    </div>
+                    <div class="row">
+                        <v-select :info="inviteinfo"></v-select>
+                    </div>
+                    <div class="row">
+                        <v-select :info="strategyinfo"></v-select>
+                    </div>
+                    <div class="row">
+                        <div class="col col-md-6">
+                            <button type="submit" class="btn-register btn btn-md btn-success btn-block">注册</button>
+                        </div>
+                        <div class="col col-md-6">
+                            <button type="reset" class="btn-reset btn btn-md btn-block">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+    <script type="text/x-template" id="v-input">
+        <div>
+            <div :class="info.grid">
+                <div class="form-group has-feedback"><label class="input-label required">
+                    <i v-show="info.require" class="fa fa-asterisk"></i>{{ info.tit }}</label>
+                    <div class="input-group">
+                        <div class="input-group-addon"><i class="fa" :class="info.icon"></i></div>
+                        <input class="form-control" v-bind:type="info.type"
+                               v-bind:placeholder="info.plac"
+                               v-bind:name="info.name"
+                               v-bind:data-parsley-type="info.type2"
+                               v-bind:data-parsley-trigger="info.event"
+                               v-bind:data-parsley-required="info.require"
+                               v-bind:data-parsley-pattern="info.reg"
+                               v-bind:data-parsley-error-message="info.error">
+                    </div>
+                </div>
+            </div>
+            <div class="col col-md-6" v-if="info.prompt"><span class="input-notes">{{ info.prompt }}</span></div>
+        </div>
+    </script>
+    <script type="text/x-template" id="v-select">
+            <div :class="info.grid">
+                <div class="form-group form-group-no-validation"><label class="input-label">{{ info.tit }}</label>
+                    <div class="input-group">
+                        <div class="input-group-addon"><i class="fa" :class="info.icon"></i></div>
+                        <div class="el-select" style="position: relative;">
+                            <div class="el-input"><i class="el-input__icon el-icon-caret-top" :class="{'is-reverse':info.flag}"></i>
+                                <input autocomplete="off" v-bind:value="option" @click="toggleState" v-bind:placeholder="info.plac" readonly="readonly" icon="caret-top  circle-close is-show-close" type="text" rows="2" class="el-input__inner">
+                            </div>
+                            <div class="el-select-dropdown" v-show="info.flag"
+                                 style="width: 100%;position: absolute; left: 0px; transform-origin: center top 0px; z-index: 2000;"
+                                 v-bind:style="info.position"
+                                 x-placement="bottom-start">
+                                <ul class="el-scrollbar__view el-select-dropdown__list" style="position: relative;">
+                                    <li class="el-select-dropdown__item" v-for="(item,index) in info.items" @click="selectOption(index)">
+                                        <span>{{ item }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </script>
+<!-- jQuery -->
+<script src="../../static/vendors/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap -->
+<script src="../../static/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="../../static/js/vue.js"></script>
+<script src="../../static/vendors/parsleyjs/dist/parsley.js"></script>
+<script src="../../static/vendors/parsleyjs/dist/i18n/zh_cn.js"></script>
+<script>
+    Vue.component("vInput", {
+        template: "#v-input",
+        props: ['info']
+    });
+    Vue.component("vSelect", {
+        data: function () {
+            return {
+                option: ""
+            }
+        },
+        methods: {
+            toggleState: function(e){
+                e.stopPropagation();
+                this.info.flag = !this.info.flag;
+                if(this.info.flag){
+                    $(document).on('mouseenter','li',function(){
+                        $(this).addClass('hover').siblings('li').removeClass('hover');
+                    })
+                }
+                document.onclick = () => {
+                    this.info.flag = false;
+                }
+            },
+            selectOption: function(index){
+                    this.option = this.info.items[index];
+                    this.info.flag = false;
+            }
+        },
+        template: "#v-select",
+        props: ['info']
+    });
+
+    var vm = new Vue({
+        el: "#app",
+        data: function() {
+            return {
+                userinfo: { //username
+                    grid: "col-md-6",
+                    tit: "用户名",
+                    plac: "请输入用户名称",
+                    icon: "fa-user",
+                    name: "username",
+                    prompt: "用户名称（请以英文字母打头、且只能包含数字、字母、中划线、下划线，至少由3位字符组成）",
+                    error: "[必填] 输入错误，请重新输入！(长度3~20)",
+                    require: true,
+                    type: "text",
+                    type2: null,
+                    event: "change",
+                    reg: "^[a-zA-Z][a-zA-Z0-9_]{2,19}$"
+                },
+                pwdinfo: { //password
+                    grid: "col-md-6",
+                    tit: "登录密码",
+                    plac: "登录密码",
+                    icon: "fa-lock",
+                    name: "pwd",
+                    prompt: "密码，至少6位字符",
+                    error: "[必填] 输入错误，请重新输入！(长度6~20)",
+                    require: true,
+                    type: "password",
+                    type2: null,
+                    event: "change",
+                    reg: "^.{6,20}$"
+                },
+                rpwdinfo: { //repeat password
+                    grid: "col-md-6",
+                    tit: "重复输入登录密码",
+                    plac: "重复输入密码",
+                    icon: "fa-lock",
+                    name: "rpassword",
+                    prompt: "确认密码，请重复输入",
+                    error: "[必填] 输入错误，请重新输入！(长度6~20)",
+                    require: true,
+                    type: "password",
+                    type2: null,
+                    event: "change",
+                    reg: "^.{6,20}$"
+                },
+                emailinfo: { //email
+                    grid: "col-md-6",
+                    tit: "电子邮箱",
+                    plac: "电子邮箱地址",
+                    icon: "fa-envelope",
+                    name: "email",
+                    prompt: "电子邮箱地址，如abc@yourdomain.com",
+                    error: "[必填] 输入错误，请重新输入！(最大长度100)",
+                    require: true,
+                    type: "text",
+                    type2: "email",
+                    event: "change",
+                    reg: null
+                },
+                investinfo: {
+                    grid: "col-md-6",
+                    tit: "您所在投顾公司全名",
+                    plac: "完整的投顾名称，最少2个字符",
+                    icon: "fa-briefcase",
+                    name: "invest",
+                    error: "[必填] 投顾名称输入不正确(最小长度2)",
+                    require: true,
+                    type: "text",
+                    type2: null,
+                    event: "change",
+                    reg: "^.{2,20}$"
+                },
+                registinfo: {
+                    grid: "col-md-6",
+                    tit: "贵司注册备案号",
+                    plac: "贵司取得的注册备案号",
+                    icon: "fa-registered",
+                    name: "regist",
+                    error: "",
+                    require: false,
+                    type: "text",
+                    event: "",
+                    reg: ""
+                },
+                scaleinfo: {
+                    grid: "col-md-6",
+                    tit: "贵司现有管理规模",
+                    plac: "请选择管理资金规模（范围）",
+                    icon: "fa-rmb",
+                    flag: false,
+                    items: ["0亿 ~ 1亿","1亿 ~ 10亿","10亿 ~ 20亿","20亿 ~ 50亿","50亿"],
+                    position: "top: 30px;"
+                },
+                staffinfo: {
+                    grid: "col-md-6",
+                    tit: "贵司主要员工人数",
+                    plac: "请选择人数（范围）",
+                    icon: "fa-users",
+                    flag: false,
+                    items: ["1个 ~ 5个","5个 ~ 15个","15个 ~ 30个","30个 ~ 50个","50个以上"],
+                    position: "top: 30px;"
+                },
+                inviteinfo: {
+                    grid: "col-md-12",
+                    tit: "受以下哪个机构的邀请前来注册",
+                    plac: "请选择邀请机构",
+                    icon: "fa-cubes",
+                    flag: false,
+                    items: ["华软新动力"],
+                    position: "top: 30px;"
+                },
+                strategyinfo: {
+                    grid: "col-md-12",
+                    tit: "贵司投资策略风格（可多选）",
+                    plac: "请选择贵司主要投资策略风格",
+                    icon: "fa-thumbs-o-up",
+                    flag: false,
+                    items: ["相对价值","事件驱动","债券策略","宏观策略","其它策略","多策略","股票策略"],
+                    position: "bottom: 30px;"
+                }
+            }
+        },
+        mounted: function() {
+            $('form').parsley().on('field:validated', function () {
+                var ok = $('.parsley-error').length === 0;
+                $('.bs-callout-info').toggleClass('hidden', !ok);
+                $('.bs-callout-warning').toggleClass('hidden', ok);
+            }).on('form:submit', function () {
+                //success
+            });
+            $('.btn-reset').on('click',function(){
+                $('form').parsley().reset();
+            })
+        }
+    })
+
+</script>
+</body>
+</html>
