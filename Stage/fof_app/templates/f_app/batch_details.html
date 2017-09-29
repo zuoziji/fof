@@ -118,9 +118,9 @@
                       <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12">产品费用 <span class="required">*</span>
                         </label>
-                        <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="col-md-7 col-sm-7 col-xs-12">
                             <div class="optional col-md-12 col-xs-12 marginTop">
-                                <ul>
+                                <ul class="col-md-7">
                                     <li>管理费计算基础天数：{{ batch.day_count_4_calc_fee }} </li>
                                     <li>管理费率：{{ (batch.manage_fee_rate*100)  |round(2,'common') if batch.manage_fee_rate is not none  else  ""  }} %</li>
                                     <li>托管费率：{{ (batch.custodian_fee_rate*100)  |round(2,'common') if batch.custodian_fee_rate is not none  else  ""  }} %</li>
@@ -128,6 +128,13 @@
                                     <li>客户专项资金保管费：{{ (batch.storage_fee_rate*100)  |round(2,'common') if batch.storage_fee_rate is not none  else  ""  }} %</li>
                                     <li>认购/申购费率：{{ (batch.subscribe_fee_rate*100)  |round(2,'common') if batch.subscribe_fee_rate is not none  else  ""  }} %</li>
                                     <li>赎回费率：{{ (batch.redemption_fee_rate*100)  |round(2,'common') if batch.redemption_fee_rate is not none  else  ""  }} %</li>
+                                </ul>
+                                <ul class="col-md-5">
+                                    <li><br></li>
+                                    <li>按份额计算 {{ batch.manage_fee_calc_mode }}</li>
+                                    <li>按份额计算 {{ batch.custodian_fee_calc_mode }}</li>
+                                    <li>按份额计算 {{ batch.admin_fee_calc_mode }}</li>
+                                    <li>按市值计算 {{ batch.storage_fee_calc_mode }}</li>
                                 </ul>
                             </div>
                         </div>

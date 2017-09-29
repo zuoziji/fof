@@ -193,7 +193,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 control-label" for="date_start">开始时间</label>
+                                    <label class="col-md-3 control-label" for="date_start">开始日期</label>
                                     <div class="col-md-8 input-append ">
                                         <input id="date_start" name="date_start" type="date" class="form-control input-md"/>
                                     </div>
@@ -230,9 +230,9 @@
                                     <div class="form-group col-md-6">
                                         <label class="col-sm-4 control-label" for="manage_fee_calc_mode">计算基准</label>
                                         <div class="col-md-6 input-append">
-                                            <select class="form-control input-md col-md-9" name="manage_fee_calc_mode">
-                                                <option value="0">份额</option>
-                                                <option value="1">市值</option>
+                                            <select class="form-control input-md col-md-9" name="manage_fee_calc_mode" id="manage_fee_calc_mode">
+                                                <option value="份额">份额</option>
+                                                <option value="市值">市值</option>
                                             </select>
                                         </div>
                                     </div>
@@ -247,9 +247,9 @@
                                     <div class="form-group col-md-6">
                                         <label class="col-sm-4 control-label" for="custodian_fee_calc_mode">计算基准</label>
                                         <div class="col-md-6 input-append">
-                                            <select class="form-control input-md col-md-9" name="custodian_fee_calc_mode">
-                                                <option value="0">份额</option>
-                                                <option value="1">市值</option>
+                                            <select class="form-control input-md col-md-9" name="custodian_fee_calc_mode" id="custodian_fee_calc_mode">
+                                                <option value="份额">份额</option>
+                                                <option value="市值">市值</option>
                                             </select>
                                         </div>
                                     </div>
@@ -264,9 +264,9 @@
                                     <div class="form-group col-md-6">
                                         <label class="col-sm-4 control-label" for="admin_fee_calc_mode">计算基准</label>
                                         <div class="col-md-6 input-append">
-                                            <select class="form-control input-md col-md-9" name="admin_fee_calc_mode">
-                                                <option value="0">份额</option>
-                                                <option value="1">市值</option>
+                                            <select class="form-control input-md col-md-9" name="admin_fee_calc_mode" id="admin_fee_calc_mode">
+                                                <option value="份额">份额</option>
+                                                <option value="市值">市值</option>
                                             </select>
                                         </div>
                                     </div>
@@ -281,9 +281,9 @@
                                     <div class="form-group col-md-6">
                                         <label class="col-sm-4 control-label" for="storage_fee_calc_mode">计算基准</label>
                                         <div class="col-md-6 input-append">
-                                            <select class="form-control input-md col-md-9" name="storage_fee_calc_mode">
-                                                <option value="0">份额</option>
-                                                <option value="1">市值</option>
+                                            <select class="form-control input-md col-md-9" name="storage_fee_calc_mode" id="storage_fee_calc_mode">
+                                                <option value="份额">份额</option>
+                                                <option value="市值">市值</option>
                                             </select>
                                         </div>
                                     </div>
@@ -463,7 +463,7 @@
                         date_start: {
                             validators: {
                                 notEmpty: {
-                                    message: '开始时间不能为空'
+                                    message: '开始日期不能为空'
                                 }
                             }
                         },
@@ -672,7 +672,11 @@
                         admin_fee_rate:div($('#admin_fee_rate').val(),100),
                         storage_fee_rate:div($('#storage_fee_rate').val(),100),
                         subscribe_fee_rate:div($('#subscribe_fee_rate').val(),100),
-                        redemption_fee_rate:div($('#redemption_fee_rate').val(),100)
+                        redemption_fee_rate:div($('#redemption_fee_rate').val(),100),
+                        manage_fee_calc_mode:$('#manage_fee_calc_mode').val(),
+                        custodian_fee_calc_mode:$('#custodian_fee_calc_mode').val(),
+                        admin_fee_calc_mode:$('#custodian_fee_calc_mode').val(),
+                        storage_fee_calc_mode:$('#storage_fee_calc_mode').val()
                     }, function(result){
                         $('.modal').modal('hide');
                         $(".select2-selection__placeholder").eq(1).html("选择一个子基金");

@@ -9,12 +9,12 @@
     input:focus {
         border-color: #0b97c4!important;
     }
-    ul.parsley-errors-list.filled {
+/*    ul.parsley-errors-list.filled {
         position: absolute;
         top: 10px;
         right: -200px;
         width: 200px;
-    }
+    }*/
 </style>
 {% endblock %}
 
@@ -72,17 +72,17 @@
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12">开始时间
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">开始日期
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
                             <input type="date"  class="optional form-control col-md-12 col-xs-12" name="date_start" value="{{ batch.date_start }}"
                                    data-parsley-trigger="change"
                                    data-parsley-required="true"
-                                   data-parsley-required-message="开始时间不可为空">
+                                   data-parsley-required-message="开始日期不可为空">
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12">清盘时间
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">清盘日期
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
                             <input type="date" id="datePicker" class="optional form-control col-md-12 col-xs-12"  name="date_end" value="{{ batch.date_end }}">
@@ -92,17 +92,14 @@
                         <label class="control-label col-md-3 col-sm-3 col-xs-12">基金开放周期/频率
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                            <input type="number" class="optional form-control col-md-12 col-xs-12" name="open_frequency" min="0" value="{{ batch.open_frequency }}">
+                            <input type="number" class="optional form-control col-md-12 col-xs-12" name="open_frequency" min="0" step="0.01" value="{{ batch.open_frequency }}"><span class="fa  form-control-feedback right" aria-hidden="true">月</span>
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12">基金封闭期(月)
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">基金封闭期
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                            <input type="number" class="optional form-control col-md-12 col-xs-12" name="closed_period" min="0"
-                                   data-parsley-trigger="change"
-                                   data-parsley-required="true" value="{{ batch.closed_period }}"
-                                   data-parsley-required-message="基金封闭期不可为空">
+                            <input type="number" class="optional form-control col-md-12 col-xs-12" name="closed_period" min="0" step="0.01" value="{{ batch.closed_period }}"><span class="fa  form-control-feedback right" aria-hidden="true">月</span>
                         </div>
                     </div>
                     <div class="item form-group">
@@ -132,7 +129,7 @@
                             <input type="number" class="optional form-control col-md-12 col-xs-12" name="invest_amount" min="0" value="{{ batch.invest_amount }}" step="0.01"
                                    data-parsley-trigger="change"
                                    data-parsley-required="true"
-                                   data-parsley-required-message="初始确认金额不能为空">
+                                   data-parsley-required-message="初始确认金额不能为空"><span class="fa  form-control-feedback right" aria-hidden="true">元</span>
                         </div>
                     </div>
                     <div class="item form-group">
@@ -142,7 +139,7 @@
                           <input type="number" class="optional form-control col-md-12 col-xs-12" name="share_confirmed" min="0" value="{{ batch.share_confirmed }}" step="0.01"
                                  data-parsley-trigger="change"
                                  data-parsley-required="true"
-                                 data-parsley-required-message="初始确认份额不能为空">
+                                 data-parsley-required-message="初始确认份额不能为空"><span class="fa  form-control-feedback right" aria-hidden="true">份</span>
                       </div>
                     </div>
                     <div class="item form-group">
@@ -157,7 +154,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="item form-group">
+<!--                     <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12 ">管理费率</label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
                             <input type="number" class="optional form-control col-md-12 col-xs-12" name="manage_fee_rate_str" placeholder="" min="0" step="0.01" value="{{ (batch.manage_fee_rate*100)  |round(2,'common') if batch.manage_fee_rate is not none  else  ''  }}"
@@ -166,8 +163,8 @@
                                    data-parsley-required-message="管理费率不可为空">
                             <input type="hidden" name="manage_fee_rate" value="{{ batch.manage_fee_rate }}">
                         </div>
-                    </div>
-                    <div class="item form-group">
+                    </div> -->
+<!--                     <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12 ">托管费率</label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
                             <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="custodian_fee_rate_str" min="0" step="0.01" value="{{ (batch.custodian_fee_rate*100)  |round(2,'common') if batch.custodian_fee_rate is not none  else  ''  }}"
@@ -197,7 +194,96 @@
                                    data-parsley-required-message="客户专项资金保管费不可为空">
                             <input type="hidden" name="storage_fee_rate" value="{{ batch.storage_fee_rate }}">
                         </div>
+                    </div> -->
+                    <div class="row" style="padding-left:0;">
+                        <div class="form-group col-md-6">
+                            <label class="col-md-6 control-label" for="manage_fee_rate" style="padding-left:0;">管理费率</label>
+                            <div class="col-md-6 input-append " style="padding-left:15px;">
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" name="manage_fee_rate_str" placeholder="" min="0" step="0.01" value="{{ (batch.manage_fee_rate*100)  |round(2,'common') if batch.manage_fee_rate is not none  else  ''  }}"
+                                       data-parsley-trigger="change"
+                                       data-parsley-required="true"
+                                       data-parsley-required-message="管理费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                <input type="hidden" name="manage_fee_rate" value="{{ batch.manage_fee_rate }}">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label class="col-sm-3 control-label" for="manage_fee_calc_mode" style="padding-left:0;">计算基准</label>
+                            <div class="col-md-4 input-append">
+                                <select class="form-control input-md col-md-9" name="manage_fee_calc_mode">
+                                    <option value="份额">份额</option>
+                                    <option value="市值">市值</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
+                    <div class="row" style="padding-left:0;">
+                        <div class="form-group col-md-6">
+                            <label class="col-md-6 control-label" for="custodian_fee_rate" style="padding-left:0;">托管费率</label>
+                            <div class="col-md-6 input-append " style="padding-left:15px;">
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="custodian_fee_rate_str" min="0" step="0.01" value="{{ (batch.custodian_fee_rate*100)  |round(2,'common') if batch.custodian_fee_rate is not none  else  ''  }}"
+                                       data-parsley-trigger="change"
+                                       data-parsley-required="true"
+                                       data-parsley-type="number"
+                                       data-parsley-required-message="托管费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                <input type="hidden" name="custodian_fee_rate" value="{{ batch.custodian_fee_rate }}">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label class="col-sm-3 control-label" for="custodian_fee_calc_mode" style="padding-left:0;">计算基准</label>
+                            <div class="col-md-4 input-append">
+                                <select class="form-control input-md col-md-9" name="custodian_fee_calc_mode">
+                                    <option value="份额">份额</option>
+                                    <option value="市值">市值</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-left:0;">
+                        <div class="form-group col-md-6">
+                            <label class="col-md-6 control-label" for="admin_fee_rate" style="padding-left:0;">行政管理费率</label>
+                            <div class="col-md-6 input-append " style="padding-left:15px;">
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="admin_fee_rate_str" min="0" step="0.01" value="{{ (batch.admin_fee_rate*100)  |round(2,'common') if batch.admin_fee_rate is not none  else  ''  }}"
+                                       data-parsley-trigger="change"
+                                       data-parsley-required="true"
+                                       data-parsley-required-message="行政管理费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                <input type="hidden" name="admin_fee_rate" value="{{ batch.admin_fee_rate }}">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label class="col-sm-3 control-label" for="admin_fee_calc_mode" style="padding-left:0;">计算基准</label>
+                            <div class="col-md-4 input-append">
+                                <select class="form-control input-md col-md-9" name="admin_fee_calc_mode">
+                                    <option value="0">份额</option>
+                                    <option value="1">市值</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-left:0;">
+                        <div class="form-group col-md-6">
+                            <label class="col-md-6 control-label" for="storage_fee_rate" style="padding-left:0;">客户专项资金保管费</label>
+                            <div class="col-md-6 input-append " style="padding-left:15px;">
+                                <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="storage_fee_rate_str" min="0" step="0.01" value="{{ (batch.storage_fee_rate*100)  |round(2,'common') if batch.storage_fee_rate is not none  else  ''  }}"
+                                       data-parsley-trigger="change"
+                                       data-parsley-required="true"
+                                       data-parsley-required-message="客户专项资金保管费不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                <input type="hidden" name="storage_fee_rate" value="{{ batch.storage_fee_rate }}">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label class="col-sm-3 control-label" for="storage_fee_calc_mode" style="padding-left:0;">计算基准</label>
+                            <div class="col-md-4 input-append">
+                                <select class="form-control input-md col-md-9" name="storage_fee_calc_mode">
+                                    <option value="0">份额</option>
+                                    <option value="1">市值{{batch}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
                   </div>
                   <div class="col-sm-6">
                     <div class="item form-group">
@@ -224,7 +310,7 @@
                             <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="subscribe_fee_rate_str" min="0" step="0.01" value="{{ (batch.subscribe_fee_rate*100)  |round(2,'common') if batch.subscribe_fee_rate is not none  else  ''  }}"
                                    data-parsley-trigger="change"
                                    data-parsley-required="true"
-                                   data-parsley-required-message="认购/申购费率不可为空">
+                                   data-parsley-required-message="认购/申购费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
                             <input type="hidden" name="subscribe_fee_rate" value="{{ batch.subscribe_fee_rate }}">
                         </div>
                     </div>
@@ -234,7 +320,7 @@
                             <input type="number" class="optional form-control col-md-12 col-xs-12" placeholder="" name="redemption_fee_rate_str" min="0" step="0.01" value="{{ (batch.redemption_fee_rate*100)  |round(2,'common') if batch.redemption_fee_rate is not none  else  ''  }}"
                                    data-parsley-trigger="change"
                                    data-parsley-required="true"
-                                   data-parsley-required-message="赎回费率不可为空">
+                                   data-parsley-required-message="赎回费率不可为空"><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
                             <input type="hidden" name="redemption_fee_rate" value="{{ batch.redemption_fee_rate }}">
                         </div>
                     </div>
