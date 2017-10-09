@@ -98,6 +98,15 @@ def get_fund_info_df_by_wind(wind_code_list):
 
 
 def save_fund_info(fund_info_df, get_df=False, mode='replace_insert'):
+    """
+    将更新的fund_info 信息保存的 wind_fund_info 表中，进行数据清洗，到fund_info表
+    :param fund_info_df: 
+    :param get_df: 
+    :param mode: 
+    :return: 
+    """
+    if fund_info_df.shape[0] == 0:
+        return
     table_name = 'wind_fund_info'
     engine = get_db_engine()
     fund_info_df.rename(columns={'SEC_NAME': 'sec_name',
@@ -133,6 +142,7 @@ def save_fund_info(fund_info_df, get_df=False, mode='replace_insert'):
     else:
         raise ValueError('mode="%s" is not available' % mode)
     logging.info('%d funds inserted' % fund_info_df.shape[0])
+    # TODO: 对于存量数据，需要进行定期更新操作
     # wind_fund_info 表中增量数据插入到 fund_info
     sql_str = """insert into fund_info(wind_code, sec_name, strategy_type, fund_setupdate, fund_maturitydate, fund_mgrcomp, 
     fund_existingyear, fund_ptmyear, fund_type, fund_fundmanager)
