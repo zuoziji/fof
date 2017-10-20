@@ -359,7 +359,7 @@ def get_strategy_index_quantile(strategy_type_en, date_from, date_to,
     :param q_list: 默认 [0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
     :return: 
     """
-    fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to, show_fund_name=True)
+    fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to, show_fund_name=False)
     fund_nav_df = fh_utils.DataFrame.interpolate_inner(fund_nav_df)
     fund_pct_df = fund_nav_df.pct_change().fillna(0)
 

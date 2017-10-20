@@ -726,10 +726,20 @@ t1chart.setOption(option);
             var wind_code = {{ fof.wind_code | tojson}};
             t2charts(wind_code,disPlayType);
           });
-
+            var legendSwitch = {};
+            for(var i=0;i<data_name.length;i++){
+                if(i===0 || i===data_name.length-1){
+                    legendSwitch[data_name[i]] = true;
+                }else{
+                    legendSwitch[data_name[i]] = false;
+                }
+            }
 
            if (time_line.length > 0  ){
+
             var echartLine = echarts.init(document.getElementById('main'), "shine");
+            var selfName = data_name[0];
+
             option = {
               title : {
                 text: '历史净值走势',
@@ -772,6 +782,7 @@ t1chart.setOption(option);
             data: data_name,
             itemGap: 4,
             itemHeight: 10,
+            selected: legendSwitch
           },
           grid:{
             y2: 90,
@@ -795,12 +806,8 @@ t1chart.setOption(option);
             data : time_line,
             splitLine:{
               　　　　show:true
-            　　 },
-              axisLabel: {
-                   interval:0,
-                   rotate:35,
-                   fontSize:5
-                }
+            　　 }
+
           }
           ],
           yAxis : [
