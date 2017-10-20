@@ -187,7 +187,7 @@ def update_strategy_index(date_from_str, date_to_str):
     for strategy_name in strategy_name_list:
         # strategy_name = 'long_only'
         # index_df = calc_strategy_index(strategy_name, date_from, date_to, calc_sample_name='main')
-        stg_index_s = get_strategy_index_by_name(strategy_name, date_from, date_to, statistic=False)
+        stg_index_s = stat_strategy_index_by_name(strategy_name, date_from, date_to, statistic=False)
         if stg_index_s is not None:
             logger.info('生成%s策略指数【%s ~ %s】', strategy_name, stg_index_s.index[0], stg_index_s.index[-1])
             # index_df.to_csv('%s_sample_%s_%s.csv' % (strategy_name, date_from, date_to))
@@ -272,7 +272,7 @@ from (
     win_1_count = (fund_comprod_df.iloc[-1] > 1.01).sum()
     loss_1_count = (fund_comprod_df.iloc[-1] < 0.99).sum()
     logger.info('%s 统计日期: %s ~ %s', strategy_type, min(date_list), max(date_list))
-    logger.info('完整公布业绩数据的%d 只基金中', wind_code_count)
+    logger.info('具备有效业绩数据的%d 只基金中', wind_code_count)
     logger.info('获得正收益的产品有%d 只，占比%3.1f%%', win_count, win_count / wind_code_count * 100)
     logger.info('收益超过1%%的产品有%d 只，占比%3.1f%%', win_1_count, win_1_count / wind_code_count * 100)
     logger.info('亏损超过-1%%的有%d 只，占比%3.1f%%', loss_1_count, loss_1_count / wind_code_count * 100)
@@ -302,7 +302,7 @@ def filter_wind_code(fund_nav_df, strategy_type_en):
 
 
 def get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to,
-                                    show_fund_name=False, do_filter_wind_code=False):
+                                    show_fund_name=False, do_filter_wind_code=False, filter_unavailable=True):
     """
     输入策略代码，起止日期，返回该策略所有基金周净值
     :param strategy_type_en: 
@@ -332,10 +332,16 @@ def get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to,
     engine = get_db_engine()
     data_df = pd.read_sql_query(query_str, engine)
     fund_nav_df = data_df.pivot(index='nav_date_week', columns='wind_code', values='nav_acc')
+    if fund_nav_df.shape[0] == 0:
+        return None
+    if filter_unavailable:
+        pct_df = fund_nav_df.pct_change()
+        fund_nav_df = fund_nav_df[[col_name for col_name in pct_df.columns if any(pct_df[col_name].dropna() != 0)]]
+        if fund_nav_df.shape[0] == 0:
+            return None
     # 筛选子基金列表
     if do_filter_wind_code:
         fund_nav_df = filter_wind_code(fund_nav_df, strategy_type_en)
-
     if show_fund_name:
         # 获取样本子基金名称
         sql_str = "select wind_code, sec_name from fund_info where wind_code in (%s)"
@@ -349,8 +355,34 @@ def get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to,
     return fund_nav_df
 
 
+def get_strategy_mdd_quantile(strategy_type_en, q_list=[0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95]):
+    """
+    按策略类型计算相关基金最大回测分布情况
+    :param strategy_type_en: 
+    :param q_list: 
+    :return: 
+    """
+    sql_str = """
+select wind_code, sec_name, sharpe, annual_return, nav_acc_mdd, annual_return/nav_acc_mdd calmar, nav_acc_latest, fund_setupdate, nav_date_latest  from fund_info 
+where strategy_type = %s
+and annual_return <> 0 and annual_return is not null
+and annual_return <> 1
+and nav_acc_mdd <> 0
+and fund_setupdate < '2017-4-1'
+and nav_date_latest > '2017-1-1'
+-- and nav_acc_latest
+order by calmar"""
+    engine = get_db_engine()
+    strategy_type_cn = STRATEGY_TYPE_EN_CN_DIC[strategy_type_en]
+    data_df = pd.read_sql(sql_str, engine, params=[strategy_type_cn])
+    data_df.set_index('wind_code', inplace=True)
+    quantile_list = [data_df[name].quantile(q_list) for name in ['sharpe', 'annual_return', 'nav_acc_mdd', 'calmar']]
+    quantile_df = pd.DataFrame(quantile_list).T
+    return quantile_df
+
+
 def get_strategy_index_quantile(strategy_type_en, date_from, date_to,
-                                q_list=[0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95], do_filter=True):
+                                q_list=[0.05, 0.10, 0.15, 0.2, 0.25, 0.50, 0.75, 0.90, 0.95]):
     """
     返回策略指数 quantile 走势，市场策略统计及市场回顾功能使用
     :param strategy_type_en: 
@@ -359,26 +391,43 @@ def get_strategy_index_quantile(strategy_type_en, date_from, date_to,
     :param q_list: 默认 [0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
     :return: 
     """
-    fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to, show_fund_name=True)
+    fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to, show_fund_name=False)
     fund_nav_df = fh_utils.DataFrame.interpolate_inner(fund_nav_df)
-    fund_pct_df = fund_nav_df.pct_change().fillna(0)
+    fund_pct_df = fund_nav_df.pct_change()
 
-    # 超过 6次净值不变则剔除
-    if do_filter:
-        column_name_list = []
-        for name in fund_pct_df.columns:
-            fund_pct_s = fund_pct_df[name]
-            if len(fund_pct_s.shape) == 1 and (fund_pct_s == 0).sum() < 6:
-                column_name_list.append(name)
-        fund_comprod_df = (1 + fund_pct_df[column_name_list]).cumprod()
-    else:
-        fund_comprod_df = (1 + fund_pct_df).cumprod()
-    if fund_comprod_df.shape[0] == 0:
-        df_rr_df = None
-    else:
-        df_rr_df = fund_comprod_df.quantile(q_list, axis=1).T
-        df_rr_df.rename(columns={ff: '%3.2f分位' % (ff) for ff in q_list}, inplace=True)
+    # 超过 3次净值不变则剔除
+    # fund_pct_df = fund_nav_df.pct_change().fillna(0)
+    # if do_filter > 0:
+    #     column_name_list = []
+    #     for name in fund_pct_df.columns:
+    #         fund_pct_s = fund_pct_df[name]
+    #         if len(fund_pct_s.shape) == 1 and (fund_pct_s == 0).sum() < do_filter:
+    #             column_name_list.append(name)
+    #     fund_comprod_df = (1 + fund_pct_df[column_name_list]).cumprod()
+    # else:
+    #     fund_comprod_df = (1 + fund_pct_df).cumprod()
+    # if fund_comprod_df.shape[0] == 0:
+    #     df_rr_df = None
+    # else:
+    #     df_rr_df = fund_comprod_df.quantile(q_list, axis=1).T
+    #     df_rr_df.rename(columns={ff: '%3.2f分位' % (ff) for ff in q_list}, inplace=True)
     # fund_comprod_df.to_csv('fund_comprod_df.csv')
+
+    # 2017-10-19 新的操作逻辑
+    # 以日期为单位，按日进行数据清洗，将pct==0的数据剔除，然后进行逐日的 quantile，最后再进行组合
+    pct_quantile_dic = {}
+    q_count = len(q_list)
+    for date_idx in fund_pct_df.index:
+        pct_s = fund_pct_df.ix[date_idx]
+        pct_nona_s = pct_s.dropna()
+        if pct_nona_s.shape[0] == 0:
+            pct_quantile_dic[date_idx] = [0 for _ in range(q_count)]
+        else:
+            pct_quantile_dic[date_idx] = list(pct_nona_s.quantile(q_list))
+    # 将结果合并成dataframe
+    pct_quantile_df = pd.DataFrame(pct_quantile_dic).T
+    df_rr_df =(pct_quantile_df + 1).cumprod()
+    df_rr_df.rename(columns={col_name: q_list[n] for n, col_name in enumerate(df_rr_df.columns)}, inplace=True)
     return df_rr_df
 
 
@@ -406,7 +455,7 @@ def get_strategy_index_hist(strategy_type_en, date_from, date_to):
     return y, x
 
 
-def get_strategy_index_by_name(strategy_type_en, date_from, date_to, statistic=True, create_csv=False):
+def stat_strategy_index_by_name(strategy_type_en, date_from, date_to, do_filter=3, statistic=True, create_csv=False):
     """
     统计制定日期段内策略表现情况，包括：样本数、胜率，1%以上、-1%以下占比等
     :param strategy_type_en: 
@@ -428,7 +477,7 @@ def get_strategy_index_by_name(strategy_type_en, date_from, date_to, statistic=T
     column_name_list = []
     for name in fund_pct_df.columns:
         fund_pct_s = fund_pct_df[name]
-        if len(fund_pct_s.shape) == 1 and (fund_pct_s == 0).sum() < 6:
+        if len(fund_pct_s.shape) == 1 and (do_filter == 0 or (fund_pct_s == 0).sum() < do_filter):
             column_name_list.append(name)
     # column_name_list = [name for name in fund_pct_df.columns if
     #                     (type((fund_pct_df[name] == 0).sum()) is np.int64) and ((fund_pct_df[name] == 0).sum() < 6)]
@@ -464,69 +513,7 @@ def get_strategy_index_by_name(strategy_type_en, date_from, date_to, statistic=T
         logger.info('output file path: %s', file_path)
     # file_path = get_cache_file_path('%s index %s %s.csv' % (strategy_type, date_from, date_to))
     # fund_index_s.to_csv(file_path)
-    logger.debug('子基金净值走势df.shape %s', fund_comprod_df.shape)
-    return stg_index_s, stg_statistic_dic
-
-
-def get_strategy_index_by_name_bck(strategy_type_en, date_from, date_to, statistic=True, create_csv=False):
-    """
-    统计制定日期段内策略表现情况，包括：样本数、胜率，1%以上、-1%以下占比等
-    :param strategy_type_en: 
-    :param date_from: 
-    :param date_to: 
-    :return: 
-    """
-    fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from, date_to, show_fund_name=True)
-    fund_nav_df.interpolate(inplace=True)
-    fund_nav_df.dropna(axis=1, inplace=True)
-    wind_code_list = list(fund_nav_df.columns)
-    wind_code_count = len(wind_code_list)
-    if wind_code_count == 0:
-        logger.info('wind_code_list_str has no data')
-    weight = 1 / wind_code_count
-    # logger.info(df_fund)
-    fund_pct_df = fund_nav_df.pct_change().fillna(0)
-    # 超过 6次净值不变则剔除
-    column_name_list = []
-    for name in fund_pct_df.columns:
-        fund_pct_s = fund_pct_df[name]
-        if len(fund_pct_s.shape) == 1 and (fund_pct_s == 0).sum() < 6:
-            column_name_list.append(name)
-    # column_name_list = [name for name in fund_pct_df.columns if
-    #                     (type((fund_pct_df[name] == 0).sum()) is np.int64) and ((fund_pct_df[name] == 0).sum() < 6)]
-    fund_comprod_df = (1 + fund_pct_df[column_name_list]).cumprod()
-    # fund_comprod_df = fund_comprod_df[fund_comprod_df.columns[fund_comprod_df.max() != fund_comprod_df.min()]]
-    stg_statistic_dic = {}
-    if statistic:
-        date_list = list(fund_pct_df.index)
-        win_count = (fund_comprod_df.iloc[-1] > 1).sum()
-        win_1_count = (fund_comprod_df.iloc[-1] > 1.01).sum()
-        loss_1_count = (fund_comprod_df.iloc[-1] < 0.99).sum()
-        strategy_name_cn = STRATEGY_TYPE_EN_CN_DIC[strategy_type_en]
-        print('%s 统计区间: %s ~ %s' % (strategy_name_cn, min(date_list), max(date_list)))
-        print('完整公布业绩数据的%d 只基金中' % (wind_code_count))
-        print('获得正收益的产品有%d 只，占比%3.1f%%' % (win_count, win_count / wind_code_count * 100))
-        print('收益超过1%%的产品有%d 只，占比%3.1f%%' % (win_1_count, win_1_count / wind_code_count * 100))
-        print('亏损超过-1%%的有%d 只，占比%3.1f%%' % (loss_1_count, loss_1_count / wind_code_count * 100))
-        stg_statistic_dic['统计起始日期'] = min(date_list)
-        stg_statistic_dic['统计截止日期'] = max(date_list)
-        stg_statistic_dic['统计数量'] = wind_code_count
-        stg_statistic_dic['正收益产品数量'] = win_1_count
-        stg_statistic_dic['正收益产品占比'] = win_count / wind_code_count * 100
-        stg_statistic_dic['超1%收益产品数量'] = win_1_count
-        stg_statistic_dic['超1%收益产品占比'] = win_1_count / wind_code_count * 100
-        stg_statistic_dic['低于-1%收益产品数量'] = loss_1_count
-        stg_statistic_dic['低于-1%收益产品占比'] = loss_1_count / wind_code_count * 100
-
-    stg_index_s = fund_comprod_df.mean(axis=1).rename(strategy_name_cn)
-    fund_comprod_df[strategy_name_cn] = stg_index_s
-    if create_csv:
-        file_path = get_cache_file_path('%s %s %s.csv' % (strategy_name_cn, date_from, date_to))
-        fund_comprod_df.to_csv(file_path)
-        logger.info('output file path: %s', file_path)
-    # file_path = get_cache_file_path('%s index %s %s.csv' % (strategy_type, date_from, date_to))
-    # fund_index_s.to_csv(file_path)
-    logger.debug('fund_comprod_df.shape %s', fund_comprod_df.shape)
+    logger.debug('%s 子基金净值走势 df.shape %s', strategy_name_cn, fund_comprod_df.shape)
     return stg_index_s, stg_statistic_dic
 
 
@@ -632,19 +619,19 @@ and fn.nav_date = fnw.nav_date"""
     return index_nav_s
 
 
-def statistic_fund_by_strategy(date_from_str, date_to_str, create_csv=True, do_filter=True,
+def statistic_fund_by_strategy(date_from_str, date_to_str, create_csv=True, do_filter=3,
                                strategy_type_list=['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略']):
     # strategy_type_list = ['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略']
     stg_index_dic, statistic_dic = {}, {}
     for strategy_type in strategy_type_list:
         strategy_type_en = STRATEGY_TYPE_CN_EN_DIC[strategy_type]
-        df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str, do_filter=do_filter)
+        df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str)
         if df_rr_df is None:
             continue
         if create_csv:
             file_path = get_cache_file_path('%s 分位图 %s %s.csv' % (strategy_type, date_from_str, date_to_str))
             df_rr_df.to_csv(file_path)
-        stg_index_s, stg_statistic_dic = get_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, create_csv=True)
+        stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=do_filter, create_csv=True)
         stg_index_dic[strategy_type] = stg_index_s
         statistic_dic[strategy_type] = stg_statistic_dic
     fund_index_df = pd.DataFrame(stg_index_dic)
@@ -814,7 +801,7 @@ def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list
     # logger.debug('fund_nav_df:\n%s', fund_nav_df)
 
     # 获取周级别策略指数信息
-    stg_index_s, stg_statistic_dic = get_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, create_csv=False)
+    stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, create_csv=False)
     # logger.debug("\n%s", stg_index_s)
     fund_nav_df[strategy_type_cn] = stg_index_s
     if normalized:
@@ -830,8 +817,8 @@ if __name__ == '__main__':
     # build_index_with_strategy_name_list(strategy_name_list, date_from_str, date_to_str)
 
     # 用于市场回顾功能 策略分位数显示，市场策略统计使用
-    # strategy_type_en = 'fof'
-    # date_from_str, date_to_str = '2017-5-31', '2017-9-1'
+    # strategy_type_en = 'arbitrage'
+    # date_from_str, date_to_str = '2017-7-1', '2017-9-30'
     # df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str,
     #                                        [0.95, 0.90, 0.75, 0.6, 0.50, 0.4, 0.25, 0.10, 0.05])
     # df_rr_df.to_csv('df_rr_df.csv')
@@ -873,15 +860,16 @@ if __name__ == '__main__':
     # )
     # and nav_date >= '2017-06-02'
 
-    # 计算市场各个策略分位数走势、统计策略绩效
-    # date_from_str, date_to_str = '2017-8-1', '2017-8-31'
-    # stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=False)
-    # print(stat_df)
+    # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
+    date_from_str, date_to_str = '2016-9-30', '2017-9-30'
+    stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6)
+    print(stat_df)
+
     # date_from_str_year = str(str_2_date(date_to_str) - timedelta(days=365))
     # statistic_fund_by_strategy(date_from_str_year, date_to_str)
     # 单独统计某一策略绩效
-    # stg_index_s, stg_statistic_dic = get_strategy_index_by_name('long_only', date_from_str, date_to_str,
-    #                                                             create_csv=False)
+    # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name('long_only', date_from_str, date_to_str,
+    #                                                              create_csv=False)
     # print(stg_index_s)
 
     # 获取某只基金与其对应策略指数走势对比图
@@ -911,3 +899,8 @@ if __name__ == '__main__':
     # rr = (nav_index_pct_all_s + 1).cumprod()
     # rr.to_csv('%s rr.csv' % wind_code_p)
     # print(rr)
+
+    #
+    # strategy_type_en = 'fof'
+    # quantile_df = get_strategy_mdd_quantile(strategy_type_en, q_list=[0.05, 0.10, 0.2, 0.25, 0.50, 0.6, 0.75, 0.80, 0.85, 0.90, 0.95])
+    # print(quantile_df)
