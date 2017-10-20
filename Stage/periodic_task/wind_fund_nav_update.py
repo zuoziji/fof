@@ -61,7 +61,7 @@ def import_wind_fund_nav_to_fund_nav():
 select wfn.wind_code, wfn.nav_date, wfn.nav, wfn.nav_acc, 0 source_mark 
 from
 (
-select wind_code, nav_date, nav, nav_acc, 0
+select wind_code, nav_date, nav, nav_acc
 from wind_fund_nav
 group by wind_code, nav_date
 ) as wfn
@@ -70,7 +70,7 @@ fund_nav fn
 on 
 wfn.wind_code = fn.wind_code and 
 wfn.nav_date = fn.nav_date
-where fn.nav is null"""
+where fn.nav_date is null"""
     with get_db_session() as session:
         session.execute(sql_str)
     logger.info('wind_fund_nav has been imported to fund_nav table')
@@ -275,7 +275,7 @@ if __name__ == '__main__':
     # update_wind_fund_nav(get_df=False, wind_code_list=['XT1612161.XT'])
 
     # 将 wind_fund_nav 数据导入到 fund_nav 表中
-    # import_wind_fund_nav_to_fund_nav()
+    import_wind_fund_nav_to_fund_nav()
 
     # wind数据库中存在部分数据净值记录前后不一致的问题
     # 比如：某日记录净值
