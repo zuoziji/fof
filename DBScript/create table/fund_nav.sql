@@ -10,6 +10,6 @@ create table fund_nav
    nav                  double comment '净值',
    nav_acc              double comment '累计净值',
    nav_tot              double comment '资产净值',
-   source_mark          int comment '数据源：0：wind；1：手动；2：导入',
+   source_mark          int comment '数据源：0：wind；1：手动；2：导入；3：净值计算；4：非官方净值',
    primary key (wind_code, nav_date)
 ) ENGINE=MyISAM;
