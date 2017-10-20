@@ -1813,6 +1813,7 @@ def edit_batch(wind_code_s):
         return render_template('edit_batch.html',fof_list=fof_list,batch=data)
     elif request.method == 'POST':
         data = request.form.to_dict()
+        print(data)
         batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code_s).first()
         for k,v in data.items():
             if k == 'date_end' and len(v) == 0:
