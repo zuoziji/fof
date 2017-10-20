@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np
 from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILABLE_DATE, WIND_REST_URL
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest, APIError
 from fh_tools.fh_utils import get_last, get_first
 import logging
 from sqlalchemy.types import String, Date, Float, Integer, DateTime
@@ -59,7 +59,12 @@ def import_stock_tick():
                 continue
             # 获取股票量价等行情数据
             wind_indictor_str = "ask1,bid1,asize1,bsize1,volume,amt,pre_close,open,high,low,last"
-            data_df = w.wst(wind_code, wind_indictor_str, datetime_from, datetime_to)
+            try:
+                data_df = w.wst(wind_code, wind_indictor_str, datetime_from, datetime_to)
+            except APIError as exp:
+                if exp.ret_dic['error_code'] == -40520007:
+                    logger.warning('%s[%s - %s] ', wind_code, datetime_from, datetime_to, exp.ret_dic['error_msg'])
+                    continue
             if data_df is None:
                 logger.warning('%d) %s has no data during %s %s', stock_num, wind_code, date_from, date_to)
                 continue

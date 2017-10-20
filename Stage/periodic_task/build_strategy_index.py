@@ -817,11 +817,11 @@ if __name__ == '__main__':
     # build_index_with_strategy_name_list(strategy_name_list, date_from_str, date_to_str)
 
     # 用于市场回顾功能 策略分位数显示，市场策略统计使用
-    # strategy_type_en = 'arbitrage'
-    # date_from_str, date_to_str = '2017-7-1', '2017-9-30'
-    # df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str,
-    #                                        [0.95, 0.90, 0.75, 0.6, 0.50, 0.4, 0.25, 0.10, 0.05])
-    # df_rr_df.to_csv('df_rr_df.csv')
+    strategy_type_en = 'long_only'
+    date_from_str, date_to_str = '2017-6-26', '2017-9-30'
+    df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str,
+                                           [0.95, 0.90, 0.75, 0.6, 0.50, 0.4, 0.25, 0.10, 0.05])
+    df_rr_df.to_csv('df_rr_df.csv')
     # logger.info(df_rr_df)
     # df_rr_df.plot(grid=True)
     # plt.legend(loc=2)
@@ -861,10 +861,13 @@ if __name__ == '__main__':
     # and nav_date >= '2017-06-02'
 
     # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
-    date_from_str, date_to_str = '2016-9-30', '2017-9-30'
-    stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6)
-    print(stat_df)
-
+    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
+    # stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6)
+    # print(stat_df)
+    # strategy_type_en = 'alpha'
+    # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=6, statistic=True, create_csv=False)
+    # fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from_str, date_to_str, show_fund_name=True)
+    # print(fund_nav_df)
     # date_from_str_year = str(str_2_date(date_to_str) - timedelta(days=365))
     # statistic_fund_by_strategy(date_from_str_year, date_to_str)
     # 单独统计某一策略绩效
