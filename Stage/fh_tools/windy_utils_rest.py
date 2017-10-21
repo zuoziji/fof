@@ -50,11 +50,12 @@ def format_2_datetime_str(dt):
 
 
 class APIError(Exception):
-    def __init__(self, status):
+    def __init__(self, status, ret_dic):
         self.status = status
+        self.ret_dic = ret_dic
 
     def __str__(self):
-        return "APIError:status={}".format(self.status)
+        return "APIError:status=POST / {} {}".format(self.status, self.ret_dic)
 
 
 class WindRest:
@@ -72,7 +73,7 @@ class WindRest:
         ret_dic = ret_data.json()
 
         if ret_data.status_code != 200:
-            raise APIError('POST / {} {}'.format(ret_data.status_code, str(ret_dic)))
+            raise APIError(ret_data.status_code, ret_dic)
         else:
             return ret_data.status_code, ret_dic
 
@@ -151,8 +152,11 @@ if __name__ == "__main__":
     # data_df = rest.wsd("600123.SH", "close,pct_chg", "2017-01-04", "2017-02-28", "PriceAdj=F")
     # data_df = rest.tdays(begin_time="2017-01-04", end_time="2017-02-28")
     # data_df = rest.wst("600000.SH", "ask1,bid1,asize1,bsize1,volume,amt,pre_close,open,high,low,last", "2017-10-20 09:15:00", "2017-10-20 09:26:00", "")
-    data_df = rest.wst("600000.SH", "ask1,bid1,asize1,bsize1,volume,amt,pre_close,open,high,low,last",
-                       datetime(2017, 10, 11, 9), datetime(2017, 10, 19, 15, 1), "")
-    print(data_df)
+    try:
+        data_df = rest.wst("600239.SH", "ask1,bid1,asize1,bsize1,volume,amt,pre_close,open,high,low,last",
+                           datetime(2017, 10, 12, 9), datetime(2017, 10, 20, 15, 2), "")
+        print(data_df)
+    except APIError as exp:
+        print(exp.ret_dic['error_code'], exp.ret_dic['error_msg'])
     # date_str = rest.tdaysoffset(1, '2017-3-31')
     # print(date_str)
