@@ -426,7 +426,7 @@ def get_strategy_index_quantile(strategy_type_en, date_from, date_to,
             pct_quantile_dic[date_idx] = list(pct_nona_s.quantile(q_list))
     # 将结果合并成dataframe
     pct_quantile_df = pd.DataFrame(pct_quantile_dic).T
-    df_rr_df =(pct_quantile_df + 1).cumprod()
+    df_rr_df = (pct_quantile_df + 1).cumprod()
     df_rr_df.rename(columns={col_name: q_list[n] for n, col_name in enumerate(df_rr_df.columns)}, inplace=True)
     return df_rr_df
 
@@ -609,7 +609,7 @@ and fn.nav_date = fnw.nav_date"""
     index_pct_s = None
     wind_code_list = list(fund_nav_pct_df.columns)
     tot_weight = sum([wind_code_dic[wind_code] for wind_code in wind_code_list])
-    for wind_code in  wind_code_list:
+    for wind_code in wind_code_list:
         pct_s = fund_nav_pct_df[wind_code] * wind_code_dic[wind_code] / tot_weight
         if index_pct_s is None:
             index_pct_s = pct_s
@@ -620,18 +620,20 @@ and fn.nav_date = fnw.nav_date"""
 
 
 def statistic_fund_by_strategy(date_from_str, date_to_str, create_csv=True, do_filter=3,
+                               q_list=[0.05, 0.10, 0.15, 0.2, 0.25, 0.50, 0.75, 0.90, 0.95],
                                strategy_type_list=['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略']):
     # strategy_type_list = ['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略']
     stg_index_dic, statistic_dic = {}, {}
     for strategy_type in strategy_type_list:
         strategy_type_en = STRATEGY_TYPE_CN_EN_DIC[strategy_type]
-        df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str)
+        df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str, q_list=q_list)
         if df_rr_df is None:
             continue
         if create_csv:
             file_path = get_cache_file_path('%s 分位图 %s %s.csv' % (strategy_type, date_from_str, date_to_str))
             df_rr_df.to_csv(file_path)
-        stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=do_filter, create_csv=True)
+        stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str,
+                                                                     do_filter=do_filter, create_csv=True)
         stg_index_dic[strategy_type] = stg_index_s
         statistic_dic[strategy_type] = stg_statistic_dic
     fund_index_df = pd.DataFrame(stg_index_dic)
@@ -675,7 +677,8 @@ and ffp.wind_code_s = ffm.wind_code_s"""
         if nav_index_pct_all_s is None:
             nav_index_pct_all_s = nav_index_pct_s
         else:
-            nav_index_pct_all_s = nav_index_pct_all_s[nav_index_pct_all_s.index < dt].append(nav_index_pct_s[nav_index_pct_s.index >= dt])
+            nav_index_pct_all_s = nav_index_pct_all_s[nav_index_pct_all_s.index < dt].append(
+                nav_index_pct_s[nav_index_pct_s.index >= dt])
     nav_index_pct_all_s.drop_duplicates(inplace=True)
 
     return nav_index_pct_all_s
@@ -754,7 +757,8 @@ where wind_code in (%s)"""
     return nav_index_pct_s
 
 
-def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list=[0.5], normalized=True, use_alias=False):
+def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list=[0.5], normalized=True,
+                            use_alias=False):
     """
     获取基金净值与对应策略指数的对比走势
     :param wind_code: 
@@ -768,7 +772,7 @@ def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list
     # 获取策略信息
     with get_db_session(engine) as session:
         table = session.execute('select sec_name, alias, strategy_type from fund_info where wind_code = :wind_code',
-                        params={'wind_code': wind_code})
+                                params={'wind_code': wind_code})
         content = table.first()
         if content is None:
             logger.error('没有找到%s的策略类型', wind_code)
@@ -801,12 +805,14 @@ def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list
     # logger.debug('fund_nav_df:\n%s', fund_nav_df)
 
     # 获取周级别策略指数信息
-    stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, create_csv=False)
+    stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str,
+                                                                 create_csv=False)
     # logger.debug("\n%s", stg_index_s)
     fund_nav_df[strategy_type_cn] = stg_index_s
     if normalized:
         fund_nav_df = (1 + fund_nav_df.pct_change().fillna(0)).cumprod()
     return fund_nav_df
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
@@ -817,11 +823,11 @@ if __name__ == '__main__':
     # build_index_with_strategy_name_list(strategy_name_list, date_from_str, date_to_str)
 
     # 用于市场回顾功能 策略分位数显示，市场策略统计使用
-    strategy_type_en = 'long_only'
-    date_from_str, date_to_str = '2017-6-26', '2017-9-30'
-    df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str,
-                                           [0.95, 0.90, 0.75, 0.6, 0.50, 0.4, 0.25, 0.10, 0.05])
-    df_rr_df.to_csv('df_rr_df.csv')
+    # strategy_type_en = 'long_only'
+    # date_from_str, date_to_str = '2017-6-26', '2017-9-30'
+    # df_rr_df = get_strategy_index_quantile(strategy_type_en, date_from_str, date_to_str,
+    #                                        [0.95, 0.90, 0.75, 0.6, 0.50, 0.4, 0.25, 0.10, 0.05])
+    # df_rr_df.to_csv('df_rr_df.csv')
     # logger.info(df_rr_df)
     # df_rr_df.plot(grid=True)
     # plt.legend(loc=2)
@@ -861,8 +867,9 @@ if __name__ == '__main__':
     # and nav_date >= '2017-06-02'
 
     # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
-    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
-    # stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6)
+    date_from_str, date_to_str = '2016-9-26', '2017-9-30'
+    q_list = [0.10, 0.25, 0.40, 0.50, 0.60, 0.75, 0.90]
+    stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6, q_list=q_list)
     # print(stat_df)
     # strategy_type_en = 'alpha'
     # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=6, statistic=True, create_csv=False)

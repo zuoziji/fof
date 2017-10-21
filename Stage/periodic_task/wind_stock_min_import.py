@@ -42,11 +42,13 @@ def import_stock_tick():
             # date_ipo, date_delist = date_pair
             # 获取 date_from
             if wind_code in stock_trade_date_latest_dic:
-                date_latest_t1 = stock_trade_date_latest_dic[wind_code] + ONE_DAY
+                date_latest_t1 = stock_trade_date_latest_dic[wind_code].date() + ONE_DAY
                 date_from = max([date_latest_t1, base_date, date_ipo])
             else:
                 date_from = max([base_date, date_ipo])
             date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
+            if date_from is None:
+                continue
             datetime_from = datetime(date_from.year, date_from.month, date_from.day, 9)
             # 获取 date_to
             if date_delist is None:
@@ -54,8 +56,10 @@ def import_stock_tick():
             else:
                 date_to = min([date_delist, today_t_1])
             date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
+            if date_to is None:
+                continue
             datetime_to = datetime(date_to.year, date_to.month, date_to.day, 15, 2)
-            if date_from is None or date_to is None or datetime_from > datetime_to:
+            if datetime_from > datetime_to:
                 continue
             # 获取股票量价等行情数据
             wind_indictor_str = "ask1,bid1,asize1,bsize1,volume,amt,pre_close,open,high,low,last"
@@ -63,7 +67,7 @@ def import_stock_tick():
                 data_df = w.wst(wind_code, wind_indictor_str, datetime_from, datetime_to)
             except APIError as exp:
                 if exp.ret_dic['error_code'] == -40520007:
-                    logger.warning('%s[%s - %s] ', wind_code, datetime_from, datetime_to, exp.ret_dic['error_msg'])
+                    logger.warning('%s[%s - %s] %s', wind_code, datetime_from, datetime_to, exp.ret_dic['error_msg'])
                     continue
             if data_df is None:
                 logger.warning('%d) %s has no data during %s %s', stock_num, wind_code, date_from, date_to)
@@ -82,28 +86,29 @@ def import_stock_tick():
 
 
 def insert_into_db(data_df_list, engine):
-    data_df_all = pd.concat(data_df_list)
-    data_df_all.index.rename('datetime', inplace=True)
-    data_df_all.reset_index(inplace=True)
-    data_df_all.set_index(['wind_code', 'datetime'], inplace=True)
-    data_df_all.to_sql('wind_stock_tick', engine, if_exists='append',
-                       dtype={
-                           'wind_code': String(20),
-                           'datetime': DateTime,
-                           'open': Float,
-                           'high': Float,
-                           'low': Float,
-                           'close': Float,
-                           'ask1': Float,
-                           'bid1': Float,
-                           'asize1': Integer,
-                           'bsize1': Integer,
-                           'volume': Integer,
-                           'amount': Integer,
-                           'preclose': Float,
-                       }
-                       )
-    logger.info('%d data imported', data_df_all.shape[0])
+    if len(data_df_list) > 0:
+        data_df_all = pd.concat(data_df_list)
+        data_df_all.index.rename('datetime', inplace=True)
+        data_df_all.reset_index(inplace=True)
+        data_df_all.set_index(['wind_code', 'datetime'], inplace=True)
+        data_df_all.to_sql('wind_stock_tick', engine, if_exists='append',
+                           dtype={
+                               'wind_code': String(20),
+                               'datetime': DateTime,
+                               'open': Float,
+                               'high': Float,
+                               'low': Float,
+                               'close': Float,
+                               'ask1': Float,
+                               'bid1': Float,
+                               'asize1': Integer,
+                               'bsize1': Integer,
+                               'volume': Integer,
+                               'amount': Integer,
+                               'preclose': Float,
+                           }
+                           )
+        logger.info('%d data imported', data_df_all.shape[0])
 
 
 if __name__ == '__main__':
