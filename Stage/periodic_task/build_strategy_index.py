@@ -408,6 +408,24 @@ def get_strategy_index_quantile(strategy_type_en, date_from, date_to,
     fund_nav_df = fh_utils.DataFrame.interpolate_inner(fund_nav_df)
     fund_pct_df = fund_nav_df.pct_change()
 
+    # 按归一化指数统计
+    fund_rr_df = fund_pct_df + 1
+    fund_idx_df = fund_rr_df.cumprod()
+    idx_quantile_dic = {}
+    q_count = len(q_list)
+    for rownum, date_idx in enumerate(fund_idx_df.index):
+        idx_s = fund_idx_df.ix[date_idx]
+        idx_s_nona_s = idx_s.dropna()
+        if rownum == 0:
+            idx_quantile_dic[date_idx] = [1 for _ in range(q_count)]
+        elif idx_s_nona_s.shape[0] == 0:
+            continue
+        else:
+            idx_quantile_dic[date_idx] = list(idx_s_nona_s.quantile(q_list))
+    # 将结果合并成dataframe
+    idx_quantile_df = pd.DataFrame(idx_quantile_dic).T
+    idx_quantile_df.rename(columns={col_name:  '%.0f%% 分位数' % (q_list[n] * 100) for n, col_name in enumerate(idx_quantile_df.columns)}, inplace=True)
+
     # 超过 3次净值不变则剔除
     # fund_pct_df = fund_nav_df.pct_change().fillna(0)
     # if do_filter > 0:
@@ -428,20 +446,20 @@ def get_strategy_index_quantile(strategy_type_en, date_from, date_to,
 
     # 2017-10-19 新的操作逻辑
     # 以日期为单位，按日进行数据清洗，将pct==0的数据剔除，然后进行逐日的 quantile，最后再进行组合
-    pct_quantile_dic = {}
-    q_count = len(q_list)
-    for date_idx in fund_pct_df.index:
-        pct_s = fund_pct_df.ix[date_idx]
-        pct_nona_s = pct_s.dropna()
-        if pct_nona_s.shape[0] == 0:
-            pct_quantile_dic[date_idx] = [0 for _ in range(q_count)]
-        else:
-            pct_quantile_dic[date_idx] = list(pct_nona_s.quantile(q_list))
-    # 将结果合并成dataframe
-    pct_quantile_df = pd.DataFrame(pct_quantile_dic).T
-    df_rr_df = (pct_quantile_df + 1).cumprod()
-    df_rr_df.rename(columns={col_name: q_list[n] for n, col_name in enumerate(df_rr_df.columns)}, inplace=True)
-    return df_rr_df
+    # pct_quantile_dic = {}
+    # q_count = len(q_list)
+    # for date_idx in fund_pct_df.index:
+    #     pct_s = fund_pct_df.ix[date_idx]
+    #     pct_nona_s = pct_s.dropna()
+    #     if pct_nona_s.shape[0] == 0:
+    #         pct_quantile_dic[date_idx] = [0 for _ in range(q_count)]
+    #     else:
+    #         pct_quantile_dic[date_idx] = list(pct_nona_s.quantile(q_list))
+    # # 将结果合并成dataframe
+    # pct_quantile_df = pd.DataFrame(pct_quantile_dic).T
+    # df_rr_df = (pct_quantile_df + 1).cumprod()
+    # df_rr_df.rename(columns={col_name: q_list[n] for n, col_name in enumerate(df_rr_df.columns)}, inplace=True)
+    return idx_quantile_df
 
 
 def get_strategy_index_hist(strategy_type_en, date_from, date_to):
@@ -827,7 +845,7 @@ def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list
     return fund_nav_df
 
 
-def get_stg_index_quantile(date_from_str, date_to_str,
+def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
                            q_list=[0.10, 0.25, 0.40, 0.50, 0.60, 0.75, 0.90],
                            strategy_type_list=['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略'],
                            mgrcomp_id_2_name=False):
@@ -848,6 +866,7 @@ def get_stg_index_quantile(date_from_str, date_to_str,
     data_dfg = data_df.groupby('strategy_type')
     stg_idx_quantile_dic = {}
     stat_dic = {}
+    stg_idx_mid_dic = {}
     for strategy_type, stg_data_df in data_dfg:
         date_mgr_rr_df = stg_data_df.pivot(index='date', columns='mgrcomp_id', values='rr_avg')
         # 如果需要以名称显示需要查询数据库更名
@@ -860,13 +879,27 @@ def get_stg_index_quantile(date_from_str, date_to_str,
         date_mgr_rr_df.ix[0, date_mgr_rr_df.ix[0, :].isnull() == False] = 1
         # 指数化后，进行插值操作
         date_mgr_idx_df = fh_utils.DataFrame.interpolate_inner(date_mgr_rr_df.cumprod())
-        date_idx_quantile_df = date_mgr_idx_df.quantile(q_list, axis=1).T
+        # 超过 do_filter 次净值不变则剔除
+        column_name_list = []
+        if do_filter > 0:
+            for name in date_mgr_idx_df.columns:
+                date_mgr_idx_s = date_mgr_idx_df[name]
+                if len(date_mgr_idx_s.shape) == 1 and (date_mgr_idx_s.fillna(0) == 0).sum() < do_filter:
+                    column_name_list.append(name)
+            date_mgr_idx_df = date_mgr_idx_df[column_name_list]
+
+        date_mgr_idx_df_tmp = date_mgr_idx_df.interpolate()
+        date_idx_quantile_df = date_mgr_idx_df_tmp.quantile(q_list, axis=1).T
+        date_idx_mid_s = date_mgr_idx_df_tmp.quantile(axis=1)
         date_idx_quantile_df.rename(
             columns={col_name: '%.0f%% 分位数' % (col_name * 100) for col_name in date_idx_quantile_df.columns}, inplace=True)
+        stg_idx_mid_dic[strategy_type] = date_idx_mid_s
 
         # 进行数据统计
         period_count, mgr_count = date_mgr_idx_df.shape
-        mgr_idx_s = date_mgr_idx_df.ix[-1, :].dropna()
+        # mgr_idx_s = date_mgr_idx_df.ix[-1, :].dropna()
+        # date_mgr_idx_df_tmp = date_mgr_idx_df.interpolate()
+        mgr_idx_s = date_mgr_idx_df_tmp.ix[-1, :]
         date_list = list(date_mgr_idx_df.index)
         win_count = (mgr_idx_s > 1).sum()
         win_1_count = (mgr_idx_s > 1.01).sum()
@@ -900,18 +933,19 @@ def get_stg_index_quantile(date_from_str, date_to_str,
         stat_df = pd.DataFrame(stat_dic).ix[list(stg_statistic_dic.keys()), :]
     else:
         stat_df = None
-    return stg_idx_quantile_dic, stat_df
+    if len(stg_idx_mid_dic) > 0:
+        stg_idx_mid_df = pd.DataFrame(stg_idx_mid_dic)
+    return stg_idx_quantile_dic, stat_df, stg_idx_mid_df
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
-    # 获取全市场策略指数，分位数统计数据
+    # 获取全市场策略指数，分位数统计数据【按机构统计】
     date_from_str, date_to_str = '2017-6-26', '2017-9-30'
-    stg_idx_quantile_dic, stat_df = get_stg_index_quantile(date_from_str, date_to_str, mgrcomp_id_2_name=True)
+    stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
     for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
         date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]
         date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
-
 
         file_path = get_cache_file_path('%s_每周idx_分位图.csv' % stg)
         date_idx_quantile_df.to_csv(file_path)
@@ -922,6 +956,23 @@ if __name__ == '__main__':
     file_path = get_cache_file_path('策略绩效统计_按机构.csv')
     stat_df.to_csv(file_path)
     logger.info(file_path)
+    file_path = get_cache_file_path('各策略指数走势_按机构.csv')
+    stg_idx_mid_df.to_csv(file_path)
+    logger.info(file_path)
+
+    # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
+    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
+    # q_list = [0.10, 0.25, 0.40, 0.50, 0.60, 0.75, 0.90]
+    # stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6, q_list=q_list)
+    # print(stat_df)
+    # strategy_type_en = 'alpha'
+    # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=6, statistic=True, create_csv=False)
+    # fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from_str, date_to_str, show_fund_name=True)
+    # print(fund_nav_df)
+    # 单独统计某一策略绩效
+    # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name('long_only', date_from_str, date_to_str,
+    #                                                              create_csv=False)
+    # print(stg_index_s)
 
     # 生成指数
     # date_from_str, date_to_str = '2017-8-1', '2017-8-31'
@@ -973,21 +1024,6 @@ if __name__ == '__main__':
     # )
     # and nav_date >= '2017-06-02'
 
-    # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
-    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
-    # q_list = [0.10, 0.25, 0.40, 0.50, 0.60, 0.75, 0.90]
-    # stat_df = statistic_fund_by_strategy(date_from_str, date_to_str, do_filter=6, q_list=q_list)
-    # print(stat_df)
-    # strategy_type_en = 'alpha'
-    # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=6, statistic=True, create_csv=False)
-    # fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from_str, date_to_str, show_fund_name=True)
-    # print(fund_nav_df)
-    # date_from_str_year = str(str_2_date(date_to_str) - timedelta(days=365))
-    # statistic_fund_by_strategy(date_from_str_year, date_to_str)
-    # 单独统计某一策略绩效
-    # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name('long_only', date_from_str, date_to_str,
-    #                                                              create_csv=False)
-    # print(stg_index_s)
 
     # 获取某只基金与其对应策略指数走势对比图
     # wind_code, quantile_list = 'XT148671.XT', [0.5]
