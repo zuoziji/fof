@@ -17,7 +17,8 @@ from .controllers.admin_view import FofAdmin, PctAdmin, StgAdmin, UserAdmin, \
 from .extensions import login_manager, babel, admin, mail,SocketIo,celery
 from .models import db, RoleModel, UserModel, FoFModel, PermissionModel, FileType, \
     FundFile, FOF_FUND_PCT, FUND_STG_PCT, FUND_NAV, FUND_SEC_PCT, FUND_EVENT, FUND_ESSENTIAL,Invest_corp,Invest_corp_file
-
+from flask.ext.admin.contrib import rediscli
+from redis import Redis
 platforms.C_FORCE_ROOT = True
 
 
@@ -36,7 +37,7 @@ admin.add_view(EventAdmin(FUND_EVENT, name='提醒管理', session=db.session))
 admin.add_view(ChildMapping(FUND_ESSENTIAL,name="jijinyasu",session=db.session))
 admin.add_view(Invest_corp_admin(Invest_corp,name="投顾管理",session=db.session))
 admin.add_view(Invest_corp_file_admin(Invest_corp_file,name="投顾文件管理",session=db.session))
-
+admin.add_view(rediscli.RedisCli(Redis(db=3),name="cache_console"))
 def create_app(object_name):
     app = Flask(__name__)
     wa.whoosh_index(app,FUND_ESSENTIAL)

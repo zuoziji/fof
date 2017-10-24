@@ -107,7 +107,7 @@
                   </div>
                   <div class="col-md-9 col-xs-12">
                     {% if acc|length >= 2 %}
-                    <p>{{ (acc[-1]['nav'] | float -  acc[-2]['nav'] | float) | round(4,'floor')}}</p>
+                    <p>{{ (acc[-1]['nav'] | float - acc[-2]['nav'] | float) | round(4,'floor')}}</p>
                     {% else %}
                     <p>{{ acc[0]['nav'] }}</p>
                     {% endif %}
@@ -123,13 +123,23 @@
               </li>
               <li class="col-xs-12">
                 {{ fof.anual_return }}
-                <span>年化收益：</span><strong>{{ fof.annual_return | round(3,'floor') if fof.anual_return is not none else  ""  }}</strong>
+                <span>年化收益：</span><strong>
+                  {% if fof.annual_return is not none %}
+                    {{ fof.annual_return | round(3,'floor') }}
+                  {% endif %}
+              </strong>
               </li>
               <li class="col-xs-12">
-                <span>最大回撤：</span><strong>{{ (fof.nav_acc_mdd*100) |round(2,'floor') if fof.nav_acc_mdd is not none else ""}}%</strong>
+                <span>最大回撤：</span><strong>
+                  {% if fof.nav_acc_mdd is not none  %}
+                  {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%</strong>
+                  {% endif %}
               </li>
               <li class="col-xs-12">
-                <span>夏普比率：</span><strong>{{ fof.sharpe  |round(3,'floor') if fof.sharpe is not none  else  "" }}</strong>
+                <span>夏普比率：</span><strong>
+                  {% if fof.sharpe is not none  %}
+                  {{ fof.sharpe  |round(3,'floor') }}</strong>
+                  {% endif %}
               </li>
             </ul>
           </div>
