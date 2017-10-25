@@ -15,6 +15,7 @@ import re
 import pandas as pd
 from collections import OrderedDict
 import logging
+import warnings
 
 STR_FORMAT_DATE = '%Y-%m-%d'
 PATTERN_DATE_FORMAT_RESTRICT = re.compile(r"\d{4}(\D)*\d{2}(\D)*\d{2}")
@@ -252,18 +253,49 @@ def get_df_between_date(data_df, date_frm, date_to):
     return new_data_df
 
 
-def return_risk_analysis(rr_df, date_frm=None, date_to=None, freq=50, rf=0.02):
+def return_risk_analysis(nav_df, date_frm=None, date_to=None, freq='weekly', rf=0.02):
     """
     按列统计 rr_df 收益率绩效 
-    :param rr_df: 收益率DataFrame，index为日期，每一列为一个产品的净值走势
+    :param nav_df: 收益率DataFrame，index为日期，每一列为一个产品的净值走势
     :param date_frm: 统计日期区间，可以为空
     :param date_to: 统计日期区间，可以为空
-    :param freq: 每年的周期数，周度数据的话，一年50个交易周
+    :param freq: None 自动识别, 'daily' 'weekly' 'monthly'
     :param rf: 无风险收益率，默认 0.02
     :return: 
     """
+    rr_df = (1 + nav_df.pct_change().fillna(0)).cumprod()
+    rr_df.index = [try_2_date(d) for d in rr_df.index]
+    # 计算数据实际频率是日频、周频、月頻
+    rr_df_len = rr_df.shape[0]
+    day_per_data = (rr_df.index[rr_df_len - 1] - rr_df.index[0]).days / rr_df_len
+    if day_per_data <= 2:
+        freq_real = 'daily'
+    elif day_per_data <= 10:
+        freq_real = 'weekly'
+    else:
+        freq_real = 'monthly'
+    if freq is None:
+        freq = freq_real
+    elif freq != freq_real:
+        warnings_msg = "data freq wrong, expect %s, but %s was detected" % (freq, freq_real)
+        # warnings.warn(warnings_msg)
+        # logging.warning(warnings_msg)
+        raise ValueError(warnings_msg)
+
+    freq_str = ''
+    if freq == 'weekly':
+        data_count_per_year = 50
+        freq_str = '周'
+    elif freq == 'monthly':
+        data_count_per_year = 12
+        freq_str = '月'
+    elif freq == 'daily':
+        data_count_per_year = 250
+        freq_str = '日'
+    else:
+        raise ValueError('freq=%s 只接受 daily weekly monthly 三种之一', freq)
     stat_dic_dic = OrderedDict()
-    rr_df.index = [str_2_date(d) for d in rr_df.index]
+    # rr_df.index = [str_2_date(d) for d in rr_df.index]
     rr_uindex_df = rr_df.reset_index(level=0)
     col_name_list = list(rr_uindex_df.columns)
     date_col_name = col_name_list[0]
@@ -284,8 +316,8 @@ def return_risk_analysis(rr_df, date_frm=None, date_to=None, freq=50, rf=0.02):
         # basic indicators
         CAGR = data_df.Value[data_df.index[-1]] ** date_span_fraction - 1
         period_rr = data_df.Value[data_df.index[-1]] - 1
-        ann_vol = np.std(data_df.ret, ddof=1) * np.sqrt(freq)
-        down_side_vol = np.std(data_df.ret[data_df.ret < 0], ddof=1) * np.sqrt(freq)
+        ann_vol = np.std(data_df.ret, ddof=1) * np.sqrt(data_count_per_year)
+        down_side_vol = np.std(data_df.ret[data_df.ret < 0], ddof=1) * np.sqrt(data_count_per_year)
         # WeeksNum = data.shape[0]
         profit_loss_ratio = -np.mean(data_df.ret[data_df.ret > 0]) / np.mean(data_df.ret[data_df.ret < 0])
         win_ratio = len(data_df.ret[data_df.ret >= 0]) / len(data_df.ret)
@@ -323,27 +355,31 @@ def return_risk_analysis(rr_df, date_frm=None, date_to=None, freq=50, rf=0.02):
         max_rr_month = max(month_ret.ret)
         min_rr_month = min(month_ret.ret)
         # End of Natural month return
+        data_len = data_df.shape[0]
         date_begin = data_df.Date[0]  # .date()
-        stat_dic = OrderedDict([('起始时间', date_begin),
-                                ('区间收益率', period_rr),
-                                ('复合年华收益率', CAGR),
-                                ('年化波动率', ann_vol),
-                                ('年化下行波动率', down_side_vol),
-                                ('最终净值', final_value),
-                                ('最低净值', min_value),
-                                ('最大回撤', mdd_size),
-                                ('最长不创新高（周）', mdd_max_period),
-                                ('夏普率', sharpe_ratio),
-                                ('索提诺比率', sortino_ratio),
-                                ('卡马比率', calmar_ratio),
-                                ('盈亏比', profit_loss_ratio),
-                                ('胜率', win_ratio),
-                                ('统计周期最大收益', max_ret),
-                                ('统计周期最大亏损', min_ret),
-                                ('最大月收益', max_rr_month),
-                                ('最大月亏损', min_rr_month)])
+        date_end = data_df.Date[data_len-1]
+        stat_dic = OrderedDict([('起始日期', date_begin),
+                                ('截止日期', date_end),
+                                ('区间收益率', '%.2f%%' % (period_rr * 100)),
+                                ('年化收益率', '%.2f%%' % (CAGR * 100)),
+                                ('年化波动率', '%.2f%%' % (ann_vol * 100)),
+                                ('年化下行波动率', '%.2f%%' % (down_side_vol * 100)),
+                                ('最终净值', '%.4f' % final_value),
+                                ('最低净值', '%.4f' % min_value),
+                                ('最大回撤', '%.4f' % mdd_size),
+                                ('最长不创新高（%s）' % freq_str, mdd_max_period),
+                                ('夏普率', '%.2f' % sharpe_ratio),
+                                ('索提诺比率', '%.2f' % sortino_ratio),
+                                ('卡马比率', '%.2f' % calmar_ratio),
+                                ('盈亏比', '%.2f' % profit_loss_ratio),
+                                ('胜率', '%.2f' % win_ratio),
+                                ('统计周期最大收益', '%.2f%%' % (max_ret * 100)),
+                                ('统计周期最大亏损', '%.2f%%' % (min_ret * 100)),
+                                ('最大月收益', '%.2f%%' % (max_rr_month * 100)),
+                                ('最大月亏损', '%.2f%%' % (min_rr_month * 100))])
         stat_dic_dic[col_name] = stat_dic
     stat_df = pd.DataFrame(stat_dic_dic)
+    stat_df = stat_df.ix[list(stat_dic.keys())]
     return stat_df
 
 
@@ -373,19 +409,21 @@ class DataFrame(pd.DataFrame):
                 row_val = indexes[row_num]
                 data_val = self.iloc[row_num, col_num]
                 self.iloc[row_num, col_num] = func(col_val, row_val, data_val)
-                # self.loc[row_val, col_val] = func(col_val, row_val, data_val)
         return self
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
-    # file_path = r'd:\Downloads\工作簿1.xlsx'
-    # file_path_no_extention, _ = os.path.splitext(file_path)
-    # data_df = pd.read_excel(file_path, index_col=0)
-    # stat_df = return_risk_analysis(data_df, freq=360)
-    # print(stat_df)
-    # stat_df.to_csv(file_path_no_extention + '绩效统计.csv')
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
+    file_path = r'D:\Works\F复华投资\L路演、访谈、评估报告\睿璞\睿璞5.xlsx'
+    file_path_no_extention, _ = os.path.splitext(file_path)
+    data_df = pd.read_excel(file_path, index_col=0)
+    stat_df = return_risk_analysis(data_df, freq='daily')  # , freq='daily'
+    print(stat_df)
+    stat_df.to_csv(file_path_no_extention + '绩效统计.csv')
 
-    date_str = '2016/7/15'
-    pattern_str = pattern_data_format(date_str)
-    print(pattern_str)
+    # data_df = pd.DataFrame({'a': np.arange(1, 6),
+    #               'b': np.arange(2, 7),
+    #               'c': np.arange(3, 8),
+    #               })
+    # ret_df = DataFrame.map(data_df, lambda col_val, row_vol, data_vol: data_vol % 2 == 0 if col_val == 'a' else data_vol % 2 != 0)
+    # print(ret_df)

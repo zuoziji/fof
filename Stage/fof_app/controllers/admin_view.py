@@ -13,7 +13,6 @@ from ..extensions import cache
 from wtforms import PasswordField
 logger = getLogger()
 
-
 class CustomView(ModelView):
     pass
     # list_template = 'manager/list.html'

@@ -169,6 +169,22 @@ class UserModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def to_json(self):
+        d = {}
+        for k,v in self.__dict__.items():
+            print(k,v)
+            if v is None:
+                d[k] = ''
+            else:
+                d[k] = v
+        return d
+
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name," ") for c in self.__table__.columns}
+
+
+
 
 class Anonymous(AnonymousUserMixin):
     def __init__(self):
@@ -265,9 +281,13 @@ class FoFModel(db.Model):
         for k,v in self.__dict__.items():
             if v is None:
                 d[k] = ''
+            elif isinstance(v,float):
+                if len(str(v).split('.')[1]) > 2:
+                    d[k] = "{0:.3f}".format(v)
             else:
                 d[k] = v
         return d
+
 
 
     def as_dict(self):
@@ -550,8 +570,11 @@ class FUND_NAV_CALC(db.Model):
     def to_json(self):
         d = {}
         for k,v in self.__dict__.items():
+            print(type(v), v)
             if v is None:
                 d[k] = ''
+            elif isinstance(v,float):
+                print(v)
             else:
                 d[k] = v
         return d

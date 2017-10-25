@@ -51,16 +51,23 @@
                               {% endif %}
                             <br>
                           </td>
-
                         <td>
-                            <p>{{ i.primary.fund_setupdate }}</p><P>{{ i.primary.fund_maturitydate }}</P>
-
+                            <p>{{ i.primary.fund_setupdate }}</p>
+                            {% if i.primary.fund_maturitydate is not none  %}
+                            {% if '1899-12-30'  !=   i.primary.fund_maturitydate.strftime('%Y-%m-%d') %}
+                                <p>{{ i.primary.fund_maturitydate  }}</p>
+                                {% endif %}
+                            {% endif %}
                         </td>
                           <td>
+                              {% if i.primary.nav_date_latest is not none %}
                             <p>{{ i.primary.nav_date_latest }}</p>
+                              {% endif %}
                           </td>
                             <td>
+                                {% if i.primary.nav_acc_latest is not none %}
                                 {{ i.primary.nav_acc_latest  | round(3,'floor') }}
+                                {% endif %}
                                 &nbsp;&nbsp;<i class="fa fa-line-chart"></i>
                             </td>
                         {% for c in i.child %}
