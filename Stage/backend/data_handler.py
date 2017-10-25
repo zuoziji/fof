@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from config_fh import STR_FORMAT_DATE, get_db_engine, get_db_session
 import matplotlib.pyplot as plt  # pycharm 需要通过现实调用 plt.show 才能显示plot
-from fh_tools.fh_utils import str_2_date, DataFrame
+from fh_tools.fh_utils import str_2_date, DataFrame, return_risk_analysis
 import logging
 
 logger = logging.getLogger()
@@ -457,6 +457,17 @@ fund_essential_info ffm,
     fund_stg_pct_df.to_sql('fund_stg_pct', engine, if_exists='append', index=False)
 
 
+def stat_fund(wind_code):
+    """
+    统计基金的绩效指标
+    :param wind_code: 
+    :return: 
+    """
+    engine = get_db_engine()
+    nav_df = pd.read_sql("select nav_date, nav_acc from fund_nav where wind_code=%s", engine, params=[wind_code], index_col='nav_date')
+    stat_df = return_risk_analysis(nav_df)  # , freq='daily'
+    return stat_df
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
     # wind_code_list = ['XT090739.XT', 'XT090970.XT', 'XT091012.XT']
@@ -474,6 +485,12 @@ if __name__ == '__main__':
     # logger.info('date_latest\n', date_latest)
     # pct_df.plot()
     # plt.show()
+
+    # 计算基金的绩效指标
+    wind_code = 'FHF-101701'
+    stat_df = stat_fund(wind_code)
+    logger.debug('%s return_risk_analysis:\n%s', wind_code, stat_df)
+    stat_df.to_csv('%s return_risk_analysis.csv' % wind_code)
 
     # 获取母基金及子基金走势
     # wind_code = 'FHF-101601'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'
@@ -497,5 +514,5 @@ if __name__ == '__main__':
     # logger.info(index_df)
 
     # 根据子基金投资额及子基金策略比例调整fof基金总体策略比例
-    wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
-    update_fof_stg_pct(wind_code)
+    # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
+    # update_fof_stg_pct(wind_code)
