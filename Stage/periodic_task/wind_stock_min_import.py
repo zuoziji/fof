@@ -1,6 +1,8 @@
 from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np
+from sqlalchemy.exc import IntegrityError
+
 from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILABLE_DATE, WIND_REST_URL
 from fh_tools.windy_utils_rest import WindRest, APIError
 from fh_tools.fh_utils import get_last, get_first
@@ -16,6 +18,7 @@ def import_stock_tick():
     插入股票日线数据到最近一个工作日-1
     :return: 
     """
+    import_count = 0
     w = WindRest(WIND_REST_URL)
     engine = get_db_engine()
     with get_db_session(engine) as session:
@@ -77,16 +80,19 @@ def import_stock_tick():
             data_df_list.append(data_df)
             data_count += data_df.shape[0]
             if data_count >= 20000:
-                insert_into_db(data_df_list, engine)
-                data_df_list = []
-                data_count = 0
+                try:
+                    import_count += insert_into_db(data_df_list, engine)
+                finally:
+                    data_df_list = []
+                    data_count = 0
     finally:
         # 导入数据库
-        insert_into_db(data_df_list, engine)
-
+        import_count += insert_into_db(data_df_list, engine)
+    return import_count
 
 def insert_into_db(data_df_list, engine):
-    if len(data_df_list) > 0:
+    data_count = len(data_df_list)
+    if data_count > 0:
         data_df_all = pd.concat(data_df_list)
         data_df_all.index.rename('datetime', inplace=True)
         data_df_all.reset_index(inplace=True)
@@ -104,15 +110,21 @@ def insert_into_db(data_df_list, engine):
                                'asize1': Integer,
                                'bsize1': Integer,
                                'volume': Integer,
-                               'amount': Integer,
+                               'amount': Float,
                                'preclose': Float,
                            }
                            )
         logger.info('%d data imported', data_df_all.shape[0])
-
+    return data_count
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
-    # 更新每日股票数据
-    import_stock_tick()
+    import_count = 1
+    while import_count > 0:
+        try:
+            # 更新每日股票数据
+            import_count = import_stock_tick()
+        except IntegrityError:
+            logger.exception()
+
 
