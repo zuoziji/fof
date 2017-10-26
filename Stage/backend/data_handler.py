@@ -468,6 +468,172 @@ def stat_fund(wind_code):
     stat_df = return_risk_analysis(nav_df)  # , freq='daily'
     return stat_df
 
+
+def stat_period_fof_fund(wind_code, date_from, date_to):
+    """
+    统计FOF及子基金日期区间内的净值变化及收益贡献度
+    sql 查询语句
+    set @wind_code='FHF-101701', @date_from='2017-9-1', @date_to='2017-10-31';
+    
+SELECT fn_range.wind_code, fi.sec_name, ffp.invest_scale, fn_range.nav_date_from,fn_range.nav_date_to, 
+nav_from.nav_acc nav_from, nav_to.nav_acc nav_to, 
+(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc * 100 pct_change
+from 
+(
+	select fn_from.wind_code, fn_from.nav_date nav_date_from, fn_to.nav_date nav_date_to from 
+	(
+		select wind_code, max(nav_date) nav_date
+		from fund_nav 
+		where wind_code in (
+			select wind_code_s FROM
+			fof_fund_pct ffp
+			where ffp.wind_code_p = @wind_code
+			and ffp.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = @wind_code and ffp_sub.date_adj < @date_to)
+			)
+		and nav_date < @date_to
+		group by wind_code
+	) fn_to
+	right JOIN
+	(
+		select wind_code, max(nav_date) nav_date
+		from fund_nav 
+		where wind_code in (
+			select wind_code_s FROM
+			fof_fund_pct ffp
+			where ffp.wind_code_p = @wind_code
+			and ffp.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = @wind_code and ffp_sub.date_adj < @date_to)
+			)
+		and nav_date < @date_from
+		group by wind_code
+	) fn_from
+	on fn_from.wind_code = fn_to.wind_code
+) fn_range
+LEFT JOIN fund_nav nav_from
+on fn_range.wind_code = nav_from.wind_code
+and fn_range.nav_date_from = nav_from.nav_date
+left JOIN fund_nav nav_to
+on fn_range.wind_code = nav_to.wind_code
+and fn_range.nav_date_to = nav_to.nav_date
+LEFT JOIN fund_essential_info fei
+on fn_range.wind_code = fei.wind_code_s
+LEFT JOIN fund_info fi
+on fei.wind_code = fi.wind_code
+left JOIN 
+(
+	select ffp_sub.wind_code_s, ffp_sub.invest_scale 
+	from fof_fund_pct ffp_sub 
+	where ffp_sub.wind_code_p = @wind_code
+	and ffp_sub.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = @wind_code and ffp_sub.date_adj < @date_to)
+) ffp
+on fn_range.wind_code = ffp.wind_code_s
+    :param wind_code: 
+    :param date_from: 
+    :param date_to: 
+    :return: 
+    """
+    sql_fund_str = """SELECT fn_range.wind_code, fi.sec_name, ffp.invest_scale, fn_range.nav_date_from,fn_range.nav_date_to, 
+nav_from.nav_acc nav_from, nav_to.nav_acc nav_to, 
+(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc * 100 pct_change
+from 
+(
+	select fn_from.wind_code, fn_from.nav_date nav_date_from, fn_to.nav_date nav_date_to from 
+	(
+		select wind_code, max(nav_date) nav_date
+		from fund_nav 
+		where wind_code = %s
+		and nav_date < %s
+		group by wind_code
+	) fn_to
+	right JOIN
+	(
+		select wind_code, max(nav_date) nav_date
+		from fund_nav 
+		where wind_code = %s
+		and nav_date < %s
+		group by wind_code
+	) fn_from
+	on fn_from.wind_code = fn_to.wind_code
+) fn_range
+LEFT JOIN fund_nav nav_from
+on nav_from.wind_code = fn_range.wind_code
+and nav_from.nav_date = fn_range.nav_date_from
+left JOIN fund_nav nav_to
+on nav_to.wind_code = fn_range.wind_code
+and nav_to.nav_date = fn_range.nav_date_to
+LEFT JOIN fund_info fi
+on fn_range.wind_code = fi.wind_code
+left JOIN 
+(
+	select ffp_sub.wind_code_p, sum(ffp_sub.invest_scale) invest_scale
+	from fof_fund_pct ffp_sub 
+	where ffp_sub.wind_code_p = %s
+	and ffp_sub.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = %s and ffp_sub.date_adj < %s)
+	group by ffp_sub.wind_code_p
+) ffp
+on fn_range.wind_code = ffp.wind_code_p
+"""
+    engine = get_db_engine()
+    nav_fund_df = pd.read_sql(sql_fund_str, engine, params=[wind_code, date_to, wind_code, date_from, wind_code, wind_code, date_from])
+    nav_fund_df['contribue_pct'] = '100%'
+    sql_fof_str = """SELECT fn_range.wind_code, fi.sec_name, ffp.invest_scale, fn_range.nav_date_from,fn_range.nav_date_to, 
+nav_from.nav_acc nav_from, nav_to.nav_acc nav_to, 
+(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc * 100 pct_change
+from 
+(
+	select fn_from.wind_code, fn_from.nav_date nav_date_from, fn_to.nav_date nav_date_to from 
+	(
+		select wind_code, max(nav_date) nav_date
+		from fund_nav 
+		where wind_code in (
+			select wind_code_s FROM
+			fof_fund_pct ffp
+			where ffp.wind_code_p = %s
+			and ffp.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = %s and ffp_sub.date_adj < %s)
+			)
+		and nav_date < %s
+		group by wind_code
+	) fn_to
+	right JOIN
+	(
+		select wind_code, max(nav_date) nav_date
+		from fund_nav 
+		where wind_code in (
+			select wind_code_s FROM
+			fof_fund_pct ffp
+			where ffp.wind_code_p = %s
+			and ffp.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = %s and ffp_sub.date_adj < %s)
+			)
+		and nav_date < %s
+		group by wind_code
+	) fn_from
+	on fn_from.wind_code = fn_to.wind_code
+) fn_range
+LEFT JOIN fund_nav nav_from
+on fn_range.wind_code = nav_from.wind_code
+and fn_range.nav_date_from = nav_from.nav_date
+left JOIN fund_nav nav_to
+on fn_range.wind_code = nav_to.wind_code
+and fn_range.nav_date_to = nav_to.nav_date
+LEFT JOIN fund_essential_info fei
+on fn_range.wind_code = fei.wind_code_s
+LEFT JOIN fund_info fi
+on fei.wind_code = fi.wind_code
+left JOIN 
+(
+	select ffp_sub.wind_code_s, ffp_sub.invest_scale 
+	from fof_fund_pct ffp_sub 
+	where ffp_sub.wind_code_p = %s
+	and ffp_sub.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = %s and ffp_sub.date_adj < %s)
+) ffp
+on fn_range.wind_code = ffp.wind_code_s
+"""
+    engine = get_db_engine()
+    nav_fof_df = pd.read_sql(sql_fof_str, engine, params=[wind_code, wind_code, date_to, date_to, wind_code, wind_code, date_to, date_from, wind_code, wind_code, date_to])
+    profit_s = nav_fof_df['invest_scale'] * nav_fof_df['nav_to'] - nav_fof_df['invest_scale'] * nav_fof_df['nav_from']
+    nav_fof_df['contribue_pct'] = (profit_s / abs(profit_s.sum()) * 100).apply(lambda x: '%.2f%%' % x)
+    nav_df = pd.concat([nav_fund_df, nav_fof_df]).set_index('wind_code')
+    return nav_df
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
     # wind_code_list = ['XT090739.XT', 'XT090970.XT', 'XT091012.XT']
@@ -487,10 +653,16 @@ if __name__ == '__main__':
     # plt.show()
 
     # 计算基金的绩效指标
-    wind_code = 'FHF-101701'
-    stat_df = stat_fund(wind_code)
-    logger.debug('%s return_risk_analysis:\n%s', wind_code, stat_df)
-    stat_df.to_csv('%s return_risk_analysis.csv' % wind_code)
+    # wind_code = 'FHF-101701'
+    # stat_df = stat_fund(wind_code)
+    # logger.debug('%s return_risk_analysis:\n%s', wind_code, stat_df)
+    # stat_df.to_csv('%s return_risk_analysis.csv' % wind_code)
+
+    # 统计日期区间段内FOF及子基金净值变化
+    wind_code, date_from, date_to = 'FHF-101701', '2017-9-1', '2017-10-31'
+    nav_df = stat_period_fof_fund(wind_code, date_from, date_to)
+    nav_df.to_csv('%s stat_period_fof_fund.csv' % wind_code)
+    print(nav_df)
 
     # 获取母基金及子基金走势
     # wind_code = 'FHF-101601'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'

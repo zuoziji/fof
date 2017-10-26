@@ -263,7 +263,9 @@ def return_risk_analysis(nav_df, date_frm=None, date_to=None, freq='weekly', rf=
     :param rf: 无风险收益率，默认 0.02
     :return: 
     """
-    rr_df = (1 + nav_df.pct_change().fillna(0)).cumprod()
+    nav_df.index = [try_2_date(idx) for idx in nav_df.index]
+    nav_sorted_df = nav_df.sort_index()
+    rr_df = (1 + nav_sorted_df.pct_change().fillna(0)).cumprod()
     rr_df.index = [try_2_date(d) for d in rr_df.index]
     # 计算数据实际频率是日频、周频、月頻
     rr_df_len = rr_df.shape[0]
@@ -361,18 +363,18 @@ def return_risk_analysis(nav_df, date_frm=None, date_to=None, freq='weekly', rf=
         stat_dic = OrderedDict([('起始日期', date_begin),
                                 ('截止日期', date_end),
                                 ('区间收益率', '%.2f%%' % (period_rr * 100)),
+                                ('最终净值', '%.4f' % final_value),
+                                ('最低净值', '%.4f' % min_value),
                                 ('年化收益率', '%.2f%%' % (CAGR * 100)),
                                 ('年化波动率', '%.2f%%' % (ann_vol * 100)),
                                 ('年化下行波动率', '%.2f%%' % (down_side_vol * 100)),
-                                ('最终净值', '%.4f' % final_value),
-                                ('最低净值', '%.4f' % min_value),
-                                ('最大回撤', '%.4f' % mdd_size),
-                                ('最长不创新高（%s）' % freq_str, mdd_max_period),
+                                ('最大回撤', '%.2f%%' % (mdd_size * 100)),
                                 ('夏普率', '%.2f' % sharpe_ratio),
                                 ('索提诺比率', '%.2f' % sortino_ratio),
                                 ('卡马比率', '%.2f' % calmar_ratio),
                                 ('盈亏比', '%.2f' % profit_loss_ratio),
                                 ('胜率', '%.2f' % win_ratio),
+                                ('最长不创新高（%s）' % freq_str, mdd_max_period),
                                 ('统计周期最大收益', '%.2f%%' % (max_ret * 100)),
                                 ('统计周期最大亏损', '%.2f%%' % (min_ret * 100)),
                                 ('最大月收益', '%.2f%%' % (max_rr_month * 100)),
@@ -414,10 +416,10 @@ class DataFrame(pd.DataFrame):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
-    file_path = r'D:\Works\F复华投资\L路演、访谈、评估报告\睿璞\睿璞5.xlsx'
+    file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\万霁\万霁资管一号.xlsx'
     file_path_no_extention, _ = os.path.splitext(file_path)
     data_df = pd.read_excel(file_path, index_col=0)
-    stat_df = return_risk_analysis(data_df, freq='daily')  # , freq='daily'
+    stat_df = return_risk_analysis(data_df, freq=None)  # , freq='daily'
     print(stat_df)
     stat_df.to_csv(file_path_no_extention + '绩效统计.csv')
 

@@ -847,7 +847,7 @@ def get_fund_nav_with_index(wind_code, date_from_str, date_to_str, quantile_list
 
 def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
                            q_list=[0.10, 0.25, 0.40, 0.50, 0.60, 0.75, 0.90],
-                           strategy_type_list=['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略'],
+                           strategy_type_list=['债券策略', '套利策略', '管理期货策略', '股票多头策略', '阿尔法策略', '组合基金策略'],
                            mgrcomp_id_2_name=False):
     """
     获取全市场策略指数，分位数统计数据
@@ -941,7 +941,7 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    date_from_str, date_to_str = '2017-6-26', '2017-9-30'
+    date_from_str, date_to_str = '2016-9-26', '2017-9-30'
     stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
     for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
         date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]

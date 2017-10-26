@@ -86,3 +86,6 @@
 
 ### 2017/10/25
 * 增加 data_handler.stat_fund 基金绩效计算函数
+
+### 2017/10/26
+* 增加 data_handler.stat_period_fof_fund 统计FOF及子基金日期区间内的净值变化及收益贡献度
