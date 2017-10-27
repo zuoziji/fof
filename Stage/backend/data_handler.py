@@ -490,7 +490,7 @@ from
 			where ffp.wind_code_p = @wind_code
 			and ffp.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = @wind_code and ffp_sub.date_adj < @date_to)
 			)
-		and nav_date < @date_to
+		and nav_date <= @date_to
 		group by wind_code
 	) fn_to
 	right JOIN
@@ -533,7 +533,7 @@ on fn_range.wind_code = ffp.wind_code_s
     """
     sql_fund_str = """SELECT fn_range.wind_code, fi.sec_name, ffp.invest_scale, fn_range.nav_date_from,fn_range.nav_date_to, 
 nav_from.nav_acc nav_from, nav_to.nav_acc nav_to, 
-(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc * 100 pct_change
+(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc pct_change
 from 
 (
 	select fn_from.wind_code, fn_from.nav_date nav_date_from, fn_to.nav_date nav_date_to from 
@@ -541,7 +541,7 @@ from
 		select wind_code, max(nav_date) nav_date
 		from fund_nav 
 		where wind_code = %s
-		and nav_date < %s
+		and nav_date <= %s
 		group by wind_code
 	) fn_to
 	right JOIN
@@ -577,7 +577,7 @@ on fn_range.wind_code = ffp.wind_code_p
     nav_fund_df['contribue_pct'] = '100%'
     sql_fof_str = """SELECT fn_range.wind_code, fi.sec_name, ffp.invest_scale, fn_range.nav_date_from,fn_range.nav_date_to, 
 nav_from.nav_acc nav_from, nav_to.nav_acc nav_to, 
-(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc * 100 pct_change
+(nav_to.nav_acc - nav_from.nav_acc) / nav_from.nav_acc pct_change
 from 
 (
 	select fn_from.wind_code, fn_from.nav_date nav_date_from, fn_to.nav_date nav_date_to from 
@@ -590,7 +590,7 @@ from
 			where ffp.wind_code_p = %s
 			and ffp.date_adj = (select max(date_adj) from fof_fund_pct ffp_sub where ffp_sub.wind_code_p = %s and ffp_sub.date_adj < %s)
 			)
-		and nav_date < %s
+		and nav_date <= %s
 		group by wind_code
 	) fn_to
 	right JOIN
@@ -632,7 +632,28 @@ on fn_range.wind_code = ffp.wind_code_s
     profit_s = nav_fof_df['invest_scale'] * nav_fof_df['nav_to'] - nav_fof_df['invest_scale'] * nav_fof_df['nav_from']
     nav_fof_df['contribue_pct'] = (profit_s / abs(profit_s.sum()) * 100).apply(lambda x: '%.2f%%' % x)
     nav_df = pd.concat([nav_fund_df, nav_fof_df]).set_index('wind_code')
+    nav_df['pct_change'] = nav_df['pct_change'].apply(lambda x: '%.2f%%' % (x * 100))
     return nav_df
+
+
+def get_fof_fund_pct_df(wind_code):
+    """
+    获取指定FOF各个确认日截面持仓情况
+    :param wind_code: 
+    :return: 
+    """
+    engine = get_db_engine()
+    sql_str = """select ffp.wind_code_s, ffp.date_adj, ffp.invest_scale, fei.sec_name_s
+from
+	(select wind_code_s, date_adj, invest_scale from fof_fund_pct where wind_code_p=%s) ffp
+	LEFT JOIN
+	fund_essential_info fei
+	on ffp.wind_code_s = fei.wind_code_s"""
+    data_df = pd.read_sql(sql_str, engine, params=[wind_code])
+    data_df['wind_code_sec_name_s'] = data_df['wind_code_s'].fillna('[NAN]') + data_df['sec_name_s'].fillna('[NAN]')
+    date_fund_pct_df = data_df.pivot(columns='wind_code_sec_name_s', index='date_adj', values='invest_scale')
+    # print(date_fund_pct_df)
+    return date_fund_pct_df
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
@@ -659,10 +680,10 @@ if __name__ == '__main__':
     # stat_df.to_csv('%s return_risk_analysis.csv' % wind_code)
 
     # 统计日期区间段内FOF及子基金净值变化
-    wind_code, date_from, date_to = 'FHF-101701', '2017-9-1', '2017-10-31'
-    nav_df = stat_period_fof_fund(wind_code, date_from, date_to)
-    nav_df.to_csv('%s stat_period_fof_fund.csv' % wind_code)
-    print(nav_df)
+    # wind_code, date_from, date_to = 'FHF-101701', '2017-9-1', '2017-10-20'
+    # nav_df = stat_period_fof_fund(wind_code, date_from, date_to)
+    # nav_df.to_csv('%s stat_period_fof_fund.csv' % wind_code)
+    # print(nav_df)
 
     # 获取母基金及子基金走势
     # wind_code = 'FHF-101601'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'
@@ -686,5 +707,11 @@ if __name__ == '__main__':
     # logger.info(index_df)
 
     # 根据子基金投资额及子基金策略比例调整fof基金总体策略比例
-    # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
+    wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
     # update_fof_stg_pct(wind_code)
+
+    # 获取指定FOF各个确认日截面持仓情况
+    wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
+    date_fund_pct_df = get_fof_fund_pct_df(wind_code)
+    print(date_fund_pct_df)
+    date_fund_pct_df.to_csv('%s date_fund_pct_df.csv' % wind_code)
