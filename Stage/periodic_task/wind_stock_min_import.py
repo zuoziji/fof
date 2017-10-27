@@ -20,7 +20,7 @@ def import_stock_tick():
     """
     import_count = 0
     w = WindRest(WIND_REST_URL)
-    engine = get_db_engine()
+    engine = get_db_engine(db_name='dev_db')
     with get_db_session(engine) as session:
         # 获取每只股票最新交易日数据
         sql_str = 'select wind_code, max(datetime) from wind_stock_tick group by wind_code'
@@ -69,6 +69,7 @@ def import_stock_tick():
             try:
                 data_df = w.wst(wind_code, wind_indictor_str, datetime_from, datetime_to)
             except APIError as exp:
+                data_df = None
                 if exp.ret_dic['error_code'] == -40520007:
                     logger.warning('%s[%s - %s] %s', wind_code, datetime_from, datetime_to, exp.ret_dic['error_msg'])
                     continue
@@ -125,6 +126,4 @@ if __name__ == '__main__':
             # 更新每日股票数据
             import_count = import_stock_tick()
         except IntegrityError:
-            logger.exception()
-
-
+            logger.exception("import_stock_tick exception")
