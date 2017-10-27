@@ -182,6 +182,5 @@ def child_charts(wind_code,display_type):
         return {"date":status_date,"value":t_status}
 
 
-
 if __name__ == "__main__":
     print(check_code_order('XT1605537.XT'))

@@ -20,7 +20,6 @@ from analysis.portfolio_optim_strategy import calc_portfolio_optim_fund
 from backend import upload_file, data_handler, fund_nav_import_csv
 from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, get_stress_data, get_stg,child_charts
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
-from fof_app.forms import FOFSummary
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
     Invest_corp, query_invest, Invest_corp_file,FUND_NAV_CALC,TRADE_DATE
@@ -140,7 +139,8 @@ def details(wind_code: str) -> object:
             else:
                 primary_fund = i['primary']
                 handler_fund.append(primary_fund.wind_code)
-        latest_nav = {k: v for i in last_dict.values() for k, v in i.items() if k in handler_fund}
+        format_float = lambda v: "%.3f" %v if isinstance(v,float) else v
+        latest_nav = {k: format_float(v) for i in last_dict.values() for k, v in i.items() if k in handler_fund}
         result = [{"name": i, "data": np.array(pct_df[i]).tolist()} for i in pct_df.columns]
         result = [i if i['name'] == '000300.SH' else {'name': code_get_name(i['name']), 'data': i['data']} for i in
                   result]
@@ -252,12 +252,14 @@ def add_child(wind_code: str) -> object:
                 db.session.commit()
         code_list = request.form.getlist('code')
         scale_list = request.form.getlist('scale')
+        logger.info("用户{}更新持仓记录".format(current_user.username))
         for i in zip(code_list, scale_list):
             child = FOF_FUND_PCT(wind_code_p=wind_code, wind_code_s=i[0], date_adj=change_date,
                                  invest_scale=i[1])
             db.session.add(child)
             db.session.commit()
-        #
+            logger.info("wind_code_p {} wind_code_s {} invest_scale {}".format(wind_code,i[0],i[1]))
+        logger.info("用户{}更新持仓记录成功".format(current_user.username))
         fof_list = get_all_fof()
         logger.info("更新缓存用户{}可访问基金列表".format(current_user.username))
         cache.set(key=str(current_user.id), value=fof_list)
