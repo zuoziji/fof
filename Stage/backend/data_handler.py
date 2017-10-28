@@ -412,6 +412,9 @@ fund_essential_info ffm,
  where sp.wind_code = ffm.wind_code
  and ffm.wind_code_s = fp.wind_code_s;"""
     data_df = pd.read_sql(sql_str, engine, params=[wind_code_p])
+    if data_df.shape[0] == 0:
+        logger.warning('获取%s子基金策略比例失败', wind_code_p)
+        return
     fund_stg_df = data_df.set_index(['wind_code', 'stg_code', 'trade_date']).unstack().T.copy()
     # fund_stg_df.set_index(fund_stg_df.index.levels[1], inplace=True)
     # fund_stg_df.index = [dt.date() for dt in fund_stg_df.index]
@@ -453,8 +456,12 @@ fund_essential_info ffm,
         logger.info('交易日：%s 策略比例如下：\n%s', trade_date, df)
     with get_db_session(engine) as session:
         session.execute('delete from fund_stg_pct where wind_code = :wind_code', params={'wind_code': wind_code_p})
+    fund_stg_pct_df_available = fund_stg_pct_df[fund_stg_pct_df['stg_pct'] > 0]
+    if fund_stg_pct_df_available.shape[0] == 0:
+        logger.warning('%s 没有子基金策略比例数据', wind_code_p)
+        return
     # 插入最新fof基金策略比例
-    fund_stg_pct_df.to_sql('fund_stg_pct', engine, if_exists='append', index=False)
+    fund_stg_pct_df_available.to_sql('fund_stg_pct', engine, if_exists='append', index=False)
 
 
 def stat_fund(wind_code):
@@ -708,10 +715,10 @@ if __name__ == '__main__':
 
     # 根据子基金投资额及子基金策略比例调整fof基金总体策略比例
     wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
-    # update_fof_stg_pct(wind_code)
+    update_fof_stg_pct(wind_code)
 
     # 获取指定FOF各个确认日截面持仓情况
-    wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
-    date_fund_pct_df = get_fof_fund_pct_df(wind_code)
-    print(date_fund_pct_df)
-    date_fund_pct_df.to_csv('%s date_fund_pct_df.csv' % wind_code)
+    # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
+    # date_fund_pct_df = get_fof_fund_pct_df(wind_code)
+    # print(date_fund_pct_df)
+    # date_fund_pct_df.to_csv('%s date_fund_pct_df.csv' % wind_code)

@@ -92,3 +92,4 @@
 
 ### 2017/10/27
 * 增加 data_handler.get_fof_fund_pct_df 
+* 优化 data_handler.update_fof_stg_pct 去除不必要的 0% 策略比例
