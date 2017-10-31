@@ -4,14 +4,14 @@
 
 {% block content %}
 
-<div >
+<div>
   <div class="">
     <div class="page-title">
       <div class="title_left">
         {% if current_user.is_staff %}
-        <h4>{{  fof.sec_name  }}</h4>
+        <h4>{{ fof.sec_name }}</h4>
         {% else %}
-        <h4>{{  fof.sec_name if fof.alias is none else  fof.alias }} </h4>
+        <h4>{{ fof.sec_name if fof.alias is none else fof.alias }} </h4>
         {% endif %}
       </div>
       <div class="title_right">
@@ -25,36 +25,42 @@
     <div class="row">
       <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
-
-          <div class="col-md-3 col-sm-3 col-xs-12 profile_left widget_tally_box " style=" padding: 0px;">
-            <div class="x_panel fixed_height_390">
-              <div class="x_title">
-                <h4>基金基本信息</h4>
-                <div class="clearfix"></div>
-              </div>
-              <div class="x_content">
-                <ul class="list-inline widget_tally">
-                  <li class="col-xs-12">
-                    <span>基金管理人：</span><strong>{% if current_user.is_staff %}
-                    {{ fof.fund_mgrcomp  | default("",True) }}
-                    {% else %}
-                    {{ "*****"  | default("",True) }}
-                    {% endif %}
-                  </strong>
-                </li>
-                <li class="col-xs-12">
-                  <span>基金经理：</span><strong>{% if current_user.is_staff %}
-                  {{ fof.fund_fundmanager | default("",True)  }}
-                  {% else %}
-                  {{ "*****"  | default("",True) }}
-                  {% endif %}
-                </strong>
+<!--           <div class="col-md-3 col-sm-3 col-xs-12 profile_left widget_tally_box " style=" padding: 0px;">
+  <div class="" role="tabpanel" data-example-id="togglable-tabs">
+    <ul id="leftTab" class="nav nav-tabs nav-justified" role="tablist">
+      <li role="presentation" class="active">
+        <a href="#tab_con_left1" role="tab" data-toggle="tab" aria-controls="tab_con_left1">基金基本信息</a>
+      </li>
+      <li role="presentation" class="">
+        <a href="#tab_con_left2" role="tab" data-toggle="tab" aria-controls="tab_con_left2">负责人信息</a>
+      </li>
+    </ul>
+    <div id="leftContent" class="tab-content">
+      <div role="tabpanel" class="tab-pane active" id="tab_con_left1">
+        <div class="x_panel fixed_height_390">
+          <div class="x_content">
+            <ul class="list-inline widget_tally">
+              <li class="col-xs-12">
+                <span>基金管理人：</span><strong>{% if current_user.is_staff %}
+                {{ fof.fund_mgrcomp | default("",True) }}
+                {% else %}
+                {{ "*****" | default("",True) }}
+                {% endif %}
+              </strong>
               </li>
               <li class="col-xs-12">
-                <span>基金策略类型：</span><strong>{{ fof.strategy_type | default("",True)  }}</strong>
+                <span>基金经理：</span><strong>{% if current_user.is_staff %}
+                {{ fof.fund_fundmanager | default("",True) }}
+                {% else %}
+                {{ "*****" | default("",True) }}
+                {% endif %}
+              </strong>
               </li>
               <li class="col-xs-12">
-                <span>基金初始规模：</span><strong>{{ fof.scale_tot | default("",True)  }}</strong>
+                <span>基金策略类型：</span><strong>{{ fof.strategy_type | default("",True) }}</strong>
+              </li>
+              <li class="col-xs-12">
+                <span>基金初始规模：</span><strong>{{ fof.scale_tot | default("",True) }}</strong>
               </li>
               <li class="col-xs-12">
                 <span>成立日期：</span><strong>{{ fof.fund_setupdate | default("",True) }}</strong>
@@ -65,44 +71,53 @@
             </ul>
           </div>
         </div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade  " id="tab_con_left2">
         <div class="x_panel f2qixed_height_390">
-          <div class="x_title">
-            <h4>负责人信息</h4>
-            <div class="clearfix"></div>
-          </div>
           <div class="x_content">
             <ul class="list-inline widget_tally">
               <li class="col-xs-12">
-                <span>投资负责人：</span><strong>{{ fof.fh_inv_manager | default("",True)  }}</strong>
+                <span>投资负责人：</span><strong>{{ fof.fh_inv_manager | default("",True) }}</strong>
               </li>
               <li class="col-xs-12">
-                <span>产品负责人：</span><strong>{{ fof.fh_prod_manager  | default("",True) }}</strong>
+                <span>产品负责人：</span><strong>{{ fof.fh_prod_manager | default("",True) }}</strong>
               </li>
               <li class="col-xs-12">
 
-                <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager  | default("",True) }} </strong>
+                <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager | default("",True) }} </strong>
               </li>
             </ul>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="" role="tabpanel" data-example-id="togglable-tabs">
+    <ul id="leftTab2" class="nav nav-tabs nav-justified" role="tablist">
+      <li role="presentation" class="active">
+        <a href="#tab_con_left1" role="tab" data-toggle="tab" aria-controls="tab_con2_left">基本净值信息</a>
+      </li>
+    </ul>
+    <div id="leftContent2" class="tab-content">
+      <div role="tabpanel" class="tab-pane active in" id="tab_con2_left">
         <div class="x_panel fixed_height_390">
-          <div class="x_title">
-            <h4>基本净值信息</h4>
-            <div class="clearfix"></div>
-          </div>
           <div class="x_content">
             <ul class="list-inline widget_tally">
               <li class="col-xs-12">
                 <div class="col-md-4 col-xs-12" style="padding: 0px">
-                  <h3>{{ fof.nav_acc_latest | round(3,'floor')  if fof.nav_acc_latest  is not none else " "}}</h3>
+                  <h3>{{ fof.nav_acc_latest | round(3,'floor') if fof.nav_acc_latest is not none else " "}}</h3>
                 </div>
                 <div class="col-md-8 col-xs-12">
                   <div class="col-md-3 col-xs-12">
-                    {% if acc | length > 0  %}
-                    {% if   acc[-1]['pct']| float > 0 %}
-                    <span class="glyphicon glyphicon-arrow-up" aria-hidden="true" style="color: red;font-size: 40px;position: absolute;left: -16px;"></span>
+                    {% if acc | length > 0 %}
+                    {% if acc[-1]['pct']| float > 0 %}
+                    <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"
+                          style="color: red;font-size: 40px;position: absolute;left: -16px;"></span>
                     {% else %}
-                    <span class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="color: green;font-size: 40px;position: absolute;left: -16px;"></span>
+                    <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"
+                          style="color: green;font-size: 40px;position: absolute;left: -16px;"></span>
                     {% endif %}
                   </div>
                   <div class="col-md-9 col-xs-12">
@@ -114,73 +129,82 @@
                     <p>{{ acc[-1]['pct'] }}%</p>
                   </div>
                 </div>
-                {% else  %}
+                {% else %}
                 {{ "" }}
                 {% endif %}
               </li>
               <li class="col-xs-12">
-                <span>最新净值日期：</span><strong>{{ fof.nav_date_latest  if fof.nav_date_latest is not none else  "" }}</strong>
+                <span>最新净值日期：</span><strong>{{ fof.nav_date_latest if fof.nav_date_latest is not none else ""
+                }}</strong>
               </li>
               <li class="col-xs-12">
                 {{ fof.anual_return }}
                 <span>年化收益：</span><strong>
-                  {% if fof.annual_return is not none %}
-                    {{ fof.annual_return | round(3,'floor') }}
-                  {% endif %}
+                {% if fof.annual_return is not none %}
+                {{ fof.annual_return | round(3,'floor') }}
+                {% endif %}
               </strong>
               </li>
               <li class="col-xs-12">
                 <span>最大回撤：</span><strong>
-                  {% if fof.nav_acc_mdd is not none  %}
-                  {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%</strong>
-                  {% endif %}
+                {% if fof.nav_acc_mdd is not none %}
+                {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%</strong>
+                {% endif %}
               </li>
               <li class="col-xs-12">
                 <span>夏普比率：</span><strong>
-                  {% if fof.sharpe is not none  %}
-                  {{ fof.sharpe  |round(3,'floor') }}</strong>
-                  {% endif %}
+                {% if fof.sharpe is not none %}
+                {{ fof.sharpe |round(3,'floor') }}</strong>
+                {% endif %}
               </li>
             </ul>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div> -->
+
+          <div class="col-md-12 col-sm-12 col-xs-12">
 
 
-      <div class="col-md-9 col-sm-9 col-xs-12">
-
-
-        <div class="" role="tabpanel" data-example-id="togglable-tabs">
-          <ul id="myTab" class="nav nav-tabs nav-justified" role="tablist">
-            <li role="presentation" class="active"><a href="#tab_content4" id="home-tab" role="tab" data-toggle="tab" aria-expanded="true">净值信息</a>
-            </li>
-            <li role="presentation" class=""><a href="#tab_content2" role="tab" id="profile" data-toggle="tab" aria-expanded="false">子基金信息</a>
-            </li>
-            <li role="presentation" class=""><a href="#tab_content3" role="tab" id="profile-tab2" data-toggle="tab" aria-expanded="false">文件信息</a>
-            </li>
-            <li role="presentation" class=""><a href="#tab_content1" role="tab" id="profile-tab3" data-toggle="tab" aria-expanded="false">策略信息</a>
-            </li>
-            <li role="presentation" class=""><a href="#tab_content6" role="tab" id="profile-tab5" data-toggle="tab" aria-expanded="false">压力测试</a>
-            </li>
-            <li role="presentation" class=""><a href="#tab_content7" role="tab" id="profile-tab6" data-toggle="tab" aria-expanded="false">归因分析</a>
-            </li>
-            <li role="presentation" class=""><a href="#tab_content5" role="tab" id="profile-tab4" data-toggle="tab" aria-expanded="false">资产信息</a>
-            </li>
-          </ul>
-          <div id="myTabContent" class="tab-content">
-            <div role="tabpanel" class="tab-pane active in" id="tab_content4" aria-labelledby="home-tab">
-              <div class="dashboard_graph x_panel">
-                <div class="x_content">
-                  <div class="demo-container" style="height:400px" id="mainUp">
-                   <div id="main" style="height:375px;"></div>
-                 </div>
-               </div>
-             </div>
-             <!-- end of user-activity-graph -->
-             <div class="contentStr col-xs-12">
-              <ul class="list-group">
-                <li><b class="col-md-2 col-sm-2"> 截止：</b><span  class="col-md-10 col-sm-10" style="padding-left: 0;">{{ date_latest }}</span></li>
-                <li><b class="col-md-2">最新净值：</b><span class="col-md-10 col-sm-10" style="padding-left: 0;">
+            <div class="" role="tabpanel" data-example-id="togglable-tabs">
+              <ul id="myTab" class="nav nav-tabs nav-justified" role="tablist">
+                <li role="presentation" class="active"><a href="#tab_content4" id="home-tab" role="tab"
+                                                          data-toggle="tab" aria-expanded="true">净值信息</a>
+                </li>
+                <li role="presentation" class=""><a href="#tab_content2" role="tab" id="profile" data-toggle="tab"
+                                                    aria-expanded="false">子基金信息</a>
+                </li>
+                <li role="presentation" class=""><a href="#tab_content3" role="tab" id="profile-tab2" data-toggle="tab"
+                                                    aria-expanded="false">文件信息</a>
+                </li>
+                <li role="presentation" class=""><a href="#tab_content1" role="tab" id="profile-tab3" data-toggle="tab"
+                                                    aria-expanded="false">策略信息</a>
+                </li>
+                <li role="presentation" class=""><a href="#tab_content6" role="tab" id="profile-tab5" data-toggle="tab"
+                                                    aria-expanded="false">基金基本信息</a>
+                </li>
+                <li role="presentation" class=""><a href="#tab_content7" role="tab" id="profile-tab6" data-toggle="tab"
+                                                    aria-expanded="false">绩效分析</a>
+                </li>
+              </ul>
+              <div id="myTabContent" class="tab-content">
+                <div role="tabpanel" class="tab-pane active in" id="tab_content4" aria-labelledby="home-tab">
+                  <div class="dashboard_graph x_panel">
+                    <div class="x_content">
+                      <div class="demo-container" style="height:400px" id="mainUp">
+                        <div id="main" style="height:375px;"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- end of user-activity-graph -->
+                  <div class="contentStr col-xs-12">
+                    <ul class="list-group">
+                      <li><b class="col-md-2 col-sm-2"> 截止：</b><span class="col-md-10 col-sm-10"
+                                                                     style="padding-left: 0;">{{ date_latest }}</span>
+                      </li>
+                      <li><b class="col-md-2">最新净值：</b><span class="col-md-10 col-sm-10" style="padding-left: 0;">
                  <ul style="padding-left: 0;">
                    {% for i in fund_rr %}
                    <li class="">{{ i | join('') | safe}}</li>
@@ -189,109 +213,217 @@
 
 
                </span></li>
-             </ul>
-           </div>
+                    </ul>
+                  </div>
 
-           <table class="table table-bordered center-all" id="tab4" width="100%"  >
-            <thead>
-              <tr>
-                <th>净值时间</th>
-                <th>单位净值</th>
-                <th>累计净值</th>
-                <th>增长</th>
-              </tr>
-            </thead>
-          </table>
+                  <table class="table table-bordered center-all" id="tab4" width="100%">
+                    <thead>
+                    <tr>
+                      <th>净值时间</th>
+                      <th>单位净值</th>
+                      <th>累计净值</th>
+                      <th>增长</th>
+                    </tr>
+                    </thead>
+                  </table>
 
 
-        </div>
-        <div role="tabpanel" class="tab-pane fade  " id="tab_content1" aria-labelledby="profile-tab">
-          <!-- start recent activity -->
-          <div id="t1chart" style="height:500px;padding:10px;"></div>
-          <table class="table table-bordered " id="tab1" width="100%">
-            <thead>
-              <tr>
-                <th>策略</th>
-                <th>规模</th>
-                <th>交易日期</th>
-              </tr>
-            </thead>
+                </div>
+                <div role="tabpanel" class="tab-pane fade  " id="tab_content1" aria-labelledby="profile-tab">
+                  <!-- start recent activity -->
+                  <div id="t1chart" style="height:500px;padding:10px;"></div>
+                  <table class="table table-bordered " id="tab1" width="100%">
+                    <thead>
+                    <tr>
+                      <th>策略</th>
+                      <th>规模</th>
+                      <th>交易日期</th>
+                    </tr>
+                    </thead>
 
-          </table>
-          <!-- end recent activity -->
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="profile-tab"  style="position: relative;">
-          <!-- start user projects -->
+                  </table>
+                  <!-- end recent activity -->
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="profile-tab"
+                     style="position: relative;">
+                  <!-- start user projects -->
 
-          <div id="t2chart" style="height:500px;padding:10px;">
+                  <div id="t2chart" style="height:500px;padding:10px;">
 
+                  </div>
+                  <div class="col-lg-5 col-md-5 col-sm-5 btn-group" id="t2button"
+                       style="position: absolute;top:50px;left:150px;">
+                    <button class="btn btn-xs" value="batch">批次</button>
+                    <button class="btn btn-xs btn-info active" value="fund">基金</button>
+                  </div>
+                  <table class="table table-bordered center-all " id="tab2" width="100%">
+                    <thead>
+                    <tr>
+                      <th>基金名称</th>
+                      <th>规模</th>
+                      <th>日期</th>
+                    </tr>
+                    </thead>
+
+                  </table>
+
+                  <!-- end user projects -->
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="tab_content3" aria-labelledby="profile-tab">
+                  <table class="table table-bordered center-all" id="tab3" width="100%">
+                    <thead>
+                    <tr>
+                      <th>文件名称</th>
+                      <th>文件类型</th>
+                      <th>上传时间</th>
+                      <th></th>
+                    </tr>
+                    </thead>
+
+                  </table>
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="tab_content5" aria-labelledby="profile-tab">
+                  <div id="capital_data" style="height:500px;padding:10px;"></div>
+                  <div id="factor_data" style="height:500px;padding:10px;"></div>
+                  <table class="table table-bordered center-all" id="tab5" width="100%">
+                    <thead>
+                    <tr>
+                      <th></th>
+                      <th>Estimate</th>
+                      <th>Std.Error</th>
+                      <th>t.Value</th>
+                      <th>Pr(>|t|)</th>
+                    </tr>
+                    </thead>
+                  </table>
+                  <div id="ci_dist_data" style="height:600px;padding:10px;"></div>
+                  <div id="ci_dist_pie" style="height:500px;padding:10px;"></div>
+                  <div id="ci_expo_data" style="height:600px;padding:10px;"></div>
+                  <div id="ci_expo_pie" style="height:600px;padding:10px;"></div>
+                  <div id="ci_expo_earn" style="height:600px;padding:10px;"></div>
+
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="tab_content6" aria-labelledby="profile-tab">
+                  <div class="x_panel fixed_height_390">
+                    <div class="x_content">
+                      <ul class="list-inline widget_tally">
+                        <li class="col-xs-12">
+                          <span>基金管理人：</span><strong>{% if current_user.is_staff %}
+                          {{ fof.fund_mgrcomp | default("",True) }}
+                          {% else %}
+                          {{ "*****" | default("",True) }}
+                          {% endif %}
+                        </strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>基金经理：</span><strong>{% if current_user.is_staff %}
+                          {{ fof.fund_fundmanager | default("",True) }}
+                          {% else %}
+                          {{ "*****" | default("",True) }}
+                          {% endif %}
+                        </strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>基金策略类型：</span><strong>{{ fof.strategy_type | default("",True) }}</strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>基金初始规模：</span><strong>{{ fof.scale_tot | default("",True) }}</strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>成立日期：</span><strong>{{ fof.fund_setupdate | default("",True) }}</strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>终止日期：</span><strong>{{ fof.fund_maturitydate | default("",True) }}</strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>投资负责人：</span><strong>{{ fof.fh_inv_manager | default("",True) }}</strong>
+                        </li>
+                        <li class="col-xs-12">
+                          <span>产品负责人：</span><strong>{{ fof.fh_prod_manager | default("",True) }}</strong>
+                        </li>
+                        <li class="col-xs-12">
+
+                          <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager | default("",True) }} </strong>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="tab_content7" aria-labelledby="profile-tab">        
+                <div class="x_panel fixed_height_390">
+                  <div class="x_title">
+                    <h4>基本净值信息</h4>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    <ul class="list-inline widget_tally">
+                      <li class="col-xs-12">
+                        <div class="col-md-1 col-xs-12" style="padding: 0px">
+                          <h3>{{ fof.nav_acc_latest | round(3,'floor') if fof.nav_acc_latest is not none else " "}}</h3>
+                        </div>
+                        <div class="col-md-2 col-xs-12">
+                          <div class="col-md-3 col-xs-12">
+                            {% if acc | length > 0 %}
+                            {% if acc[-1]['pct']| float > 0 %}
+                            <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"
+                                  style="color: red;font-size: 40px;position: absolute;left: -16px;"></span>
+                            {% else %}
+                            <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"
+                                  style="color: green;font-size: 40px;position: absolute;left: -16px;"></span>
+                            {% endif %}
+                          </div>
+                          <div class="col-md-9 col-xs-12">
+                            {% if acc|length >= 2 %}
+                            <p>{{ (acc[-1]['nav'] | float - acc[-2]['nav'] | float) | round(4,'floor')}}</p>
+                            {% else %}
+                            <p>{{ acc[0]['nav'] }}</p>
+                            {% endif %}
+                            <p>{{ acc[-1]['pct'] }}%</p>
+                          </div>
+                        </div>
+                        {% else %}
+                        {{ "" }}
+                        {% endif %}
+                      </li>
+                      <li class="col-xs-12">
+                        <span>最新净值日期：</span><strong>{{ fof.nav_date_latest if fof.nav_date_latest is not none else ""
+                        }}</strong>
+                      </li>
+                      <li class="col-xs-12">
+                        {{ fof.anual_return }}
+                        <span>年化收益：</span><strong>
+                        {% if fof.annual_return is not none %}
+                        {{ fof.annual_return | round(3,'floor') }}
+                        {% endif %}
+                      </strong>
+                      </li>
+                      <li class="col-xs-12">
+                        <span>最大回撤：</span><strong>
+                        {% if fof.nav_acc_mdd is not none %}
+                        {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%</strong>
+                        {% endif %}
+                      </li>
+                      <li class="col-xs-12">
+                        <span>夏普比率：</span><strong>
+                        {% if fof.sharpe is not none %}
+                        {{ fof.sharpe |round(3,'floor') }}</strong>
+                        {% endif %}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                  <div id="t6chart" style="height:500px;padding:10px;"></div>
+                  <div id="t6cchart" style="height:500px;padding:10px;"></div>
+                  <div id="t7chart" style="height:500px;padding:10px;"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="col-lg-5 col-md-5 col-sm-5 btn-group" id="t2button" style="position: absolute;top:50px;left:150px;">
-            <button class="btn btn-xs" value="batch" >批次</button>
-            <button class="btn btn-xs btn-info active" value="fund">基金</button>
-          </div>
-          <table class="table table-bordered center-all " id="tab2" width="100%" >
-            <thead>
-              <tr>
-                <th>基金名称</th>
-                <th>规模</th>
-                <th>日期</th>
-              </tr>
-            </thead>
-
-          </table>
-
-          <!-- end user projects -->
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="tab_content3" aria-labelledby="profile-tab">
-          <table class="table table-bordered center-all" id="tab3" width="100%">
-            <thead>
-              <tr>
-                <th>文件名称</th>
-                <th>文件类型</th>
-                <th>上传时间</th>
-                <th></th>
-              </tr>
-            </thead>
-
-          </table>
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="tab_content5" aria-labelledby="profile-tab">
-          <div id="capital_data" style="height:500px;padding:10px;"></div>
-          <div id="factor_data" style="height:500px;padding:10px;"></div>
-          <table class="table table-bordered center-all" id="tab5" width="100%">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Estimate</th>
-                <th>Std.Error</th>
-                <th>t.Value </th>
-                <th>Pr(>|t|) </th>
-              </tr>
-            </thead>
-          </table>
-          <div id="ci_dist_data" style="height:600px;padding:10px;"></div>
-          <div id="ci_dist_pie" style="height:500px;padding:10px;"></div>
-          <div id="ci_expo_data" style="height:600px;padding:10px;"></div>
-          <div id="ci_expo_pie" style="height:600px;padding:10px;"></div>
-          <div id="ci_expo_earn" style="height:600px;padding:10px;"></div>
-
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="tab_content6" aria-labelledby="profile-tab">
-          <div id="t6chart" style="height:500px;padding:10px;"></div>
-          <div id="t6cchart" style="height:500px;padding:10px;"></div>
-        </div>
-
-        <div role="tabpanel" class="tab-pane fade" id="tab_content7" aria-labelledby="profile-tab">
-          <div id="t7chart" style="height:500px;padding:10px;"></div>
         </div>
       </div>
     </div>
   </div>
-</div>
-</div>
-</div>
-</div>
 </div>
 </div>
 {% endblock %}
