@@ -93,3 +93,7 @@
 ### 2017/10/27
 * 增加 data_handler.get_fof_fund_pct_df 
 * 优化 data_handler.update_fof_stg_pct 去除不必要的 0% 策略比例
+
+### 2017/10/31
+* details 增加tab 基金基本信息（合并负责人信息），绩效分析（合并基本净值信息，归因分析和绩效分析）
+* main文件 修改菜单结构 系统管理增加基金管理 ，净值维护和投顾管理（原顶层菜单）
