@@ -90,10 +90,11 @@
         });
         window.Parsley.addValidator('palindrome', {
           validateString: function(value) {
-            return value.split('').reverse().join('') === value;
+            // return value.split('').reverse().join('') === value;
+            return value !== "";
           },
           messages: {
-            en: '中文中文',
+            en: '这个字段是必须填写的.',
           }
         });
 
