@@ -322,6 +322,8 @@
                 $(".titleP").html($(".titleInput").val());
                 var corpId = {{ corp.mgrcomp_id }};
                 var obj = {'rank':$("form select").val(),"corp":corpId,'site':$(".titleInput").val(),"company":$(".CompanyDescribeInput").val()};
+                console.log(obj.rank)
+                console.log(obj)
                 $.ajax({
                     url:'/f_app/change_corp_rank',
                     type:'POST',
@@ -329,13 +331,13 @@
                     data:JSON.stringify(obj),
                     dataType:'json',
                     success:function (callback) {
-                        console.log(callback);
                         new PNotify({
                             title: '信息已修改',
                             text: '详细内容请查看页面',
                             type: 'success',
                             styling: 'bootstrap3'
                         });
+                        changeBtn();
                     }});
             }
             $('form').find('input').hide();
@@ -347,43 +349,51 @@
         // 修改级别
 
         // 修改按钮操作
-        if ($.trim($("#assessStatus").find('h2').html()) == "核心池"){
-            var fundVal;
-            $('#changeRank').removeAttr("disabled");
-            $('#changeRank').css({
-                "background": "rgb(92,142,237)"
-            });
-            $('#changeRank').on("click",function(){
-                fundVal = $("#fund_select").val();
-                $(this).hide();
-                $(this).siblings('select').show();
-            });
-            $('#changeRank').siblings('select').on('change',function () {
-                $(this).hide();
-                $(this).siblings('#changeRank').show();
-                $('#changeRank').val($(this).find("option:selected").text());
-                var odict = {"code":fundVal,"choose":$(this).val()};
-                $.ajax({
-                    url:'/f_app/select_corp_rank',
-                    type:'POST',
-                    contentType: 'application/json',
-                    data:JSON.stringify(odict),
-                    dataType:'json',
-                    success:function (callback) {
-                        console.log(callback);
-                    }});
-            })
-        }else{
-            $('#changeRank').parent().on('click',function () {
-                new PNotify({
-                    title: '无法修改',
-                    text: '核心投顾池的基金可以修改',
-                    type: 'warning',
-                    styling: 'bootstrap3'
+        function changeBtn(){
+            if ($.trim($("#assessStatus").find('h2').html()) != "未评审"){
+                var fundVal;
+                $('#changeRank').removeAttr("disabled");
+                $('#changeRank').css({
+                    "background": "rgb(92,142,237)"
                 });
-            });
+                $('#changeRank').on("click",function(){
+                    fundVal = $("#fund_select").val();
+                    $(this).hide();
+                    $(this).siblings('select').show();
+                });
+                $('#changeRank').siblings('select').on('change',function () {
+                    $(this).hide();
+                    $(this).siblings('#changeRank').show();
+                    $('#changeRank').val($(this).find("option:selected").text());
+                    var odict = {"code":fundVal,"choose":$(this).val()};
+                    $.ajax({
+                        url:'/f_app/select_corp_rank',
+                        type:'POST',
+                        contentType: 'application/json',
+                        data:JSON.stringify(odict),
+                        dataType:'json',
+                        success:function (callback) {
+                        }});
+                })
+            }else {
+                $('#changeRank').attr("disabled","disabled").show(); 
+                $('#changeRank').css({
+                    "background": "#b6b6b6"
+                });
+                $('#changeRank').siblings('select').hide();
+                $('#changeRank').parent().on('click',function () {
+                    if($.trim($("#assessStatus").find('h2').html()) == "未评审"){
+                        new PNotify({
+                            title: '无法修改',
+                            text: '未评审的基金不可以修改',
+                            type: 'warning',
+                            styling: 'bootstrap3'
+                        }); 
+                    }
+                });
+            }
         }
-
+        changeBtn();
 
         function  select_fund() {
             var tmpCode = $("#fund_select").val(),
