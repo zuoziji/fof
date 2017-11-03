@@ -102,9 +102,9 @@
                                 <div class="assessStatus" id="assessStatus">
                                     <h2>{% if corp.review_status == 0 %}
                                                 {{ "未评审" }}
-                                            {% elif corp.review_status == 1 %}
-                                                {{ "基础池" }}
                                             {% elif corp.review_status == 2 %}
+                                                {{ "基础池" }}
+                                            {% elif corp.review_status == 3 %}
                                                 {{ "观察池" }}
                                             {% elif corp.review_status == 4 %}
                                                 {{ "核心池" }}
@@ -113,8 +113,8 @@
                                     <br />
                                     <select class="dropdown-select-version select" name="options" >
                                         <option value="0">未评审</option>
-                                        <option value="1">基础池</option>
-                                        <option value="2">观察池</option>
+                                        <option value="2">基础池</option>
+                                        <option value="3">观察池</option>
                                         <option value="4">核心池</option>
                                     </select>
 
@@ -411,7 +411,6 @@
                                     break;
                             case 4: changeRankHtml = "核心池";
                                     break;
-
                             default:
                                 changeRankHtml = "核心池";
                         }
