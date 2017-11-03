@@ -102,9 +102,9 @@
                                 <div class="assessStatus" id="assessStatus">
                                     <h2>{% if corp.review_status == 0 %}
                                                 {{ "未评审" }}
-                                            {% elif corp.review_status == 1 %}
-                                                {{ "基础池" }}
                                             {% elif corp.review_status == 2 %}
+                                                {{ "基础池" }}
+                                            {% elif corp.review_status == 3 %}
                                                 {{ "观察池" }}
                                             {% elif corp.review_status == 4 %}
                                                 {{ "核心池" }}
@@ -113,8 +113,8 @@
                                     <br />
                                     <select class="dropdown-select-version select" name="options" >
                                         <option value="0">未评审</option>
-                                        <option value="1">基础池</option>
-                                        <option value="2">观察池</option>
+                                        <option value="2">基础池</option>
+                                        <option value="3">观察池</option>
                                         <option value="4">核心池</option>
                                     </select>
 
@@ -329,13 +329,13 @@
                     data:JSON.stringify(obj),
                     dataType:'json',
                     success:function (callback) {
-                        console.log(callback);
                         new PNotify({
                             title: '信息已修改',
                             text: '详细内容请查看页面',
                             type: 'success',
                             styling: 'bootstrap3'
                         });
+                        changeBtn();
                     }});
             }
             $('form').find('input').hide();
@@ -347,43 +347,51 @@
         // 修改级别
 
         // 修改按钮操作
-        if ($.trim($("#assessStatus").find('h2').html()) == "核心池"){
-            var fundVal;
-            $('#changeRank').removeAttr("disabled");
-            $('#changeRank').css({
-                "background": "rgb(92,142,237)"
-            });
-            $('#changeRank').on("click",function(){
-                fundVal = $("#fund_select").val();
-                $(this).hide();
-                $(this).siblings('select').show();
-            });
-            $('#changeRank').siblings('select').on('change',function () {
-                $(this).hide();
-                $(this).siblings('#changeRank').show();
-                $('#changeRank').val($(this).find("option:selected").text());
-                var odict = {"code":fundVal,"choose":$(this).val()};
-                $.ajax({
-                    url:'/f_app/select_corp_rank',
-                    type:'POST',
-                    contentType: 'application/json',
-                    data:JSON.stringify(odict),
-                    dataType:'json',
-                    success:function (callback) {
-                        console.log(callback);
-                    }});
-            })
-        }else{
-            $('#changeRank').parent().on('click',function () {
-                new PNotify({
-                    title: '无法修改',
-                    text: '核心投顾池的基金可以修改',
-                    type: 'warning',
-                    styling: 'bootstrap3'
+        function changeBtn(){
+            if ($.trim($("#assessStatus").find('h2').html()) != "未评审"){
+                var fundVal;
+                $('#changeRank').removeAttr("disabled");
+                $('#changeRank').css({
+                    "background": "rgb(92,142,237)"
                 });
-            });
+                $('#changeRank').on("click",function(){
+                    fundVal = $("#fund_select").val();
+                    $(this).hide();
+                    $(this).siblings('select').show();
+                });
+                $('#changeRank').siblings('select').on('change',function () {
+                    $(this).hide();
+                    $(this).siblings('#changeRank').show();
+                    $('#changeRank').val($(this).find("option:selected").text());
+                    var odict = {"code":fundVal,"choose":$(this).val()};
+                    $.ajax({
+                        url:'/f_app/select_corp_rank',
+                        type:'POST',
+                        contentType: 'application/json',
+                        data:JSON.stringify(odict),
+                        dataType:'json',
+                        success:function (callback) {
+                        }});
+                })
+            }else {
+                $('#changeRank').attr("disabled","disabled").show(); 
+                $('#changeRank').css({
+                    "background": "#b6b6b6"
+                });
+                $('#changeRank').siblings('select').hide();
+                $('#changeRank').parent().on('click',function () {
+                    if($.trim($("#assessStatus").find('h2').html()) == "未评审"){
+                        new PNotify({
+                            title: '无法修改',
+                            text: '未评审的基金不可以修改',
+                            type: 'warning',
+                            styling: 'bootstrap3'
+                        }); 
+                    }
+                });
+            }
         }
-
+        changeBtn();
 
         function  select_fund() {
             var tmpCode = $("#fund_select").val(),
@@ -403,7 +411,6 @@
                                     break;
                             case 4: changeRankHtml = "核心池";
                                     break;
-
                             default:
                                 changeRankHtml = "核心池";
                         }

@@ -53,13 +53,16 @@ class DataTablesServer(object):
         self.cardinality = cadinalityCursor.fetchone()[0]
 
     def filtering(self):
-        filter = ""
         if (self.request_values.has_key('sSearch')) and (self.request_values['sSearch'] != ""):
             filter = "WHERE "
             for i in range(len(self.columns)):
                 filter += "%s LIKE '%%%s%%' OR " % (self.columns[i], self.request_values['sSearch'])
             filter = filter[:-3]
-        return filter
+            return filter
+        elif self.request_values['sSearch_6'] != "" and (self.request_values['sSearch_6'] != "5"):
+            tag = self.request_values['sSearch_6']
+            filter = "WHERE review_status = %s" %tag
+            return filter
     def ordering(self):
         order = ""
         if (self.request_values['iSortCol_0'] != "") and (int(self.request_values['iSortingCols']) > 0):

@@ -10,20 +10,20 @@
 
 <div class="row tile_count">
             <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-user"></i>大数据投顾池</span>
-              <div class="count">{{ all_data.all.length }}</div>
+              <span class="count_top" id="all"><i class="fa fa-user"></i>大数据投顾池</span>
+              <div class="count"><a href="#" data-tag="5">{{ all_data.all.length }}</a> </div>
             </div>
             <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-clock-o"></i> 归档投顾池</span>
-              <div class="count">{{ all_data.archive.length }}</div>
+              <span class="count_top" id="1"><i class="fa fa-clock-o"></i> 归档投顾池</span>
+              <div class="count"><a href="#" data-tag="2">{{ all_data.archive.length }}</a></div>
             </div>
             <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-user"></i> 观察投顾池</span>
-              <div class="count green">{{ all_data.observe.length }}</div>
+              <div class="count green"><a href="#" data-tag="3">{{ all_data.observe.length }}</a> </div>
             </div>
             <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-user"></i> 核心投顾池</span>
-              <div class="count">{{ all_data.core.length }}</div>
+              <span class="count_top" id="4"><i class="fa fa-user"></i> 核心投顾池</span>
+              <div class="count"><a href="#" data-tag="4">{{ all_data.core.length }}</a></div>
             </div>
 
           </div>
@@ -56,10 +56,8 @@
 {% block script %}
  <script>
 
-   var all_data = {{ all_data| tojson }};
-   var all_invest = all_data.all;
    $(document).ready(function () {
-        $('#invest_tab').DataTable({
+      var investTab =  $('#invest_tab').DataTable({
          "info":false,
             "paging": true,
             "displayLength": 20,
@@ -95,6 +93,16 @@
               }
           ]
     });
+       $('.count').on( 'click', 'a', function () {
+           console.log($(this).data().tag);
+           var tag =  $(this).data().tag;
+                investTab
+            .columns(6)
+            .search($(this).data().tag)
+            .draw();
+
+        });
+
    })
 
 
