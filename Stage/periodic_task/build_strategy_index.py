@@ -905,9 +905,9 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
         win_1_count = (mgr_idx_s > 1.01).sum()
         loss_1_count = (mgr_idx_s < 0.99).sum()
         print('%s 统计区间: %s ~ %s' % (strategy_type, min(date_list), max(date_list)))
-        print('完整公布业绩数据的%d 只机构中' % (mgr_count))
-        print('获得正收益的产品有%d 只，占比%.0f%%' % (win_count, win_count / mgr_count * 100))
-        print('收益超过1%%的产品有%d 只，占比%.0f%%' % (win_1_count, win_1_count / mgr_count * 100))
+        print('完整公布业绩数据的%d只，机构中' % (mgr_count))
+        print('获得正收益的产品有%d只，占比%.0f%%' % (win_count, win_count / mgr_count * 100))
+        print('收益超过1%%的产品有%d只，占比%.0f%%' % (win_1_count, win_1_count / mgr_count * 100))
         print('亏损超过-1%%的有%d 只，占比%.0f%%' % (loss_1_count, loss_1_count / mgr_count * 100))
         stg_statistic_dic = OrderedDict()
         stg_statistic_dic['统计起始日期'] = min(date_list)
@@ -941,8 +941,8 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
-    # stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
+    date_from_str, date_to_str = '2016-9-26', '2017-9-30'
+    stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
     # for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
     #     date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]
     #     date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
