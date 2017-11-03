@@ -322,8 +322,6 @@
                 $(".titleP").html($(".titleInput").val());
                 var corpId = {{ corp.mgrcomp_id }};
                 var obj = {'rank':$("form select").val(),"corp":corpId,'site':$(".titleInput").val(),"company":$(".CompanyDescribeInput").val()};
-                console.log(obj.rank)
-                console.log(obj)
                 $.ajax({
                     url:'/f_app/change_corp_rank',
                     type:'POST',

@@ -90,7 +90,6 @@
         });
         window.Parsley.addValidator('palindrome', {
           validateString: function(value) {
-            // return value.split('').reverse().join('') === value;
             return value !== "";
           },
           messages: {
