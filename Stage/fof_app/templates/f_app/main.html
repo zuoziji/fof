@@ -136,7 +136,7 @@
                     <ul class="nav child_menu">
                       <li><a href="{{ url_for('f_app.batch') }}">基金要素管理</a></li>
                       <li><a href="/admin/fund_info/">数据库维护</a>
-                      <li><a href="#">基金管理</a></li>
+                      <li><a href="{{ url_for('f_app.fund_corp') }}">基金管理</a></li>
                       <li><a href="{{ url_for('f_app.maintain_acc') }}">净值管理</a></li>
                         <li><a><i class="fa fa-angle-double-down"></i>建立FOF　</a>
                             <ul class="nav child_menu">
@@ -152,7 +152,6 @@
                         <ul class="nav child_menu">
                           <li><a href="{{ url_for('f_app.invest_corp') }}">投顾信息</a></li>
                           <li><a href="{{ url_for('f_app.add_corp') }}">添加投顾</a></li>
-                          <li><a href="{{ url_for('f_app.fund_corp') }}">基金信息</a></li>
                         </ul>
                       </li>
                     </ul>
