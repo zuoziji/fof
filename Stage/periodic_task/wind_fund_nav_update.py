@@ -88,17 +88,19 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
         wind_code_set_existed_in_nav = set(fund_trade_date_latest_in_nav_dic.keys())
     # 获取wind_fund_info表信息
     fund_info_df = pd.read_sql_query(
-        """SELECT DISTINCT wind_code as wind_code,fund_setupdate,fund_maturitydate,trade_date_latest
-from fund_info group by wind_code""", engine)
-    trade_date_latest_dic = {wind_code: trade_date_latest for wind_code, trade_date_latest in
-                             zip(fund_info_df['wind_code'], fund_info_df['fund_setupdate'])}
+        """SELECT DISTINCT wind_code as wind_code, ifnull(ADDDATE(trade_date_latest,1), fund_setupdate) date_from, IFNULL(fund_maturitydate,ADDDATE(CURDATE(), -1)) date_to from fund_info""",
+        engine)
+    wind_code_date_frm_to_dic = {wind_code: (date_from, date_to) for wind_code, date_from, date_to in
+                             zip(fund_info_df['wind_code'], fund_info_df['date_from'], fund_info_df['date_to'])}
     fund_info_df.set_index('wind_code', inplace=True)
     if wind_code_list is None:
         wind_code_list = list(fund_info_df.index)
     else:
         wind_code_list = list(set(wind_code_list) & set(fund_info_df.index))
+    # 结束时间
     date_end = date.today() - timedelta(days=1)
     date_end_str = date_end.strftime(STR_FORMAT_DATE)
+
     fund_nav_all_df = []
     no_data_count = 0
     code_count = len(wind_code_list)
@@ -106,19 +108,22 @@ from fund_info group by wind_code""", engine)
     wind_code_trade_date_latest = {}
     try:
         for i, wind_code in enumerate(wind_code_list):
-            # 设定数据获取的起始日期
-            wind_code_trade_date_latest[wind_code] = date_end
-            if wind_code in wind_code_set_existed_in_nav:
-                trade_latest = fund_trade_date_latest_in_nav_dic[wind_code]
-                if trade_latest >= date_end:
-                    continue
-                date_begin = trade_latest + timedelta(days=1)
-            else:
-                date_begin = trade_date_latest_dic[wind_code]
-            if date_begin is None:
+            date_begin, date_end = wind_code_date_frm_to_dic[wind_code]
+            if date_begin > date_end:
                 continue
-            elif isinstance(date_begin, str):
-                date_begin = datetime.strptime(date_begin, STR_FORMAT_DATE).date()
+            # 设定数据获取的起始日期
+            # wind_code_trade_date_latest[wind_code] = date_to
+            # if wind_code in wind_code_set_existed_in_nav:
+            #     trade_latest = fund_trade_date_latest_in_nav_dic[wind_code]
+            #     if trade_latest >= date_end:
+            #         continue
+            #     date_begin = trade_latest + timedelta(days=1)
+            # else:
+            #     date_begin = wind_code_date_frm_to_dic[wind_code]
+            # if date_begin is None:
+            #     continue
+            # elif isinstance(date_begin, str):
+            #     date_begin = datetime.strptime(date_begin, STR_FORMAT_DATE).date()
 
             if isinstance(date_begin, date):
                 if date_begin.year < 1900:
@@ -133,13 +138,12 @@ from fund_info group by wind_code""", engine)
             for k in range(2):
                 try:
                     fund_nav_tmp_df = rest.wsd(codes=wind_code, fields='nav,NAV_acc,NAV_date', begin_time=date_begin,
-                                               end_time=date_end_str, options='Fill=Previous')
+                                               end_time=date_end, options='Fill=Previous')
                     break
                 except Exception as exp:
                     logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
                     continue
             else:
-                del wind_code_trade_date_latest[wind_code]
                 fund_nav_tmp_df = None
 
             if fund_nav_tmp_df is None:
@@ -272,10 +276,10 @@ if __name__ == '__main__':
     # update_fund_mgrcomp_info()
 
     # 调用wind接口更新基金净值
-    # update_wind_fund_nav(get_df=False, wind_code_list=['XT1612161.XT'])
+    update_wind_fund_nav(get_df=False, wind_code_list=['XT1513361.XT'])
 
     # 将 wind_fund_nav 数据导入到 fund_nav 表中
-    import_wind_fund_nav_to_fund_nav()
+    # import_wind_fund_nav_to_fund_nav()
 
     # wind数据库中存在部分数据净值记录前后不一致的问题
     # 比如：某日记录净值

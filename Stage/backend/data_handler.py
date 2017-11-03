@@ -714,8 +714,8 @@ if __name__ == '__main__':
     # logger.info(index_df)
 
     # 根据子基金投资额及子基金策略比例调整fof基金总体策略比例
-    wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
-    update_fof_stg_pct(wind_code)
+    # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
+    # update_fof_stg_pct(wind_code)
 
     # 获取指定FOF各个确认日截面持仓情况
     # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'

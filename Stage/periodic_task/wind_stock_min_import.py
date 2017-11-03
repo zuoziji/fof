@@ -27,7 +27,7 @@ def import_stock_tick():
         table = session.execute(sql_str)
         stock_trade_date_latest_dic = dict(table.fetchall())
         # 获取市场有效交易日数据，只需要近7个工作日的数据即可
-        sql_str = "select trade_date from wind_trade_date where trade_date <= :trade_date order by trade_date desc limit 7"
+        sql_str = "select trade_date from wind_trade_date where trade_date <= :trade_date order by trade_date desc limit 6"
         table = session.execute(sql_str, params={'trade_date': date.today() - ONE_DAY})
         trade_date_sorted_list = [t[0] for t in table.fetchall()]
         trade_date_sorted_list.sort()
