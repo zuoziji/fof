@@ -7,6 +7,7 @@ Created on Fri Feb 17 10:56:11 2017
 
 import pandas as pd
 from fh_tools.windy_utils_rest import WindRest
+from fh_tools.fh_utils import str_2_date
 from sqlalchemy.types import String, Date
 from datetime import datetime, date, timedelta
 import logging
@@ -43,13 +44,20 @@ def fund_nav_df_2_sql(table_name, fund_nav_df, engine, is_append=True):
 
 
 def update_trade_date_latest(wind_code_trade_date_latest):
-    params = [{'wind_code': wind_code, 'trade_date_latest': trade_date_latest}
-              for wind_code, trade_date_latest in wind_code_trade_date_latest.items()]
-    with get_db_session() as session:
-        session.execute(
-            'update fund_info set trade_date_latest = :trade_date_latest where wind_code = :wind_code',
-            params)
-    logger.info('%d funds update latest trade date', len(wind_code_trade_date_latest))
+    """
+    设置 fund_info 表 trade_date_latest 字段为最近的交易日
+    :param wind_code_trade_date_latest: 
+    :return: 
+    """
+    logger.info("开始设置 fund_info 表 trade_date_latest 字段为最近的交易日")
+    if len(wind_code_trade_date_latest) > 0:
+        params = [{'wind_code': wind_code, 'trade_date_latest': trade_date_latest}
+                  for wind_code, trade_date_latest in wind_code_trade_date_latest.items()]
+        with get_db_session() as session:
+            session.execute(
+                'update fund_info set trade_date_latest = :trade_date_latest where wind_code = :wind_code',
+                params)
+        logger.info('%d 条基金信息记录被更新', len(wind_code_trade_date_latest))
 
 
 def import_wind_fund_nav_to_fund_nav():
@@ -57,6 +65,7 @@ def import_wind_fund_nav_to_fund_nav():
     将 wind_fund_nav 数据导入到 fund_nav 表中
     :return: 
     """
+    logger.info("开始将 wind_fund_nav 数据导入到 fund_nav")
     sql_str = """insert fund_nav(wind_code, nav_date, nav, nav_acc, source_mark)
 select wfn.wind_code, wfn.nav_date, wfn.nav, wfn.nav_acc, 0 source_mark 
 from
@@ -73,7 +82,7 @@ wfn.nav_date = fn.nav_date
 where fn.nav_date is null"""
     with get_db_session() as session:
         session.execute(sql_str)
-    logger.info('wind_fund_nav has been imported to fund_nav table')
+    logger.info('导入结束')
 
 
 def update_wind_fund_nav(get_df=False, wind_code_list=None):
@@ -82,15 +91,23 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
     # 初始化数据库engine
     engine = get_db_engine()
     # 链接数据库，并获取fundnav旧表
-    with get_db_session(engine) as session:
-        table = session.execute('select wind_code, max(trade_date) from wind_fund_nav group by wind_code')
-        fund_trade_date_latest_in_nav_dic = dict(table.fetchall())
-        wind_code_set_existed_in_nav = set(fund_trade_date_latest_in_nav_dic.keys())
+    # with get_db_session(engine) as session:
+    #     table = session.execute('select wind_code, ADDDATE(max(trade_date),1) from wind_fund_nav group by wind_code')
+    #     fund_trade_date_begin_dic = dict(table.fetchall())
     # 获取wind_fund_info表信息
     fund_info_df = pd.read_sql_query(
-        """SELECT DISTINCT wind_code as wind_code, ifnull(ADDDATE(trade_date_latest,1), fund_setupdate) date_from, IFNULL(fund_maturitydate,ADDDATE(CURDATE(), -1)) date_to from fund_info""",
+        """SELECT DISTINCT fi.wind_code as wind_code, 
+IFNULL(trade_date_from, if(trade_date_latest BETWEEN '1900-01-01' and ADDDATE(CURDATE(), -1), ADDDATE(trade_date_latest,1) , fund_setupdate) ) date_from,
+if(fund_maturitydate BETWEEN '1900-01-01' and ADDDATE(CURDATE(), -1),fund_maturitydate,ADDDATE(CURDATE(), -1)) date_to 
+from fund_info fi
+LEFT JOIN
+(
+select wind_code, ADDDATE(max(trade_date),1) trade_date_from from wind_fund_nav
+GROUP BY wind_code
+) wfn
+on fi.wind_code = wfn.wind_code""",
         engine)
-    wind_code_date_frm_to_dic = {wind_code: (date_from, date_to) for wind_code, date_from, date_to in
+    wind_code_date_frm_to_dic = {wind_code: (str_2_date(date_from), str_2_date(date_to)) for wind_code, date_from, date_to in
                              zip(fund_info_df['wind_code'], fund_info_df['date_from'], fund_info_df['date_to'])}
     fund_info_df.set_index('wind_code', inplace=True)
     if wind_code_list is None:
@@ -98,8 +115,8 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
     else:
         wind_code_list = list(set(wind_code_list) & set(fund_info_df.index))
     # 结束时间
-    date_end = date.today() - timedelta(days=1)
-    date_end_str = date_end.strftime(STR_FORMAT_DATE)
+    date_last_day = date.today() - timedelta(days=1)
+    # date_end_str = date_end.strftime(STR_FORMAT_DATE)
 
     fund_nav_all_df = []
     no_data_count = 0
@@ -108,18 +125,19 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
     wind_code_trade_date_latest = {}
     try:
         for i, wind_code in enumerate(wind_code_list):
-            date_begin, date_end = wind_code_date_frm_to_dic[wind_code]
+            date_begin, date_end= wind_code_date_frm_to_dic[wind_code]
+
+            # if date_end > date_last_day:
+            #     date_end = date_last_day
             if date_begin > date_end:
                 continue
             # 设定数据获取的起始日期
             # wind_code_trade_date_latest[wind_code] = date_to
-            # if wind_code in wind_code_set_existed_in_nav:
-            #     trade_latest = fund_trade_date_latest_in_nav_dic[wind_code]
-            #     if trade_latest >= date_end:
+            # if wind_code in fund_trade_date_begin_dic:
+            #     trade_latest = fund_trade_date_begin_dic[wind_code]
+            #     if trade_latest > date_end:
             #         continue
-            #     date_begin = trade_latest + timedelta(days=1)
-            # else:
-            #     date_begin = wind_code_date_frm_to_dic[wind_code]
+            #     date_begin = max([date_begin, trade_latest])
             # if date_begin is None:
             #     continue
             # elif isinstance(date_begin, str):
@@ -130,15 +148,25 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
                     continue
                 if date_begin > date_end:
                     continue
-                date_begin = date_begin.strftime('%Y-%m-%d')
+                date_begin_str = date_begin.strftime('%Y-%m-%d')
             else:
+                logger.error("%s date_begin:%s", wind_code, date_begin)
                 continue
 
+            if isinstance(date_end, date):
+                if date_begin.year < 1900:
+                    continue
+                if date_begin > date_end:
+                    continue
+                date_end_str = date_end.strftime('%Y-%m-%d')
+            else:
+                logger.error("%s date_end:%s", wind_code, date_end)
+                continue
             # 尝试获取 fund_nav 数据
             for k in range(2):
                 try:
-                    fund_nav_tmp_df = rest.wsd(codes=wind_code, fields='nav,NAV_acc,NAV_date', begin_time=date_begin,
-                                               end_time=date_end, options='Fill=Previous')
+                    fund_nav_tmp_df = rest.wsd(codes=wind_code, fields='nav,NAV_acc,NAV_date', begin_time=date_begin_str,
+                                               end_time=date_end_str, options='Fill=Previous')
                     break
                 except Exception as exp:
                     logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
@@ -148,7 +176,7 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
 
             if fund_nav_tmp_df is None:
                 logger.info('%s No data', wind_code)
-                del wind_code_trade_date_latest[wind_code]
+                # del wind_code_trade_date_latest[wind_code]
                 no_data_count += 1
                 logger.warning('%d funds no data', no_data_count)
             else:
@@ -158,7 +186,7 @@ def update_wind_fund_nav(get_df=False, wind_code_list=None):
                     continue
                 fund_nav_tmp_df['wind_code'] = wind_code
                 # 此处删除 trade_date_latest 之后再加上，主要是为了避免因抛出异常而导致的该条数据也被记录更新
-                del wind_code_trade_date_latest[wind_code]
+                # del wind_code_trade_date_latest[wind_code]
                 trade_date_latest = fund_nav_df_2_sql(table_name, fund_nav_tmp_df, engine, is_append=True)
                 if trade_date_latest is None:
                     logger.error('%s[%d] data insert failed', wind_code)
@@ -183,6 +211,7 @@ def update_fund_mgrcomp_info():
     fund_info 表 及 fund_nav表更新完成后，更新及插入 fund_mgrcomp_info 表相关统计信息
     :return: 
     """
+    logger.info("开始更新 fund_mgrcomp_info 相应记录")
     with get_db_session() as session:
         # 对已存在数据更新 基金统计数据
         sql_str = """update
@@ -205,7 +234,6 @@ fmi.fund_count_existing = fmi_new.fund_count_existing,
 fmi.fund_count_active = fmi_new.fund_count_active
 where fmi.name = fmi_new.fund_mgrcomp"""
         session.execute(sql_str)
-        logger.info('update fund_mgrcomp_info finished')
         # 添加新基金管理人信息及统计数据
         sql_str = """insert into fund_mgrcomp_info(name, review_status, fund_count_tot,fund_count_existing,fund_count_active)
 select fi.fund_mgrcomp, 
@@ -221,14 +249,14 @@ where fi.fund_mgrcomp is not null
 	group by fi.fund_mgrcomp
     having fi.fund_mgrcomp not in (select name from fund_mgrcomp_info)"""
     session.execute(sql_str)
-    logger.info('insert new fund_mgrcomp into fund_mgrcomp_info finished')
+    logger.info("fund_mgrcomp_info 表更新结束")
     sql_str = """update 
 fund_info fi, fund_mgrcomp_info fmi
 set fi.mgrcomp_id = fmi.mgrcomp_id
 where fi.fund_mgrcomp = fmi.name
 and fi.mgrcomp_id is null"""
     session.execute(sql_str)
-    logger.info('update mgrcomp_id on fund_mgrcomp_info finished')
+    logger.info('更新 fund_mgrcomp_info 的 mgrcomp_id 字段结束')
 
 
 def clean_fund_nav(date_str):
@@ -276,7 +304,7 @@ if __name__ == '__main__':
     # update_fund_mgrcomp_info()
 
     # 调用wind接口更新基金净值
-    update_wind_fund_nav(get_df=False, wind_code_list=['XT1513361.XT'])
+    update_wind_fund_nav(get_df=False)  # , wind_code_list=['XT1513361.XT']
 
     # 将 wind_fund_nav 数据导入到 fund_nav 表中
     # import_wind_fund_nav_to_fund_nav()
