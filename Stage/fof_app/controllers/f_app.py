@@ -1557,7 +1557,6 @@ def corp(uid):
     files = [{"file_name": i.file_name, "user": UserModel.query.get(i.upload_user_id),
               "upload_time": i.upload_datetime, "fid": i.file_id, "file_type": i.file_type} for i in files if
              i.file_type != 'report']
-    print(files)
     if len(fof) > 0:
         fof = [{"name": i.sec_name, "alias": i.alias, "wind_code": i.wind_code,"rank":i.rank} for i in fof]
     else:
