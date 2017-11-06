@@ -51,14 +51,6 @@
 
 {% endblock %}
 
-{#
-0  未访谈
-２　已归档
-３　观察中
-４　核心池
-
-#}
-
 {% block script %}
  <script>
 
@@ -90,7 +82,19 @@
               {data:'fund_count_tot'},
               {data:'fund_count_existing'},
               {data:'fund_count_active'},
-              {data:"review_status"},
+              {data:"review_status",
+                  "render": function(data) {
+                      if(data==0){
+                        return "未访谈"
+                      }else if(data==2){ 
+                        return "已归档"
+                      }else if(data==3){
+                        return "观察中"
+                      }else if(data==4){
+                        return "核心池"
+                      }
+                  }
+              },
               {data:null,
                   "render": function(data, type, row) {
                       var uid = data.mgrcomp_id;
@@ -100,7 +104,6 @@
           ]
     });
        $('.count').on( 'click', 'a', function () {
-           console.log($(this).data().tag);
            var tag =  $(this).data().tag;
                 investTab
             .columns(6)
