@@ -1,29 +1,14 @@
-#!usr/bin/env python
-#-*- coding:utf-8 _*-
-"""
-@author:fonttian
-@file: testCN.py
-@time: 2017/09/26
-"""
+import pickle
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import probscale
 
-from matplotlib.font_manager import FontManager
-import subprocess
+with open('tl.pkl','rb') as f:
 
-fm = FontManager()
-mat_fonts = set(f.name for f in fm.ttflist)
+    tl = pickle.load(f)
+    #print(tl.T)
 
-output = subprocess.check_output(
-    'fc-list :lang=zh -f "%{family}\n"', shell=True)
-output = output.decode('utf-8')
-# print '*' * 10, '系统可用的中文字体', '*' * 10
-# print output
-zh_fonts = set(f.split(',', 1)[0] for f in output.split('\n'))
-available = mat_fonts & zh_fonts
-
-print('*' * 10, '可用的字体', '*' * 10)
-for f in available:
-    print(f)
-
-import matplotlib
-
-print(matplotlib.matplotlib_fname())
+    plt.style.use('fivethirtyeight')
+    ax = tl.plot()
+    plt.show()

@@ -1512,7 +1512,7 @@ def corp_upload_file(uid):
     """
     fof_list = get_all_fof()
     corp = Invest_corp.query.get(uid)
-    file_type = FileType.query.all()
+    file_type = FileType.query.filter(FileType.type_name != "评估报告").all()
     file_type = [i.type_name for i in file_type]
     return render_template("corp_upload_file.html", fof_list=fof_list, corp=corp, file_type=file_type)
 
@@ -1548,17 +1548,16 @@ def corp(uid):
     corp = Invest_corp.query.get(uid)
     fof = FoFModel.query.filter_by(mgrcomp_id=uid).all()
     if current_user.is_admin:
-        files = Invest_corp_file.query.filter(and_(Invest_corp_file.mgrcomp_id==uid,
-                                                   Invest_corp_file.file_type=='report')).all()
+        files = Invest_corp_file.query.filter(Invest_corp_file.mgrcomp_id==uid).all()
     elif current_user.is_report:
         files = Invest_corp_file.query.filter(and_(Invest_corp_file.mgrcomp_id == uid,
-                                                   Invest_corp_file.file_type == 'report',
                                                    Invest_corp_file.upload_user_id == current_user.id)).all()
     report = [{"file_name": i.file_name, "comments": i.comments, "user": UserModel.query.get(i.upload_user_id),
                "upload_time": i.upload_datetime, "fid": i.file_id} for i in files if i.file_type == 'report']
     files = [{"file_name": i.file_name, "user": UserModel.query.get(i.upload_user_id),
               "upload_time": i.upload_datetime, "fid": i.file_id, "file_type": i.file_type} for i in files if
              i.file_type != 'report']
+    print(files)
     if len(fof) > 0:
         fof = [{"name": i.sec_name, "alias": i.alias, "wind_code": i.wind_code,"rank":i.rank} for i in fof]
     else:
