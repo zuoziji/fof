@@ -772,15 +772,18 @@ t1chart.setOption(option);
             }
           ],
           legend: {
+            orient: 'horizontal',
             top: 0,
             left: 150,
             width : 1200,
-            height: 70,
             padding: [0,10,10,0],
             data: data_name,
-            itemGap:20,
+            itemGap: 10,
             itemHeight: 10,
-            selected: legendSwitch
+            selected: legendSwitch,
+            formatter: function (data) {
+                return data+'   '
+            }
           },
           grid:{
             y2: 90,
