@@ -1598,6 +1598,7 @@ def get_fof_acc():
 
 @f_app_blueprint.route('/corp_download/<fid>')
 @login_required
+@permission
 def corp_download(fid):
     """
     下载和投顾相关的文件
