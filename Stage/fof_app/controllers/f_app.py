@@ -1842,6 +1842,11 @@ def test():
 
 
 
+@f_app_blueprint.route('/market_report')
+def market_report():
+    if request.method == 'GET':
+        return render_template('market_report.html')
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 

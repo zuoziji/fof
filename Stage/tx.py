@@ -4,9 +4,14 @@ from docx.shared import Inches
 from periodic_task.build_strategy_index import  get_stg_index_quantile
 from fh_tools.fh_utils import  return_risk_analysis
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-import matplotlib.pyplot as plt
 import os
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+myfont = fm.FontProperties(fname='/usr/share/fonts/simhei.ttf')
 #打开文档
+
+
+
 document = Document()
 
 
@@ -18,32 +23,38 @@ table_df.rename(columns={'index':''}, inplace=True)
 text_df = stat_df.T
 text_df.reset_index(inplace=True)
 text_dict = text_df.to_dict("records")
+
+for k,v in stg_idx_quantile_dic.items():
+    df = v['date_idx_quantile_df']
+    df.index.name = ''
+    plt.rcParams["figure.figsize"] = (10, 3)
+    plt.style.use('fivethirtyeight')
+    ax = df.plot(fontsize=7)
+    for i, l in enumerate(ax.lines):
+        plt.setp(l, linewidth=1.8)
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.88, box.height])
+    plt.legend(loc=6, prop={'size': 8, 'family': 'simhei'}, bbox_to_anchor=(1.05, 0.5))
+    plt.title(k, fontproperties=myfont, size=9)
+    plt.savefig("%s.png"%k,dpi=300,transparent=True)
+
 document.add_heading('一、三季度策略表现回顾',2)
 for i in text_dict:
     text = ''
     for k,v in sorted(i.items()):
         if k == 'index':
             t = '%s:'%v
+            document.add_picture('%s.png' % v, width=Inches(6))
+            os.remove('%s.png' %v)
         else:
             t = "%s:%s," %(k,v)
         text +=t
-    print(text)
     document.add_paragraph(text[:-1])
 
-for k,v in stg_idx_quantile_dic.items():
-    df = v['date_idx_quantile_df']
-    df.index.name = ''
-    ax = df.plot(legend=True,title=k)
-    fig = ax.get_figure()
-    fig.savefig("%s.png"%k)
-    document.add_picture('%s.png' %k,width=Inches(6))
-    os.remove("%s.png" %k)
-#stg_idx_quantile_dic['套利策略']['date_idx_quantile_df']
-#tl.plot(legend=True)
 
 
 document.add_page_break()
-document.add_picture('data.png',width=Inches(6))
+
 
 #增加表格
 t = document.add_table(table_df.shape[0]+1, table_df.shape[1])
@@ -64,13 +75,7 @@ for row in t.rows:
             for run in paragraph.runs:
                 font = run.font
                 font.size = Pt(8)
-# for r in t.rows:
-#     for c in r._tr.tc_lst:
-#         tcW = c.tcPr.tcW
-#         tcW.type = 'auto'
-#         tcW.w = 3
-#增加分页2
-document.add_page_break()
+
 
 #保存文件
 document.save('测试.docx')

@@ -1,14 +1,5 @@
-import pickle
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import probscale
+import  os
 
-with open('tl.pkl','rb') as f:
+basedir = os.path.abspath(os.path.dirname(__file__))
 
-    tl = pickle.load(f)
-    #print(tl.T)
-
-    plt.style.use('fivethirtyeight')
-    ax = tl.plot()
-    plt.show()
+print(basedir)
