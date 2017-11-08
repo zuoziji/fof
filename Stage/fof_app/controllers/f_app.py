@@ -30,6 +30,7 @@ from periodic_task.build_strategy_index import calc_index_by_wind_code_dic
 from backend.Datatables import DataTablesServer
 from backend.fund_nav_calc import calc_fof_nav
 from config_fh import get_db_session
+from backend.market_report import gen_analysis,gen_report
 
 logger = logging.getLogger()
 
@@ -1842,10 +1843,14 @@ def test():
 
 
 
-@f_app_blueprint.route('/market_report')
+@f_app_blueprint.route('/market_report',methods=['GET','POST'])
 def market_report():
     if request.method == 'GET':
         return render_template('market_report.html')
+    if request.method == 'POST':
+        print(request.json)
+        return "ok"
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
