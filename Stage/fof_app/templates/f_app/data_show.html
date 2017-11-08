@@ -23,14 +23,40 @@
         </div>
     </div>
 </div>
-
+<div class="">
+    <div class="page-content">
+        <div id="title_left" style="width: 100%;height:80px;">
+            <ul id="myTab" class="nav nav-tabs">
+                <li class="active fixed_income" ><a href="#fixed_income" data-toggle="tab">债券策略</a></li>
+                <li class="arbitrage"><a href="#arbitrage" data-toggle="tab">套利策略</a></li>
+                <li class="cta"><a href="#cta" data-toggle="tab">管理期货策略</a></li>
+                <li class="long_only"><a href="#long_only" data-toggle="tab">股票多头策略</a></li>
+                <li class="alpha"><a href="#alpha" data-toggle="tab">阿尔法策略</a></li>
+                <li class="macro"><a href="#macro" data-toggle="tab">宏观策略</a></li>
+                <li class="fof"><a href="#fof" data-toggle="tab">组合基金策略</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 <div id="myTabContent" class="tab-content">
+    <div class="tab-pane fade in active ImgDis" id="ImgDis">
+        <div class="spinner">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+        </div>
+    </div>
+
+    <!--<div id="TestImg" style="height: 500px;"></div>-->
+
     <div class="row" id="SetDate">
         <div class="col-md-12 col-sm-12 col-xs-12">
             <div class="x_panel">
                 <div class="x_title">
-                    <h2 class="SelectIndex">市场回顾<small style="display: none">fixed_income</small></h2>
+                    <h2 class="SelectIndex">债券策略<small style="display: none">fixed_income</small></h2>
                     <div class="clearfix"></div>
                 </div>
                 <div class="x_content">
@@ -67,5 +93,169 @@
 {% block script %}
 <script src="../../static/vendors/echarts/dist/echarts.min.js"></script>
 <script src="../../static/js/shine.js"></script>
+<script>
+$(function () {
+    var on_off = false;
+    var tmpObj = {start: "", end: "", name: "fixed_income"};
+    var myChart = null;
+    $('#myTab').on('click','li',function () {
+        if(on_off){
+            on_off = false;
+            tmpObj['name'] = $(this).attr('class');
+            var htmlStr = '<div class="spinner"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div>';
+            $('.ImgDis').html(htmlStr);
+            var title = $(this).children().html();
+            var title_html = title + "<small style='display: none'>"+ $(this).attr('class') +"</small>";
+            $('.SelectIndex').html(title_html);
+            SendAjax('/f_app/data_select',tmpObj);
+        }else{
+            new PNotify({
+                title: '提示',
+                text: '稍后再试数据正在加载中... ...',
+                type: 'info',
+                styling: 'bootstrap3'
+            });
+            return false;
+        }
 
+    });
+
+    $('#button').click(function () {
+        if(on_off){
+            on_off = false;
+            var start = $('#from').val();
+            var end = $('#to').val();
+            var strategy_type_en = $(".SelectIndex").find('small').html();
+            if(start != "" && end != ""){
+                var startTime = new Date(start);
+                var endTime = new Date(end);
+                if( startTime.getTime() < endTime.getTime() ){
+                    var SendDict = {"start":start, "end":end, "name":strategy_type_en};
+                    SendAjax('/f_app/data_select', SendDict);
+                }else{
+                    new PNotify({
+                        title: '提示',
+                        text: '日期选择错误, 请正确选择.',
+                        type: 'warning',
+                        styling: 'bootstrap3'
+                    });
+                    on_off = true;
+                }
+            }else{
+                new PNotify({
+                    title: '提示',
+                    text: '请选择日期',
+                    type: 'warning',
+                    styling: 'bootstrap3'
+                });
+            }
+        }else{
+            new PNotify({
+                title: '提示',
+                text: '稍后再试数据正在加载中... ...',
+                type: 'info',
+                styling: 'bootstrap3'
+            });
+        }
+
+    });
+
+    SendAjax('/f_app/data_select', tmpObj);
+
+function SendAjax(url, SendDate) {
+    var ecdata = [];
+    var ecdatax = [];
+    var id = SendDate.name;
+    $("#ImgDis").css('height','400px');
+    $.ajax({
+        url: url,
+        data: SendDate,
+        type: "POST",
+        success:function (res) {
+            on_off = true;
+            var res = JSON.parse(res);
+            var min = JSON.parse(res.min);
+            var data = JSON.parse(res.value);
+            var minList = [];
+            $.each(min,function (x,y) {
+                minList.push(y)
+            });
+            var minNumber = (Math.min.apply(null,minList)-0.01).toFixed(2);
+
+            var ecres = [];
+            var tmpobj = {};
+            for (var i in data){
+                ecdata.push(i);
+            }
+            $.each(data[ecdata[0]],function (index,value) {
+                ecdatax.push(index)
+            });
+            for(var x in data){
+                var tmparr = [];
+                for(var j in data[x]){
+                    tmparr.push(data[x][j])
+                }
+                tmpobj[x] = tmparr;
+            }
+            for(var xx in tmpobj){
+                var ecobj = {};
+                ecobj["name"] = xx;
+                ecobj["type"] = "line";
+                ecobj["data"] = tmpobj[xx];
+                ecobj["smooth"] = true;
+                ecres.push(ecobj);
+            }
+
+            var div_ = document.getElementById("ImgDis");
+            div_.removeAttribute("_echarts_instance_");
+            id = echarts.init(div_);
+
+
+            option = {
+                tooltip : {
+                    trigger: 'axis'
+                },
+                legend: {
+                    x: 'center',
+                    y: 'bottom',
+                    data: ''
+                },
+                toolbox: {
+                    show : true,
+                    feature : {
+                        mark : {show: true},
+                        dataView : {show: true, readOnly: false},
+                        magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                        restore : {show: true},
+                        saveAsImage : {show: true}
+                    }
+                },
+                calculable : true,
+                xAxis : [
+                    {
+                        type : 'category',
+                        boundaryGap : false,
+                        data : ''
+                    }
+                ],
+                yAxis : [
+                    {
+                        type : 'value',
+                        min:minNumber
+                    }
+                ],
+                series : [
+                ]
+            };
+
+            option.legend.data = ecdata;
+            option.xAxis[0].data = ecdatax;
+            option.series = ecres;
+            id.setOption(option, true);
+
+        }
+    });
+}
+});
+</script>
 {% endblock %}
