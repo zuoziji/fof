@@ -32,6 +32,7 @@ from backend.fund_nav_calc import calc_fof_nav
 from config_fh import get_db_session
 from backend.market_report import gen_analysis,gen_report
 
+
 logger = logging.getLogger()
 
 f_app_blueprint = Blueprint(
@@ -1848,8 +1849,28 @@ def market_report():
     if request.method == 'GET':
         return render_template('market_report.html')
     if request.method == 'POST':
-        print(request.json)
-        return "ok"
+        date_range = request.json
+        data = gen_analysis(date_range['start'],date_range['end'])
+        charts_dict = data['charts_dict']
+        charts = {}
+        for k,v in charts_dict.items():
+            charts[k] = v['date_idx_quantile_df'].T.to_json()
+        table_df = data['table_df']
+        return_data = {}
+        return_data['charts'] = charts
+        return_data['table'] = table_df.to_json()
+        text = []
+        for i in data['text_dict']:
+            text_dict = {}
+            for k,v in i.items():
+                if isinstance(v,np.int64):
+                    text_dict[k] = int(v)
+                else:
+                    text_dict[k] = v
+            text.append(text_dict)
+        return_data['text'] = text
+        return jsonify(status='ok',data=return_data)
+
 
 
 def allowed_file(filename):
