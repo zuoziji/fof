@@ -16,6 +16,7 @@ import pandas as pd
 from collections import OrderedDict
 import logging
 import warnings
+from functools import reduce
 
 STR_FORMAT_DATE = '%Y-%m-%d'
 PATTERN_DATE_FORMAT_RESTRICT = re.compile(r"\d{4}(\D)*\d{2}(\D)*\d{2}")
@@ -298,7 +299,7 @@ def return_risk_analysis(nav_df, date_frm=None, date_to=None, freq='weekly', rf=
         raise ValueError('freq=%s 只接受 daily weekly monthly 三种之一', freq)
     stat_dic_dic = OrderedDict()
     # rr_df.index = [str_2_date(d) for d in rr_df.index]
-    rr_uindex_df = rr_df.reset_index()
+    rr_uindex_df = rr_df.reset_index(level=0)
     col_name_list = list(rr_uindex_df.columns)
     date_col_name = col_name_list[0]
     col_name_list = col_name_list[1:]
@@ -414,14 +415,59 @@ class DataFrame(pd.DataFrame):
         return self
 
 
+def reduce_list(funx, data_list, initial=None):
+    result_list = []
+    def reduce_func(x, y):
+        # print(x,y)
+        result = funx(x, y)
+        result_list.append(result)
+        return result
+    if initial is None:
+        reduce(reduce_func, data_list)
+    else:
+        reduce(reduce_func, data_list, initial)
+    return result_list
+
+
+def _calc_mdd_4_drawback_analysis(pair, y):
+    """
+    此函数仅供 drawback_analysis 使用
+    用于计算最大回撤使用
+    :param pair: 
+    :param y: 
+    :return: 
+    """
+    max_y_last = pair[0]
+    max_y = max_y_last if max_y_last > y else y
+    mdd_last = pair[1]
+    keep_max = pair[2]
+    dd = y / max_y -1
+    if keep_max:
+        mdd = dd if dd < mdd_last else mdd_last
+    else:
+        mdd = dd
+    return max_y, mdd, keep_max
+
+
+def drawback_analysis(data_df, keep_max=False):
+    """
+    计算给定 DataFrame 数据对应的时间序列最大回撤数据
+    :param data_df: 
+    :return: 
+    """
+    mdd_df = data_df.apply(lambda xx: [rr[1] for rr in reduce_list(_calc_mdd_4_drawback_analysis, xx, (xx.iloc[0], 0, keep_max))])
+    return mdd_df
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
-    file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\万霁\万霁资管一号.xlsx'
+    file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\禄象\禄象全天候策略净值曲线22.xlsx'
     file_path_no_extention, _ = os.path.splitext(file_path)
     data_df = pd.read_excel(file_path, index_col=0)
     stat_df = return_risk_analysis(data_df, freq=None)  # , freq='daily'
     print(stat_df)
     stat_df.to_csv(file_path_no_extention + '绩效统计.csv')
+    mdd_df = drawback_analysis(data_df)
+    mdd_df.to_csv(file_path_no_extention + '最大回撤.csv')
 
     # data_df = pd.DataFrame({'a': np.arange(1, 6),
     #               'b': np.arange(2, 7),

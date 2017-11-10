@@ -3,13 +3,15 @@ import pandas as pd
 import numpy as np
 from collections import OrderedDict
 from config_fh import get_db_engine, get_db_session, get_cache_file_path, STR_FORMAT_DATE
-from fh_tools.fh_utils import return_risk_analysis, str_2_date
+from fh_tools.fh_utils import return_risk_analysis, str_2_date, try_2_date, reduce_list
 from fh_tools import fh_utils
 import matplotlib.pyplot as plt  # pycharm 需要通过现实调用 plt.show 才能显示plot
 from datetime import date, datetime, timedelta
 from sqlalchemy.types import String, Date, FLOAT
 import datetime as dt
 import logging
+import xlrd
+from functools import reduce
 
 logger = logging.getLogger()
 STRATEGY_TYPE_CN_EN_DIC = {'债券策略': 'fixed_income',
@@ -942,11 +944,71 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
     return stg_idx_quantile_dic, stat_df, stg_idx_mid_df
 
 
+def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'HS300'}):
+    """
+    读取 excel 文件，根据不同基金净值，权重、调整因子，组合投资收益，分析各个基金及组合的绩效、回撤等
+    :param file_path: 
+    :param fund_weight: 
+    :return: 
+    """
+    # 权重归一化
+    weight_tot = sum([v_dic['weight'] for v_dic in fund_weight.values()])
+    fund_normolized = {key: v_dic['weight'] / weight_tot for key, v_dic in fund_weight.items()}
+    print('归一化权重', fund_normolized)
+    # 列名称列表
+    col_names = [key for key in fund_weight.keys()]
+    # 读取xls 文件各个sheet
+    workbook = xlrd.open_workbook(file_path)
+    sheet_names = workbook.sheet_names()
+    # print(sheet_names)
+    # 处理各个sheet 数据
+    sheet_df_dic = {}
+    for sheet_name in sheet_names:
+        if sheet_name not in col_names:
+            continue
+        xls_df = pd.read_excel(file_path, sheetname=sheet_name, index_col=0)
+        xls_df.index = [try_2_date(xx) for xx in xls_df.index]
+        xls_df.sort_index(inplace=True)
+        xls_df['weekend_date'] = [xx + timedelta(days=4 - xx.weekday()) for xx in xls_df.index]
+        # for index, group in xls_df.groupby('weekend_date').groups.items():
+        #     print(index, '->', max(group), '|', group)
+        date_list = [max(group) for index, group in xls_df.groupby('weekend_date').groups.items()]
+        xls_df_weekly = xls_df.ix[date_list].set_index('weekend_date')
+        sheet_df_dic[sheet_name] = xls_df_weekly
+    # 合并、插值、指数化
+    merge_df = pd.concat([df for df in sheet_df_dic.values()], axis=1)
+    merge_df = fh_utils.DataFrame.interpolate_inner(merge_df).dropna()
+    #
+    if index_code_name_dic is not None:
+        engine = get_db_engine()
+        for index_code, index_name in index_code_name_dic.items():
+            sql_str = "select trade_date, close from wind_index_daily where wind_code=%s order by trade_date"
+            hs300_df = pd.read_sql(sql_str, engine, params=[index_code], parse_dates=['trade_date'])  #
+            hs300_df.set_index('trade_date', inplace=True)
+            hs300_df.rename(columns={'close': index_name}, inplace=True)
+            merge_df = merge_df.merge(hs300_df, how='left', right_index=True, left_index=True)
+
+        merge_df = fh_utils.DataFrame.interpolate_inner(merge_df).dropna()
+    pct_chg_df = merge_df.pct_change().fillna(0).apply(
+        lambda x: x * fund_weight[x.name].setdefault('rr_amplitude', 1) if x.name in fund_weight else x)
+    index_df = (pct_chg_df + 1).cumprod()
+    # 计算组合收益
+    index_s = index_df[col_names].apply(lambda x: x * fund_normolized[x.name]).sum(axis=1)
+    # 合并 df
+    index_df['组合收益']= index_s
+    # 输出 df
+    print(index_df)
+    stat_df = fh_utils.return_risk_analysis(index_df)
+    mdd_df = fh_utils.drawback_analysis(index_df)
+    index_dic = {"index_df": index_df, "stat_df": stat_df, "mdd_df": mdd_df}
+    return index_dic
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    date_from_str, date_to_str = '2016-9-26', '2017-9-30'
-    stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
+    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
+    # stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
     # for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
     #     date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]
     #     date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
@@ -1061,3 +1123,24 @@ if __name__ == '__main__':
     # strategy_type_en = 'fof'
     # quantile_df = get_strategy_mdd_quantile(strategy_type_en, q_list=[0.05, 0.10, 0.2, 0.25, 0.50, 0.6, 0.75, 0.80, 0.85, 0.90, 0.95])
     # print(quantile_df)
+
+    fund_weight = {'万霁资管一号': {'weight': 1, 'rr_amplitude': 1},
+                   '新萌亮点2号': {'weight': 4, 'rr_amplitude': 1},
+                   '睿璞睿洪一号': {'weight': 1, 'rr_amplitude': 1},
+                   '天谷深度价值一号': {'weight': 2, 'rr_amplitude': 0.8},
+                   '思勰思瑞二号': {'weight': 1, 'rr_amplitude': 1},
+                   '红猫智赢一号': {'weight': 1, 'rr_amplitude': 1},
+                   }
+    file_path = r'D:\Works\F复华投资\产品路演、宣传材料\FOF净值拟合计算\FOF净值拟合计算使用 2017-11-9.xlsx'
+    # '000001.SH': '上证指数'
+    # '000300.SH': '沪深300'
+    # '000905.SH': '中证500'
+    # '399102.SZ': '创业板综'
+    index_code_name_dic = {'399102.SZ': '创业板综'}
+    index_dic = nav_xls_2_index(file_path, fund_weight, index_code_name_dic=index_code_name_dic)
+    index_df = index_dic['index_df']
+    stat_df = index_dic['stat_df']
+    mdd_df = index_dic['mdd_df']
+    index_df.to_excel(get_cache_file_path('投资组合收益%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
+    stat_df.to_excel(get_cache_file_path('投资组合收益 绩效分析%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
+    mdd_df.to_excel(get_cache_file_path('投资组合收益 回撤分析%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
