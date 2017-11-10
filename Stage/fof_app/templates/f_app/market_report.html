@@ -29,20 +29,38 @@
                     <br>
                     <form data-parsley-validate="" class="form-horizontal form-label-left" novalidate="">
                         <div class="form-group">
-                            <div id="reportrange" class="pull-left" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 50%">
-                            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
-                            <span></span> <b class="caret"></b>
-                        </div>
-                            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
-                                <button type="button" class="btn btn-success" id="preview" style="margin-top:24px;">预览</button>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right">
+                                <button type="button" class="btn btn-success" id="preview">预览</button>
+                            </div>
+                            <div id="reportrange" class="pull-right col-xs-6 col-sm-6 col-md-6 col-lg-6" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 50%">
+                                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                <span></span> <b class="caret pull-right" style="margin-top:8px;"></b>
                             </div>
                         </div>
 
                     </form>
+                    <div id="ht"></div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="spinner" style="display: none;">
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+    </div>
+    <div class="tab-pane fade in active ImgDis" id="ImgDis" style="height:0px;">
+        <div id="chart1" style="height:500px;padding:10px;"></div>
+        <div id="chart2" style="height:500px;padding:10px;"></div>
+        <div id="chart3" style="height:500px;padding:10px;"></div>
+        <div id="chart4" style="height:500px;padding:10px;"></div>
+        <div id="chart5" style="height:500px;padding:10px;"></div>
+        <div id="chart6" style="height:500px;padding:10px;"></div>
+    </div>
+    <table class="table table-bordered" id="table" width="100%">
+    </table>
 </div>
 
 {% endblock %}
@@ -51,7 +69,6 @@
 {% block script %}
 <script src="../../static/vendors/echarts/dist/echarts.min.js"></script>
     <script src="../../static/vendors/moment/moment.js"></script>
-<script src="../../static/js/shine.js"></script>
     <script src="../../static/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
 <script>
  $(document).ready(function () {
@@ -59,6 +76,38 @@
 
     var start = moment().subtract(29, 'days');
     var end = moment();
+    var year = moment().year();
+    var month = moment().month();
+
+    var ranges = {
+           // 'Today': [moment(), moment()],
+           // 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           // 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+           // 'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           // 'This Month': [moment().startOf('month'), moment().endOf('month')],
+           // 'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+           // '本季度': [],
+           // '上一个季度': [],
+           // '1-3月': [moment('2017-01-01'),moment('2017-03-31')],
+           // '4-6月': [moment('2017-04-01'),moment('2017-06-30')],
+           // '7-9月': [moment('2017-07-01'),moment('2017-09-30')],
+           // '10-12月': [moment('2017-10-01'),moment('2017-12-31')],
+           // '1-6月': [moment('2017-01-01'),moment('2017-06-30')],
+           // '6-12月': [moment('2017-07-01'),moment('2017-12-31')],
+           // '1-12月': [moment('2017-01-01'),moment('2017-12-31')]
+           '1季度': [moment('2017-01-01'),moment('2017-03-31')],
+           '2季度': [moment('2017-04-01'),moment('2017-06-30')],
+           '3季度': [moment('2017-07-01'),moment('2017-09-30')],
+           '4季度': [moment('2017-10-01'),moment('2017-12-31')],
+           '上半年': [moment('2017-01-01'),moment('2017-06-30')],
+           '下半年': [moment('2017-07-01'),moment('2017-12-31')],
+           '本年度': [moment('2017-01-01'),moment('2017-12-31')]
+        }
+
+    //获得季度
+    function getQuarterRange(){ 
+
+    } 
 
     function cb(start, end) {
         $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
@@ -68,12 +117,13 @@
         startDate: start,
         endDate: end,
         ranges: {
-           'Today': [moment(), moment()],
-           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-           'This Month': [moment().startOf('month'), moment().endOf('month')],
-           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+           '1季度': [moment('2017-01-01'),moment('2017-03-31')],
+           '2季度': [moment('2017-04-01'),moment('2017-06-30')],
+           '3季度': [moment('2017-07-01'),moment('2017-09-30')],
+           '4季度': [moment('2017-10-01'),moment('2017-12-31')],
+           '上半年': [moment('2017-01-01'),moment('2017-06-30')],
+           '下半年': [moment('2017-07-01'),moment('2017-12-31')],
+           '本年度': [moment('2017-01-01'),moment('2017-12-31')]
         }
     }, cb);
 
@@ -81,22 +131,188 @@
 
 });
 
-     $('#preview').on('click',function () {
-         var startDate = $("#reportrange").data('daterangepicker').startDate.format('YYYY-MM-DD');
-         var endDate=  $("#reportrange").data('daterangepicker').endDate.format('YYYY-MM-DD');
-         data = {"start":startDate,"end":endDate};
-         $.ajax({
-                        url:'/f_app/market_report',
-                            type:'POST',
-                            contentType: 'application/json',
-                            data:JSON.stringify(data),
-                            dataType:'json',
-                            success:function (data) {
-                                console.log(data)
-                            }
-                    });
+    var option = {
+        title: {
+            text: '',
+            left: 'center',
+            subtext: ''
+        },
+        tooltip : {
+            trigger: 'axis'
+        },
+        legend: {
+            orient: 'vertical',
+            top: 150,
+            right: 10,
+            padding: [0,10,10,0],
+            data: ''
+        },
+        toolbox: {
+            show : true,
+            feature : {
+                mark : {show: true},
+                dataView : {show: true, readOnly: false},
+                magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                restore : {show: true},
+                saveAsImage : {show: true}
+            }
+        },
+        calculable : true,
+        xAxis : [
+            {
+                type : 'category',
+                boundaryGap : false,
+                data : ''
+            }
+        ],
+        yAxis : [
+            {
+                type : 'value',
+                min: ''
+            }
+        ],
+        series : []
+    };
 
-     })
+
+    $('#preview').on('click',function () {
+        var startDate = $("#reportrange").data('daterangepicker').startDate.format('YYYY-MM-DD');
+        var endDate=  $("#reportrange").data('daterangepicker').endDate.format('YYYY-MM-DD');
+        data = {"start":startDate,"end":endDate};
+        $("#ImgDis").css('height','0px!important');
+        $(".spinner").show();
+        $.ajax({
+            url:'/f_app/market_report',
+            type:'POST',
+            contentType: 'application/json',
+            data:JSON.stringify(data),
+            dataType:'json',
+            success:function (res) {;
+                $('.spinner').hide();
+                var charts = res.data.charts;
+                var table = res.data.table;
+                var text = res.data.text;
+                var title = [];
+                var legend = [];
+                var date = [];
+                console.log(text)
+
+                var chart=[];
+                $.each(charts,function (index,value) {
+                    title.push(index);
+                    chart.push(value)
+
+                });
+                var tooltip=[];
+                $.each(JSON.parse(chart[0]),function (k,v) {
+                    date.push(moment(Number(k)).format('YYYY-MM-DD'));
+                    tooltip.push(v);
+                });
+
+                var seriesArr=[];
+                $.each(tooltip[0],function (k,v) {
+                    legend.push(k);
+                });
+
+                option.legend.data=legend;
+                option.xAxis[0].data=date;
+
+                for(var i=0;i<chart.length;i++){
+                    var tooltip=[];
+                    $.each(JSON.parse(chart[i]),function (k,v) {
+                        tooltip.push(v);
+                    });
+                    var id = document.getElementById("chart"+(i+1));
+                    initChart(title[i],id);
+                    var html='';
+                    $.each(text[i],function(k,v){
+                        html+=k+":"+v+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                    })
+                    $(id).append('<div style="height:30px;padding:0 200px 20px;">'+html+'</div>')
+                }
+
+                function getSerie(obj,obj2){
+                    var series = [];                
+                    var seriesObj = {};
+                    var minList = [];
+                    for(var i=0;i<obj.length;i++){ 
+                        var serie={};
+                        var val=obj[i];
+                        serie["name"]=val;
+                        serie["type"]='line';
+                        serie["smooth"] = true;
+                        for(var j=0;j<obj2.length;j++){ 
+                            seriesObj[val]=seriesObj[val]||[];
+                            seriesObj[val].push(obj2[j][val]);
+                            minList.push(obj2[j][val]);
+                        }
+                        serie["data"]= seriesObj[val];
+                        series.push(serie);
+                    } 
+                    var minNumber = (Math.min.apply(null,minList)-0.01).toFixed(2); 
+                    return [series,minNumber];
+                }
+
+                function initChart(title,id){
+                    var option1={};
+                    $.extend(true,option1,option);
+                    option1.title.text=title+'业绩表现';
+                    var data = getSerie(legend,tooltip);
+                    option1.series= data[0];
+                    option1.yAxis[0].min= data[1];
+                    // option1.title.subtext= data[2];
+                    var chart = echarts.init(id);
+                    chart.setOption(option1,true);
+                }
+
+
+                // init datatable 
+
+                var tableData=[];
+                var columns=[];
+                $.each(JSON.parse(table),function(index,value) {
+                    var i=0;
+                    var column={};
+                    column['title']=index;
+                    columns.push(column);
+                    $.each(value,function (k,v) {
+                        tableData[k]=tableData[k]||[];
+                        if(index!=""&&k==0){
+                            tableData[k].push(moment(Number(v)).format('YYYY-MM-DD'))
+                        }else{
+                            tableData[k].push(v)
+                        }
+                    });
+                });
+                console.log(tableData)
+                var table1=$('#table').DataTable({
+                    "info":false,
+                    "paging": false,
+                    'data':tableData,
+                    "language": {
+                        "lengthMenu": "每页 _MENU_ 条记录",
+                        "zeroRecords": "没有找到记录",
+                        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                        "infoEmpty": "无记录",
+                        "search": "搜索：",
+                        "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                        "paginate": {
+                            "previous": "上一页",
+                            "next": "下一页"
+                        }
+                    },
+                    columns: columns,
+                    "order": [[2, 'asc']],
+                    "displayLength": 10
+                });
+                // table1.ajax.reload();
+                $(".spinner").hide();
+                $("#ImgDis").css('height','3000px');
+
+            }
+        });
+
+    })
  })
 </script>
 {% endblock %}
