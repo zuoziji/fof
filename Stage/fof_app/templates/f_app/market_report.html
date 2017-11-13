@@ -29,22 +29,17 @@
                     <br>
                     <form data-parsley-validate="" class="form-horizontal form-label-left" novalidate="">
                         <div class="form-group">
-<<<<<<< HEAD
+
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right">
                                 <button type="button" class="btn btn-success" id="preview">预览</button>
                                 <button type="button" class="btn btn-success " id="download">下载</button>
 
                             </div>
 
-                            <div id="reportrange" class="pull-right col-xs-6 col-sm-6 col-md-6 col-lg-6" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 50%">
-=======
-                            <div id="reportrange" class=" col-xs-5 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
->>>>>>> e5c8a02386212c84e52fbe07b4a1e2516c991d8a
+
+                            <div id="reportrange" class=" col-xs-5 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1" style="background: #ffffff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
                                 <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
                                 <span></span> <b class="caret pull-right" style="margin-top:8px;"></b>
-                            </div>
-                            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
-                                <button type="button" class="btn btn-success" id="preview">预览</button>
                             </div>
                         </div>
 
@@ -177,12 +172,9 @@
         }
         var startDate = $("#reportrange").data('daterangepicker').startDate.format('YYYY-MM-DD');
         var endDate=  $("#reportrange").data('daterangepicker').endDate.format('YYYY-MM-DD');
-<<<<<<< HEAD
         var data = {"start":startDate,"end":endDate};
         $("#ImgDis").css('height','0px!important');
-=======
-        data = {"start":startDate,"end":endDate};
->>>>>>> e5c8a02386212c84e52fbe07b4a1e2516c991d8a
+
         $(".spinner").show();
         $.ajax({
             url:'/f_app/market_report',
@@ -191,6 +183,7 @@
             data:JSON.stringify(data),
             dataType:'json',
             success:function (res) {
+                console.log(res)
                 $('.spinner').hide();
                 var charts = res.data.charts;
                 var table = res.data.table;
@@ -277,15 +270,12 @@
 
 
                 // init datatable 
-<<<<<<< HEAD
                 if($("#table")){
                     $("#table_wrapper").remove();
                 }
                 $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%"></table>');
 
-=======
                 $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%"></table>');
->>>>>>> e5c8a02386212c84e52fbe07b4a1e2516c991d8a
                 var tableData=[];
                 var columns=[];
                 $.each(JSON.parse(table),function(index,value) {
