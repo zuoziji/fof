@@ -207,10 +207,14 @@ def edit_summary(wind_code: str) -> object:
         fof_list = cache.get(str(current_user.id))
         return render_template('edit_summary.html',fof_list=fof_list,fof=fof.to_json())
     elif request.method == 'POST':
-        data = request.form
-        print(data)
-        return "ok"
-
+        data = request.form.to_dict()
+        fund = FoFModel.query.filter_by(wind_code=data['wind_code']).first()
+        for k,v in data.items():
+            if len(v) == 0:
+                v = None
+            setattr(fund,k,v)
+        db.session.commit()
+        return jsonify(status="ok")
 
 
 @f_app_blueprint.route('/add_child/<string:wind_code>', methods=['POST', 'GET'])
@@ -1816,7 +1820,6 @@ def edit_batch(wind_code_s):
         return render_template('edit_batch.html',fof_list=fof_list,batch=data)
     elif request.method == 'POST':
         data = request.form.to_dict()
-        print(data)
         batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code_s).first()
         for k,v in data.items():
             if k == 'date_end' and len(v) == 0:
@@ -1876,18 +1879,18 @@ def market_report():
             return jsonify(status='error')
 
 
-@f_app_blueprint.route('/download_report')
+@f_app_blueprint.route('/download_report/')
 def download_report():
-    date_range = request.args.to_dict()
-    print(date_range)
-    file_path = gen_report(date_range['start'],date_range['end'])
-    response = make_response(send_file(file_path, as_attachment=True))
-    #basename = os.path.basename(file_name)
-    # #response.headers["Content-Disposition"] = \
-    #     "attachment;" \
-    #     "filename*=UTF-8''{utf_filename}".format(
-    #         utf_filename=quote(basename.encode('utf-8'))
-    #     )
+    data = request.args.to_dict()
+    file_path = data['file_name']
+    file_name = os.path.split(file_path)[-1]
+    response = make_response(send_file(file_path, as_attachment=True, attachment_filename=file_name))
+    basename = os.path.basename(file_name)
+    response.headers["Content-Disposition"] = \
+        "attachment;" \
+        "filename*=UTF-8''{utf_filename}".format(
+            utf_filename=quote(basename.encode('utf-8'))
+        )
     os.remove(file_path)
     return response
 
