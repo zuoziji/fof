@@ -52,15 +52,14 @@
         <div class="rect5"></div>
     </div>
     <div class="tab-pane fade in active ImgDis" id="ImgDis" style="height:0px;">
-        <div id="chart1" style="height:500px;padding:10px;"></div>
-        <div id="chart2" style="height:500px;padding:10px;"></div>
-        <div id="chart3" style="height:500px;padding:10px;"></div>
-        <div id="chart4" style="height:500px;padding:10px;"></div>
-        <div id="chart5" style="height:500px;padding:10px;"></div>
-        <div id="chart6" style="height:500px;padding:10px;"></div>
+        <div id="chart1" style="height:500px;padding:40px 10px 10px;"></div>
+        <div id="chart2" style="height:500px;padding:40px 10px 10px;"></div>
+        <div id="chart3" style="height:500px;padding:40px 10px 10px;"></div>
+        <div id="chart4" style="height:500px;padding:40px 10px 10px;"></div>
+        <div id="chart5" style="height:500px;padding:40px 10px 10px;"></div>
+        <div id="chart6" style="height:500px;padding:40px 10px 10px;"></div>
     </div>
-    <table class="table table-bordered" id="table" width="100%">
-    </table>
+    <!-- <table class="table table-bordered" id="table" width="100%" style="margin-top: 30px;"></table> -->
 </div>
 
 {% endblock %}
@@ -79,52 +78,40 @@
     var year = moment().year();
     var month = moment().month();
 
-    var ranges = {
-           // 'Today': [moment(), moment()],
-           // 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           // 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-           // 'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-           // 'This Month': [moment().startOf('month'), moment().endOf('month')],
-           // 'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-           // '本季度': [],
-           // '上一个季度': [],
-           // '1-3月': [moment('2017-01-01'),moment('2017-03-31')],
-           // '4-6月': [moment('2017-04-01'),moment('2017-06-30')],
-           // '7-9月': [moment('2017-07-01'),moment('2017-09-30')],
-           // '10-12月': [moment('2017-10-01'),moment('2017-12-31')],
-           // '1-6月': [moment('2017-01-01'),moment('2017-06-30')],
-           // '6-12月': [moment('2017-07-01'),moment('2017-12-31')],
-           // '1-12月': [moment('2017-01-01'),moment('2017-12-31')]
-           '1季度': [moment('2017-01-01'),moment('2017-03-31')],
-           '2季度': [moment('2017-04-01'),moment('2017-06-30')],
-           '3季度': [moment('2017-07-01'),moment('2017-09-30')],
-           '4季度': [moment('2017-10-01'),moment('2017-12-31')],
-           '上半年': [moment('2017-01-01'),moment('2017-06-30')],
-           '下半年': [moment('2017-07-01'),moment('2017-12-31')],
-           '本年度': [moment('2017-01-01'),moment('2017-12-31')]
-        }
+    var ranges={};
+    function range(){
+        var index=Math.floor(month/3);
+        for(var i=0;i<=index;i++){
+            switch(i){
+                case 0:
+                ranges['1季度']=[moment('2017-01-01'),moment('2017-03-31')];
+                break;
+                case 1:
+                ranges['2季度']=[moment('2017-01-01'),moment('2017-03-31')];
+                break;
+                case 2:
+                ranges['3季度']=[moment('2017-07-01'),moment('2017-09-30')];
+                break;
+                case 3:
+                ranges['4季度']=[moment('2017-10-01'),moment('2017-12-31')];
+                break;
+            }
+            
+        }   
+        ranges['最近半年']=[moment().subtract(6, 'months'), moment()];
+        ranges['最近一年']=[moment().subtract(12, 'months'), moment()];
 
+    }
+    range();
     //获得季度
-    function getQuarterRange(){ 
-
-    } 
 
     function cb(start, end) {
-        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        $('#reportrange span').html(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
     }
-
     $('#reportrange').daterangepicker({
         startDate: start,
         endDate: end,
-        ranges: {
-           '1季度': [moment('2017-01-01'),moment('2017-03-31')],
-           '2季度': [moment('2017-04-01'),moment('2017-06-30')],
-           '3季度': [moment('2017-07-01'),moment('2017-09-30')],
-           '4季度': [moment('2017-10-01'),moment('2017-12-31')],
-           '上半年': [moment('2017-01-01'),moment('2017-06-30')],
-           '下半年': [moment('2017-07-01'),moment('2017-12-31')],
-           '本年度': [moment('2017-01-01'),moment('2017-12-31')]
-        }
+        ranges: ranges
     }, cb);
 
     cb(start, end);
@@ -195,7 +182,6 @@
                 var title = [];
                 var legend = [];
                 var date = [];
-                console.log(text)
 
                 var chart=[];
                 $.each(charts,function (index,value) {
@@ -226,9 +212,16 @@
                     initChart(title[i],id);
                     var html='';
                     $.each(text[i],function(k,v){
-                        html+=k+":"+v+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        if(k=='index'){
+                            html+=v+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        }else{
+                            html+=k+":"+v+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        }
                     })
-                    $(id).append('<div style="height:30px;padding:0 200px 20px;">'+html+'</div>')
+                    if($(".text"+i)){
+                        $(".text"+i).remove();
+                    }
+                    $(id).append('<div class="text'+i+'" style="height:50px;padding:0 100px 20px;text-indent:20px;">'+html+'</div>')
                 }
 
                 function getSerie(obj,obj2){
@@ -260,14 +253,19 @@
                     var data = getSerie(legend,tooltip);
                     option1.series= data[0];
                     option1.yAxis[0].min= data[1];
-                    // option1.title.subtext= data[2];
                     var chart = echarts.init(id);
                     chart.setOption(option1,true);
                 }
 
 
                 // init datatable 
+                if($("#table")){
+                    $("#table_wrapper").remove();
+                }
+                console.log($("#table"))
+                $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%"></table>');
 
+                console.log($("#table"))
                 var tableData=[];
                 var columns=[];
                 $.each(JSON.parse(table),function(index,value) {
@@ -284,7 +282,6 @@
                         }
                     });
                 });
-                console.log(tableData)
                 var table1=$('#table').DataTable({
                     "info":false,
                     "paging": false,
@@ -305,9 +302,8 @@
                     "order": [[2, 'asc']],
                     "displayLength": 10
                 });
-                // table1.ajax.reload();
                 $(".spinner").hide();
-                $("#ImgDis").css('height','3000px');
+                $("#ImgDis").css('height','3050px');
 
             }
         });
