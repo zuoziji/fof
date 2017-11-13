@@ -244,20 +244,20 @@ class EventAdmin(ModelView):
 
 class ChildMapping(ModelView):
     column_display_pk = True
-    form_columns = ['wind_code_s','wind_code','sec_name_s','date_start','date_end','warning_line','winding_line']
-    column_labels = dict(
-        wind_code_s = '批次代码',
-        wind_code = '子基金代码',
-        sec_name_s = '批次名称',
-        date_start = '开始时间',
-        date_end = '结束时间',
-        warning_line = '预警线',
-        winding_line = '清盘线'
-    )
+    # form_columns = ['wind_code_s','wind_code','sec_name_s','date_start','date_end','warning_line','winding_line']
+    # column_labels = dict(
+    #     wind_code_s = '批次代码',
+    #     wind_code = '子基金代码',
+    #     sec_name_s = '批次名称',
+    #     date_start = '开始时间',
+    #     date_end = '结束时间',
+    #     warning_line = '预警线',
+    #     winding_line = '清盘线'
+    # )
 
 class Invest_corp_admin(ModelView):
     column_display_pk = True
-    form_columns = ["name", "alias", "review_status"]
+    #form_columns = ["name", "alias", "review_status"]
     column_searchable_list = ('name',)
 
 class Invest_corp_file_admin(ModelView):

@@ -84,5 +84,5 @@ def gen_report(start,end):
     return file_path
 
 if __name__ == '__main__':
-    x = gen_report('2016-08-10','2017-09-10')
+    x = gen_report('2016-07-1','2017-09-30')
     print(basedir)
