@@ -17,7 +17,7 @@ from .controllers.admin_view import FofAdmin, PctAdmin, StgAdmin, UserAdmin, \
 from .extensions import login_manager, babel, admin, mail,SocketIo,celery
 from .models import db, RoleModel, UserModel, FoFModel, PermissionModel, FileType, \
     FundFile, FOF_FUND_PCT, FUND_STG_PCT, FUND_NAV, FUND_SEC_PCT, FUND_EVENT, FUND_ESSENTIAL,Invest_corp,Invest_corp_file
-from flask.ext.admin.contrib import rediscli
+from flask_admin.contrib import rediscli
 from redis import Redis
 platforms.C_FORCE_ROOT = True
 

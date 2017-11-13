@@ -299,7 +299,7 @@ def return_risk_analysis(nav_df, date_frm=None, date_to=None, freq='weekly', rf=
         raise ValueError('freq=%s 只接受 daily weekly monthly 三种之一', freq)
     stat_dic_dic = OrderedDict()
     # rr_df.index = [str_2_date(d) for d in rr_df.index]
-    rr_uindex_df = rr_df.reset_index(level=0)
+    rr_uindex_df = rr_df.reset_index()
     col_name_list = list(rr_uindex_df.columns)
     date_col_name = col_name_list[0]
     col_name_list = col_name_list[1:]
