@@ -264,6 +264,15 @@ class FoFModel(db.Model):
     fh_channel_manager = db.Column(db.String(20))
     mgrcomp_id = db.Column(db.INT)
     nav_maintain_mode = db.Column(db.Boolean)
+    product_contact_name = db.Column(db.String(45))
+    product_contact_phone = db.Column(db.String(45))
+    product_contact_email = db.Column(db.String(45))
+    fund_manager_name = db.Column(db.String(45))
+    fund_manager_phone = db.Column(db.String(45))
+    fund_manager_email = db.Column(db.String(45))
+    other_contact_name = db.Column(db.String(45))
+    other_contact_phone = db.Column(db.String(45))
+    other_contact_email = db.Column(db.String(45))
     file = db.relationship('FundFile', backref='fund_info', lazy='dynamic')
     fund_pct = db.relationship('FOF_FUND_PCT', backref='fund_info', lazy='dynamic')
     fund_stg = db.relationship('FUND_STG_PCT', backref='fund_info', lazy='dynamic')
@@ -582,12 +591,7 @@ class FUND_NAV_CALC(db.Model):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-class TRADE_DATE(db.Model):
-    __tablename__  = 'wind_trade_date'
-    trade_date = db.Column(db.DATE,primary_key=True)
 
-    def __repr__(self):
-        return "{}".format(self.trade_date)
 
 
 def query_invest(rank):

@@ -31,7 +31,10 @@
                         <div class="form-group">
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right">
                                 <button type="button" class="btn btn-success" id="preview">预览</button>
+                                <button type="button" class="btn btn-success " id="download">下载</button>
+
                             </div>
+
                             <div id="reportrange" class="pull-right col-xs-6 col-sm-6 col-md-6 col-lg-6" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 50%">
                                 <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
                                 <span></span> <b class="caret pull-right" style="margin-top:8px;"></b>
@@ -165,7 +168,7 @@
     $('#preview').on('click',function () {
         var startDate = $("#reportrange").data('daterangepicker').startDate.format('YYYY-MM-DD');
         var endDate=  $("#reportrange").data('daterangepicker').endDate.format('YYYY-MM-DD');
-        data = {"start":startDate,"end":endDate};
+        var data = {"start":startDate,"end":endDate};
         $("#ImgDis").css('height','0px!important');
         $(".spinner").show();
         $.ajax({
@@ -174,7 +177,7 @@
             contentType: 'application/json',
             data:JSON.stringify(data),
             dataType:'json',
-            success:function (res) {;
+            success:function (res) {
                 $('.spinner').hide();
                 var charts = res.data.charts;
                 var table = res.data.table;
@@ -262,10 +265,8 @@
                 if($("#table")){
                     $("#table_wrapper").remove();
                 }
-                console.log($("#table"))
                 $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%"></table>');
 
-                console.log($("#table"))
                 var tableData=[];
                 var columns=[];
                 $.each(JSON.parse(table),function(index,value) {
@@ -308,7 +309,8 @@
             }
         });
 
-    })
+    });
+
  })
 </script>
 {% endblock %}

@@ -79,10 +79,11 @@ def gen_report(start,end):
 
 
     #保存文件
-    file_path = os.path.join(basedir,str(datetime.datetime.now()))
+    file_name = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    file_path = os.path.join(basedir,file_name)
     document.save('%s.docx' %file_path)
-    return file_path
+    return "{}.docx".format(file_name),analysis_data
 
 if __name__ == '__main__':
-    x = gen_report('2016-07-1','2017-09-30')
-    print(basedir)
+    x = gen_report('2017-07-1','2017-09-30')
+    print(x)

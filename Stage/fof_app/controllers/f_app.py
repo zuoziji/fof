@@ -22,7 +22,7 @@ from backend.tools import fund_owner, chunks, get_Value, range_years, check_code
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
-    Invest_corp, query_invest, Invest_corp_file,FUND_NAV_CALC,TRADE_DATE
+    Invest_corp, query_invest, Invest_corp_file,FUND_NAV_CALC
 from fof_app.tasks import run_scheme_testing
 from periodic_task.build_strategy_index import get_strategy_index_quantile
 from fof_app.extensions import permission, cache
@@ -1850,7 +1850,7 @@ def market_report():
         return render_template('market_report.html')
     if request.method == 'POST':
         date_range = request.json
-        data = gen_analysis(date_range['start'],date_range['end'])
+        file_name,data = gen_report(date_range['start'],date_range['end'])
         charts_dict = data['charts_dict']
         charts = {}
         for k,v in charts_dict.items():
@@ -1869,9 +1869,24 @@ def market_report():
                     text_dict[k] = v
             text.append(text_dict)
         return_data['text'] = text
+        return_data['file_name'] = file_name
         return jsonify(status='ok',data=return_data)
 
 
+@f_app_blueprint.route('/download_report')
+def download_report():
+    date_range = request.args.to_dict()
+    print(date_range)
+    file_path = gen_report(date_range['start'],date_range['end'])
+    response = make_response(send_file(file_path, as_attachment=True))
+    #basename = os.path.basename(file_name)
+    # #response.headers["Content-Disposition"] = \
+    #     "attachment;" \
+    #     "filename*=UTF-8''{utf_filename}".format(
+    #         utf_filename=quote(basename.encode('utf-8'))
+    #     )
+    os.remove(file_path)
+    return response
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
