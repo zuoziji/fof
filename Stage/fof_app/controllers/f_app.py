@@ -1850,27 +1850,30 @@ def market_report():
         return render_template('market_report.html')
     if request.method == 'POST':
         date_range = request.json
-        file_name,data = gen_report(date_range['start'],date_range['end'])
-        charts_dict = data['charts_dict']
-        charts = {}
-        for k,v in charts_dict.items():
-            charts[k] = v['date_idx_quantile_df'].T.to_json()
-        table_df = data['table_df']
-        return_data = {}
-        return_data['charts'] = charts
-        return_data['table'] = table_df.to_json()
-        text = []
-        for i in data['text_dict']:
-            text_dict = {}
-            for k,v in i.items():
-                if isinstance(v,np.int64):
-                    text_dict[k] = int(v)
-                else:
-                    text_dict[k] = v
-            text.append(text_dict)
-        return_data['text'] = text
-        return_data['file_name'] = file_name
-        return jsonify(status='ok',data=return_data)
+        try:
+            file_name,data = gen_report(date_range['start'],date_range['end'])
+            charts_dict = data['charts_dict']
+            charts = {}
+            for k,v in charts_dict.items():
+                charts[k] = v['date_idx_quantile_df'].T.to_json()
+            table_df = data['table_df']
+            return_data = {}
+            return_data['charts'] = charts
+            return_data['table'] = table_df.to_json()
+            text = []
+            for i in data['text_dict']:
+                text_dict = {}
+                for k,v in i.items():
+                    if isinstance(v,np.int64):
+                        text_dict[k] = int(v)
+                    else:
+                        text_dict[k] = v
+                text.append(text_dict)
+            return_data['text'] = text
+            return_data['file_name'] = file_name
+            return jsonify(status='ok',data=return_data)
+        except ZeroDivisionError:
+            return jsonify(status='error')
 
 
 @f_app_blueprint.route('/download_report')

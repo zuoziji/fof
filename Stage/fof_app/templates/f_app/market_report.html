@@ -29,6 +29,7 @@
                     <br>
                     <form data-parsley-validate="" class="form-horizontal form-label-left" novalidate="">
                         <div class="form-group">
+<<<<<<< HEAD
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right">
                                 <button type="button" class="btn btn-success" id="preview">预览</button>
                                 <button type="button" class="btn btn-success " id="download">下载</button>
@@ -36,8 +37,14 @@
                             </div>
 
                             <div id="reportrange" class="pull-right col-xs-6 col-sm-6 col-md-6 col-lg-6" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 50%">
+=======
+                            <div id="reportrange" class=" col-xs-5 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+>>>>>>> e5c8a02386212c84e52fbe07b4a1e2516c991d8a
                                 <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
                                 <span></span> <b class="caret pull-right" style="margin-top:8px;"></b>
+                            </div>
+                            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+                                <button type="button" class="btn btn-success" id="preview">预览</button>
                             </div>
                         </div>
 
@@ -47,7 +54,7 @@
             </div>
         </div>
     </div>
-    <div class="spinner" style="display: none;">
+    <div class="spinner" style="display: none;margin-top:200px;">
         <div class="rect1"></div>
         <div class="rect2"></div>
         <div class="rect3"></div>
@@ -62,7 +69,6 @@
         <div id="chart5" style="height:500px;padding:40px 10px 10px;"></div>
         <div id="chart6" style="height:500px;padding:40px 10px 10px;"></div>
     </div>
-    <!-- <table class="table table-bordered" id="table" width="100%" style="margin-top: 30px;"></table> -->
 </div>
 
 {% endblock %}
@@ -80,23 +86,22 @@
     var end = moment();
     var year = moment().year();
     var month = moment().month();
-
     var ranges={};
     function range(){
         var index=Math.floor(month/3);
         for(var i=0;i<=index;i++){
             switch(i){
                 case 0:
-                ranges['1季度']=[moment('2017-01-01'),moment('2017-03-31')];
+                ranges['1季度']=[moment(year+'-01-01'),moment(year+'-03-31')];
                 break;
                 case 1:
-                ranges['2季度']=[moment('2017-01-01'),moment('2017-03-31')];
+                ranges['2季度']=[moment(year+'-03-01'),moment(year+'-06-30')];
                 break;
                 case 2:
-                ranges['3季度']=[moment('2017-07-01'),moment('2017-09-30')];
+                ranges['3季度']=[moment(year+'-07-01'),moment(year+'-09-30')];
                 break;
                 case 3:
-                ranges['4季度']=[moment('2017-10-01'),moment('2017-12-31')];
+                ranges['4季度']=[moment(year+'-10-01'),moment(year+'-12-31')];
                 break;
             }
             
@@ -166,10 +171,18 @@
 
 
     $('#preview').on('click',function () {
+        $("#ImgDis").css('height','0px');
+        if($("#table")){
+            $("#table_wrapper").remove();
+        }
         var startDate = $("#reportrange").data('daterangepicker').startDate.format('YYYY-MM-DD');
         var endDate=  $("#reportrange").data('daterangepicker').endDate.format('YYYY-MM-DD');
+<<<<<<< HEAD
         var data = {"start":startDate,"end":endDate};
         $("#ImgDis").css('height','0px!important');
+=======
+        data = {"start":startDate,"end":endDate};
+>>>>>>> e5c8a02386212c84e52fbe07b4a1e2516c991d8a
         $(".spinner").show();
         $.ajax({
             url:'/f_app/market_report',
@@ -217,6 +230,8 @@
                     $.each(text[i],function(k,v){
                         if(k=='index'){
                             html+=v+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        }else if(k=='统计截止日期'||k=='统计起始日期'){
+                            html+=k+":"+moment(new Date(v)).format('YYYY-MM-DD')+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
                         }else{
                             html+=k+":"+v+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
                         }
@@ -262,11 +277,15 @@
 
 
                 // init datatable 
+<<<<<<< HEAD
                 if($("#table")){
                     $("#table_wrapper").remove();
                 }
                 $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%"></table>');
 
+=======
+                $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%"></table>');
+>>>>>>> e5c8a02386212c84e52fbe07b4a1e2516c991d8a
                 var tableData=[];
                 var columns=[];
                 $.each(JSON.parse(table),function(index,value) {
