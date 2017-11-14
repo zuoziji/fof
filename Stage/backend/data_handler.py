@@ -418,16 +418,19 @@ fund_essential_info ffm,
     fund_stg_df = data_df.set_index(['wind_code', 'stg_code', 'trade_date']).unstack().T.copy()
     # fund_stg_df.set_index(fund_stg_df.index.levels[1], inplace=True)
     # fund_stg_df.index = [dt.date() for dt in fund_stg_df.index]
+    # 策略比例df日期轴格式转换
     fund_stg_df.index = [dt.date() for dt in fund_stg_df.index.levels[1]]
-    add_df = pd.DataFrame(columns=fund_stg_df.columns, index=list(set(fof_fund_pct_df.index) - set(fund_stg_df.index)))
-    fund_stg_df = fund_stg_df.append(add_df).sort_index()
-    for code in fund_stg_df.columns.levels[0]:
-        is_fill_rows = fund_stg_df[code].sum(axis=1) != 0
-        for stg_code in fund_stg_df[code].columns:
-            is_fill_rows_col = np.isnan(fund_stg_df[code][stg_code])
-            fill_df = fund_stg_df.loc[is_fill_rows & is_fill_rows_col, code]
-            fill_df[stg_code] = 0
-            fund_stg_df.loc[is_fill_rows & is_fill_rows_col, code] = fill_df.values
+    # 与 子基金比例 df 进行比对，补充日期轴
+    add_date_df = pd.DataFrame(columns=fund_stg_df.columns, index=list(set(fof_fund_pct_df.index) - set(fund_stg_df.index)))
+    fund_stg_df = fund_stg_df.append(add_date_df).sort_index()
+    # 按列逐级寻找为空列 插 0 # 2017-11-14 忘记当初为什么写这个功能，引起了比例为0 的错误，现在注释掉
+    # for code in fund_stg_df.columns.levels[0]:
+    #     is_fill_rows = fund_stg_df[code].sum(axis=1) != 0
+    #     for stg_code in fund_stg_df[code].columns:
+    #         is_fill_rows_col = np.isnan(fund_stg_df[code][stg_code])
+    #         fill_df = fund_stg_df.loc[is_fill_rows & is_fill_rows_col, code]
+    #         fill_df[stg_code] = 0
+    #         fund_stg_df.loc[is_fill_rows & is_fill_rows_col, code] = fill_df.values
     fund_stg_df.ffill(inplace=True)
     fund_stg_df.fillna(0, inplace=True)
 
@@ -714,8 +717,8 @@ if __name__ == '__main__':
     # logger.info(index_df)
 
     # 根据子基金投资额及子基金策略比例调整fof基金总体策略比例
-    # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'
-    # update_fof_stg_pct(wind_code)
+    wind_code = 'FHF-101701'  # 'FHF-101601'  'FHF-101701'
+    update_fof_stg_pct(wind_code)
 
     # 获取指定FOF各个确认日截面持仓情况
     # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'

@@ -109,3 +109,6 @@
 
 ### 2017/11/10
 * 增加 build_strategy_index.nav_xls_2_index 读取 excel 文件，根据不同基金净值，权重、调整因子，组合投资收益，分析各个基金及组合的绩效、回撤等
+
+### 2017/11/14
+* 修复FOF基金策略比例计算的 bug：datahandler.update_fof_stg_pct 函数修复
