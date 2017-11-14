@@ -204,7 +204,8 @@
                   </ul>
                 　{{ core_info }}
                 {{ wind_code }}
-                   <button class="btn btn-default"><a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}">修改/添加</a></button>
+                  <button class="btn btn-default"><a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}">修改/添加</a></button>
+                  <button class="btn btn-success"><a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">修改基金</a></button class="">
                 </div>
               </div>
             </div>
@@ -800,7 +801,19 @@ t1chart.setOption(option);
                 title: '导出数据',
                 icon: 'image://http://echarts.baidu.com/images/favicon.png',
                 onclick: function (){
-                     $.get('/f_app/download_main_charts',{"wind_code":{{ fof.wind_code|tojson |safe }}});
+                  var form = $("<form>");
+                  form.attr("style","display:none");
+                  form.attr("target","");
+                  form.attr("method","get");
+                  form.attr("action",'/f_app/download_main_charts');
+                  var input1 = $("<input>");
+                  input1.attr("type","hidden");
+                  input1.attr("name","wind_code");
+                  input1.attr("value",{{ fof.wind_code|tojson |safe }});
+                  $("body").append(form);
+                  form.append(input1);
+                  form.submit();
+                  form.remove();
                 }
             },
               dataView : {show: true, readOnly: false},

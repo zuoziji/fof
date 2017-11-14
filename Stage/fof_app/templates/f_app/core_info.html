@@ -2,9 +2,6 @@
 
 {% block css %}
 <style>
-    input {
-        border-radius: 5px!important;
-    }
     input:focus {
         border-color: #0b97c4!important;
     }
@@ -18,89 +15,90 @@
             <div class="x_panel">
                 <div class="x_title">
                     {% if current_user.is_staff %}
-                    <h2>{{ fof.sec_name}}  修改基本信息</h2>
+                    <h2>{{ fof.sec_name}}  修改基本信息   <span>{{ fof.wind_code }}(基金代码)</span></h2>
                     {% else %}
-                    <h2>{{ fof.alias }}  修改基本信息</h2>
+                    <h2>{{ fof.alias }}  修改基本信息   <span>{{ fof.wind_code }}(基金代码)</span></h2>
                     {% endif %}
                     <div class="clearfix"></div>
                 </div>
                 <div class="x_content">
-                    <br />
-                    <form class="form-horizontal form-label-left" method="POST" action="{{ url_for('f_app.core_info',wind_code=fof.wind_code)}}">
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">基金代码</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="wind_code" class="form-control input-md" value="{{ fof.wind_code }}" readonly>
+                    <form class="form-horizontal form-label-left" method="POST" action="{{ url_for('f_app.core_info',wind_code=fof.wind_code)}}">    
+                        <input type="text" name="wind_code" class="form-control input-md" value="{{ fof.wind_code }}" style="display: none;">
+                        <h2 class="page-header" style="margin-top:20px;">基金联系人信息</h2>
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">姓名</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="fund_manager_name" class="form-control input-md" value="{{ core_info.fund_manager_name }}">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">电话</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="fund_manager_phone" class="form-control input-md" value="{{ core_info.fund_manager_phone }}">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">邮箱</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="fund_manager_email" class="form-control input-md" value="{{ core_info.fund_manager_email }}">
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">产品联系人姓名</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="product_contact_name" class="form-control input-md" value="{{ core_info.product_contact_name }}">
+                        <h2 class="page-header">产品联系人信息</h2>
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">姓名</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="product_contact_name" class="form-control input-md" value="{{ core_info.product_contact_name }}">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">电话</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="product_contact_phone" class="form-control input-md" value="{{ core_info.product_contact_phone }}">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">邮箱</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="product_contact_email" class="form-control input-md" value="{{ core_info.product_contact_email }}">
+                                </div>
                             </div>
                         </div>
-                       <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">产品联系人电话</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="product_contact_phone" class="form-control input-md" value="{{ core_info.product_contact_phone }}">
+                        <h2 class="page-header">其他联系人信息</h2>
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">姓名</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="other_contact_name" class="form-control input-md" value="{{ core_info.other_contact_name }}">
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">产品联系人邮箱</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="product_contact_email" class="form-control input-md" value="{{ core_info.product_contact_email }}">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">电话</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="other_contact_phone" class="form-control input-md" value="{{ core_info.other_contact_phone }}">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">邮箱</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="other_contact_email" class="form-control input-md" value="{{ core_info.other_contact_email }}">
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">基金联系人姓名</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="fund_manager_name" class="form-control input-md" value="{{ core_info.fund_manager_name }}">
-                            </div>
-                        </div>
-                       <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">基金联系人电话</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="fund_manager_phone" class="form-control input-md" value="{{ core_info.fund_manager_phone }}">
-                            </div>
-                        </div>
-
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">基金联系人邮箱</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="fund_manager_email" class="form-control input-md" value="{{ core_info.fund_manager_email }}">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">其他联系人姓名</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="other_contact_name" class="form-control input-md" value="{{ core_info.other_contact_name }}">
-                            </div>
-                        </div>
-                       <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">其他联系人电话</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="other_contact_phone" class="form-control input-md" value="{{ core_info.other_contact_phone }}">
-                            </div>
-                        </div>
-
-                        <div class="form-group col-md-6">
-                            <label class="control-label col-md-3 col-sm-3 col-xs-12">其他联系人邮箱</label>
-                            <div class="col-md-6 col-sm-9 col-xs-12">
-                                <input type="text" name="other_contact_email" class="form-control input-md" value="{{ core_info.other_contact_email }}">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group col-md-12">
-                            <div class="col-md-1 col-sm-9 col-xs-12 col-md-offset-5">
+                        <div class="form-group">
+                            <br/>
+                            <div class="form-group col-md-3">
+                            <div class="col-md-4 col-sm-9 col-xs-12 col-md-offset-3" style="padding-left:0px;">
                                 <input type="submit" class="btn btn-primary" value="更新">
                             </div>
-                             <div class="col-md-3 col-sm-9 col-xs-12 ">
+                             <div class="col-md-4 col-sm-9 col-xs-12 ">
                                  <a href="{{ url_for('f_app.details',wind_code=fof.wind_code) }}">
-                                     <input type="submit" class="btn btn-success" value="取消编辑">
+                                     <input type="submit" class="btn btn-success" value="取消">
                                  </a>
+                            </div>
                             </div>
                         </div>
                     </form>
