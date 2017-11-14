@@ -90,9 +90,10 @@ def make_shell_context():
     return dict(app=app,
                 db=models.db,
                 User=models.UserModel,
-                Fof=models.FoFModel,
+                fof=models.FoFModel,
                 Server=Server,
-                Role=models.RoleModel)
+                Role=models.RoleModel,
+                core=models.Fund_Core_Info)
 
 
 if __name__ == '__main__':

@@ -202,6 +202,9 @@
                       <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager | default("",True) }} </strong>
                     </li>
                   </ul>
+                　{{ core_info }}
+                {{ wind_code }}
+                   <button class="btn btn-default"><a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}">修改/添加</a></button>
                 </div>
               </div>
             </div>
@@ -792,11 +795,19 @@ t1chart.setOption(option);
           toolbox: {
             show : true,
             feature : {
-              mark : {show: true},
+                myTool1: {
+                show: true,
+                title: '导出数据',
+                icon: 'image://http://echarts.baidu.com/images/favicon.png',
+                onclick: function (){
+                     $.get('/f_app/download_main_charts',{"wind_code":{{ fof.wind_code|tojson |safe }}});
+                }
+            },
               dataView : {show: true, readOnly: false},
               magicType : {show: true, type: ['line', 'bar']},
               restore : {show: true},
-              saveAsImage : {show: true}
+              saveAsImage : {show: true},
+
             }
           },
           calculable : true,

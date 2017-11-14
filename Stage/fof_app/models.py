@@ -13,10 +13,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 import logging
 from .tasks import send_email
+from sqlalchemy.types import TypeDecorator, String
+from cryptography.fernet import Fernet
+from flask_sqlalchemy  import  SQLAlchemy
 
+
+key = "lNXHXIz61VOA6Q1Zc1v5K-udwN1dEfHK8d8DBXA3-MQ="
 logger = logging.getLogger()
 
-from flask_sqlalchemy  import  SQLAlchemy
+
 
 db = SQLAlchemy()
 
@@ -40,6 +45,25 @@ role_type = db.Table('role_type',  # 用户菜单关联表
                      db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
                      db.Column('type_id', db.String(40), db.ForeignKey('file_type.type_name')),
                      )
+
+
+class EncryptedData(TypeDecorator):
+    impl = String
+
+    def __init__(self):
+        super().__init__()
+        self.cipher = Fernet(key)
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value  = self.cipher.encrypt(bytes(value, encoding='utf-8'))
+        return value
+
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = self.cipher.decrypt(bytes(value, encoding='utf-8'))
+            value = value.decode('utf-8')
+        return value
 
 
 class MyReal(db.REAL):
@@ -264,20 +288,11 @@ class FoFModel(db.Model):
     fh_channel_manager = db.Column(db.String(20))
     mgrcomp_id = db.Column(db.INT)
     nav_maintain_mode = db.Column(db.Boolean)
-    product_contact_name = db.Column(db.String(45))
-    product_contact_phone = db.Column(db.String(45))
-    product_contact_email = db.Column(db.String(45))
-    fund_manager_name = db.Column(db.String(45))
-    fund_manager_phone = db.Column(db.String(45))
-    fund_manager_email = db.Column(db.String(45))
-    other_contact_name = db.Column(db.String(45))
-    other_contact_phone = db.Column(db.String(45))
-    other_contact_email = db.Column(db.String(45))
     file = db.relationship('FundFile', backref='fund_info', lazy='dynamic')
     fund_pct = db.relationship('FOF_FUND_PCT', backref='fund_info', lazy='dynamic')
     fund_stg = db.relationship('FUND_STG_PCT', backref='fund_info', lazy='dynamic')
     fund_event = db.relationship('FUND_EVENT', backref='fund_info', lazy='dynamic')
-
+    core_info = db.relationship('Fund_Core_Info', backref='fund_info', lazy='dynamic')
     def __repr__(self):
         return self.wind_code
 
@@ -302,6 +317,27 @@ class FoFModel(db.Model):
     def as_dict(self):
         return {c.name: getattr(self, c.name," ") for c in self.__table__.columns}
 
+
+
+class Fund_Core_Info(db.Model):
+    __tablename__ = 'fund_core_info'
+    id = db.Column(db.Integer, primary_key=True)
+    wind_code = db.Column(db.String(20), db.ForeignKey('fund_info.wind_code'))
+    product_contact_name = db.Column(EncryptedData)
+    product_contact_phone = db.Column(EncryptedData)
+    product_contact_email = db.Column(EncryptedData)
+    fund_manager_name = db.Column(EncryptedData)
+    fund_manager_phone = db.Column(EncryptedData)
+    fund_manager_email = db.Column(EncryptedData)
+    other_contact_name = db.Column(EncryptedData)
+    other_contact_phone = db.Column(EncryptedData)
+    other_contact_email = db.Column(EncryptedData)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def __repr__(self):
+        return self.wind_code
 
 
 class FileType(db.Model):

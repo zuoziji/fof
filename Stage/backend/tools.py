@@ -5,7 +5,7 @@
 :license: Apache 2.0, see LICENSE for more details.
 """
 from functools import wraps
-from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db,FOF_FUND_PCT,FUND_STG_PCT,code_get_name
+from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db,FOF_FUND_PCT,FUND_STG_PCT,code_get_name,Fund_Core_Info
 from flask import abort, request, current_app
 from flask_login import current_user
 from datetime import date
@@ -71,7 +71,14 @@ def check_code_order(wind_code):
         fof.wind_code = fof_mapping.wind_code_s
         db.session.remove()
     return fof
-
+def get_core_info(wind_code):
+    core_info = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
+    if core_info is None:
+        fof_mapping = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code).first()
+        fof = FoFModel.query.filter_by(wind_code=fof_mapping.wind_code).first()
+        return fof
+    else:
+        return core_info
 def chunks(l: list, n: int):
     for i in range(0, len(l), n):
         yield l[i:i + n]

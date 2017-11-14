@@ -264,3 +264,5 @@ class Invest_corp_file_admin(ModelView):
     column_display_pk =  True
     form_columns = ["file_id",'mgrcomp_id','file_type','upload_user_id','upload_datetime','file_name']
     column_list = ('file_id','mgrcomp_id','file_type','upload_user_id','upload_datetime','file_name')
+
+

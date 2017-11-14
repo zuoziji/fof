@@ -13,10 +13,11 @@ from fof_app.controllers import f_app
 from .config import Config
 from .controllers import auth,manager_task
 from .controllers.admin_view import FofAdmin, PctAdmin, StgAdmin, UserAdmin, \
-    RoleAdmin, PerAdmin, FileTypeAdmin, FileAdmin, AccAdmin, SecAdmin, EventAdmin, ChildMapping,Invest_corp_admin,Invest_corp_file_admin
+    RoleAdmin, PerAdmin, FileTypeAdmin, FileAdmin, AccAdmin, SecAdmin, EventAdmin,\
+    ChildMapping,Invest_corp_admin,Invest_corp_file_admin
 from .extensions import login_manager, babel, admin, mail,SocketIo,celery
 from .models import db, RoleModel, UserModel, FoFModel, PermissionModel, FileType, \
-    FundFile, FOF_FUND_PCT, FUND_STG_PCT, FUND_NAV, FUND_SEC_PCT, FUND_EVENT, FUND_ESSENTIAL,Invest_corp,Invest_corp_file
+    FundFile, FOF_FUND_PCT, FUND_STG_PCT, FUND_NAV, FUND_SEC_PCT, FUND_EVENT, FUND_ESSENTIAL,Invest_corp,Invest_corp_file,Fund_Core_Info
 from flask_admin.contrib import rediscli
 from redis import Redis
 platforms.C_FORCE_ROOT = True
@@ -38,6 +39,8 @@ admin.add_view(ChildMapping(FUND_ESSENTIAL,name="基金要素",session=db.sessio
 admin.add_view(Invest_corp_admin(Invest_corp,name="投顾管理",session=db.session))
 admin.add_view(Invest_corp_file_admin(Invest_corp_file,name="投顾文件管理",session=db.session))
 admin.add_view(rediscli.RedisCli(Redis(db=3),name="cache_console"))
+
+
 def create_app(object_name):
     app = Flask(__name__)
     wa.whoosh_index(app,FUND_ESSENTIAL)
