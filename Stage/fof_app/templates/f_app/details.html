@@ -162,65 +162,149 @@
             <div role="tabpanel" class="tab-pane fade" id="tab_content6" aria-labelledby="profile-tab">
               <div class="x_panel fixed_height_390">
                 <div class="x_content">
-                  <div class="col-md-5">
-                    <ul class="list-inline widget_tally">
-                      <li class="col-xs-12">
-                        <span>基金管理人：</span><strong>{% if current_user.is_staff %}
-                        {{ fof.fund_mgrcomp | default("",True) }}
-                        {% else %}
-                        {{ "*****" | default("",True) }}
-                        {% endif %}
-                      </strong>
+                  <div class="col-md-6">
+                    <ul class="list-unstyled timeline">
+                      <li>
+                        <div class="block">
+                          <div class="tags">
+                            <a class="tag">
+                              <span>管理/经理</span>
+                            </a>
+                          </div>
+                          <div class="block_content">
+                            <h2 class="title">
+                              <a>基金管理人：</a><a>{% if current_user.is_staff %}
+                          {{ fof.fund_mgrcomp | default("",True) }}
+                          {% else %}
+                          {{ "*****" | default("",True) }}
+                          {% endif %}</a>
+                            </h2>
+                            <div class="byline">
+                              <span></span><a></a>
+                            </div>
+                            <p class="excerpt">
+                          <span>基金经理：</span><strong>{% if current_user.is_staff %}
+                          {{ fof.fund_fundmanager | default("",True) }}
+                          {% else %}
+                          {{ "*****" | default("",True) }}
+                          {% endif %}
+                        </strong>
+                            </p>
+                          </div>
+                        </div>
                       </li>
-                      <li class="col-xs-12">
-                        <span>基金经理：</span><strong>{% if current_user.is_staff %}
-                        {{ fof.fund_fundmanager | default("",True) }}
-                        {% else %}
-                        {{ "*****" | default("",True) }}
-                        {% endif %}
-                      </strong>
+                      <li>
+                        <div class="block">
+                          <div class="tags">
+                            <a class="tag">
+                              <span>策略/规模</span>
+                            </a>
+                          </div>
+                          <div class="block_content">
+                            <h2 class="title">
+                              <a>基金策略类型：</a><a>{{ fof.strategy_type | default("",True) }}</a>
+                            </h2>
+                            <div class="byline">
+                              <span></span><a></a>
+                            </div>
+                            <p class="excerpt">
+                              <span>基金初始规模：</span><a>{{ fof.scale_tot | default("",True) }}</a>
+                            </p>
+                          </div>
+                        </div>
                       </li>
-                      <li class="col-xs-12">
-                        <span>基金策略类型：</span><strong>{{ fof.strategy_type | default("",True) }}</strong>
+                      <li>
+                        <div class="block">
+                          <div class="tags">
+                            <a class="tag">
+                              <span>日期</span>
+                            </a>
+                          </div>
+                          <div class="block_content">
+                            <h2 class="title">
+                              <span>成立日期：</span><strong>{{ fof.fund_setupdate | default("",True) }}</strong>
+                            </h2>
+                            <div class="byline">
+                              <span></span><a></a>
+                            </div>
+                            <p class="excerpt">
+                              <span>终止日期：</span><a>{{ fof.fund_maturitydate | default("",True) }}</a>
+                            </p>
+                          </div>
+                        </div>
                       </li>
-                      <li class="col-xs-12">
-                        <span>基金初始规模：</span><strong>{{ fof.scale_tot | default("",True) }}</strong>
-                      </li>
-                      <li class="col-xs-12">
-                        <span>成立日期：</span><strong>{{ fof.fund_setupdate | default("",True) }}</strong>
-                      </li>
-                      <li class="col-xs-12">
-                        <span>终止日期：</span><strong>{{ fof.fund_maturitydate | default("",True) }}</strong>
-                      </li>
-                      <li class="col-xs-12">
-                        <span>投资负责人：</span><strong>{{ fof.fh_inv_manager | default("",True) }}</strong>
-                      </li>
-                      <li class="col-xs-12">
-                        <span>产品负责人：</span><strong>{{ fof.fh_prod_manager | default("",True) }}</strong>
-                      </li>
-                      <li class="col-xs-12">
-
-                        <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager | default("",True) }} </strong>
+                      <li>
+                        <div class="block">
+                          <div class="tags">
+                            <a class="tag">
+                              <span>负责人</span>
+                            </a>
+                          </div>
+                          <div class="block_content">
+                            <h2 class="title">
+                              <a>投资负责人：</a><a>{{ fof.fh_inv_manager | default("",True) }}</a>
+                            </h2>
+                            <div class="byline">
+                              <span></span><a></a>
+                            </div>
+                            <p class="excerpt">
+                              <span>产品负责人：</span><a>{{ fof.fh_prod_manager | default("",True) }}</a>
+                            </p>
+                            <p class="excerpt">
+                              <span>渠道负责人：</span><a>{{ fof.fh_channel_manager | default("",True) }} </a>
+                            </p>
+                          </div>
+                        </div>
                       </li>
                     </ul>
                   </div>
                   <div class="col-md-1">
                     <button class="btn btn-default"><a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">修改</a></button>
                   </div>
-                  <div class="col-md-5" style="border-left: 1px solid #ccc;">
+                  <div class="col-md-4" style="border-left: 1px solid #ccc;">
                     {% if core_info is not none %}
-                      <ul class="list-inline widget_tally">
-                        <li><span>产品联系人信息：</span><strong>{{ core_info.product_contact_name }}</strong></li>
-                        <li><span>产品联系人信息：</span><strong>{{ core_info.product_contact_phone }}</strong></li>
-                        <li><span>产品联系人信息：</span><strong>{{ core_info.product_contact_email }}</strong></li>
-                        <li><span>基金联系人信息：</span><strong>{{ core_info.fund_manager_name }}</strong></li>
-                        <li><span>基金联系人信息：</span><strong>{{ core_info.fund_manager_phone }}</strong></li>
-                        <li><span>基金联系人信息：</span><strong>{{ core_info.fund_manager_email }}</strong></li>
-                        <li><span>其他联系人信息：</span><strong>{{ core_info.other_contact_name }}</strong></li>
-                        <li><span>其他联系人信息：</span><strong>{{ core_info.other_contact_phone }}</strong></li>
-                        <li><span>其他联系人信息：</span><strong>{{ core_info.other_contact_email }}</strong></li>
-                      </ul>
-
+                      <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
+                        <div class="well profile_view col-md-12">
+                          <div class="col-sm-12">
+                            <h4 class="brief"><i>产品联系人信息</i></h4>
+                            <div class="left col-xs-12">
+                              <h2>{{ core_info.product_contact_name }}</h2>
+                              <ul class="list-unstyled">
+                                <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.product_contact_phone }}</li>
+                                <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.product_contact_email }}</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
+                        <div class="well profile_view col-md-12">
+                          <div class="col-sm-12">
+                            <h4 class="brief"><i>基金联系人信息</i></h4>
+                            <div class="left col-xs-12">
+                              <h2>{{ core_info.fund_manager_name }}</h2>
+                              <ul class="list-unstyled">
+                                <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.fund_manager_phone }}</li>
+                                <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.fund_manager_email }}</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
+                        <div class="well profile_view col-md-12">
+                          <div class="col-sm-12">
+                            <h4 class="brief"><i>其他联系人信息</i></h4>
+                            <div class="left col-xs-12">
+                              <h2>{{ core_info.other_contact_name }}</h2>
+                              <ul class="list-unstyled">
+                                <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.other_contact_phone }}</li>
+                                <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.other_contact_email }}</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     {% else %}
                       <P>没有联系人信息</P>
 
