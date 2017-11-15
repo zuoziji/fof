@@ -202,10 +202,28 @@
                       <span>渠道负责人：</span><strong>{{ fof.fh_channel_manager | default("",True) }} </strong>
                     </li>
                   </ul>
-                　{{ core_info }}
-                {{ wind_code }}
+                                  <button class="btn btn-success"><a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">修改基金</a></button class="">
+
+                  {% if core_info is not none %}
+                     <ul>
+                     <li>{{ core_info.product_contact_name }}</li>
+                     <li>{{ core_info.product_contact_phone }}</li>
+                     <li>{{ core_info.product_contact_email }}</li>
+                     <hr>
+                     <li>{{ core_info.fund_manager_name }}</li>
+                     <li>{{ core_info.fund_manager_phone }}</li>
+                     <li>{{ core_info.fund_manager_email }}</li>
+                     <hr>
+                     <li>{{ core_info.other_contact_name }}</li>
+                     <li>{{ core_info.other_contact_phone }}</li>
+                     <li>{{ core_info.other_contact_email }}</li>
+                     </ul>
+
+                  {% else %}
+                     <P>没有联系人信息</P>
+
+                 {% endif %}
                   <button class="btn btn-default"><a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}">修改/添加</a></button>
-                  <button class="btn btn-success"><a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">修改基金</a></button class="">
                 </div>
               </div>
             </div>
