@@ -253,9 +253,10 @@
                     <a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
                   </div>
                   <div class="col-md-4" style="border-left: 1px solid #ccc;">
+                      {% if core_info is not none and  current_user.is_core %}
+
                     <h2>联系人信息</h2>
                     <div class="divider"></div>
-                    {% if core_info is not none %}
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
                           <div class="col-sm-12">
@@ -298,13 +299,12 @@
                           </div>
                         </div>
                       </div>
+                    <div class="col-md-1">
+                    <a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
+                  </div>
                     {% else %}
                       <P>没有联系人信息</P>
-
                     {% endif %}
-                  </div>
-                  <div class="col-md-1">
-                    <a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
                   </div>
                 </div>
               </div>

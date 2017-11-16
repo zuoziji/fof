@@ -88,9 +88,10 @@ class UserAdmin(ModelView):
         is_staff="复华",
         update_nav="净值修改",
         is_report="研究员",
+        is_core="核心人员",
         confirmed='已激活'
     )
-    column_list = ('username', 'email','password_hash','is_admin','is_staff','update_nav','is_report')
+    column_list = ('username', 'email','password_hash','is_admin','is_staff','update_nav','is_report',"is_core")
     column_formatters = dict(
         password_hash=lambda v, c, m, p: '*****' + m.password_hash[-6:],
     )
