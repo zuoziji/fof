@@ -200,8 +200,7 @@ order by nav_date_friday"""
             for date_range in date_range_list:
                 if date_range[0] <= index_vol < date_range[1]:
                     return data_vol
-                else:
-                    return np.nan
+            return np.nan
         else:
             return data_vol
     if fund_date_range_dic is not None:
@@ -696,12 +695,12 @@ if __name__ == '__main__':
     # print(nav_df)
 
     # 获取母基金及子基金走势
-    # wind_code = 'FHF-101601'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'
-    # from_date, to_date = '2016-10-8', '2017-9-8'
+    wind_code = 'XT1619361.XT'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'
+    from_date, to_date = '2016-10-8', '2017-9-8'
     # ret_dic = get_fof_nav_rr_between(wind_code, from_date, to_date)
-    # ret_dic = get_fof_nav_between(wind_code, from_date, to_date)
-    # pct_df, date_latest = ret_dic['fund_df'], ret_dic['date_latest']
-    # logger.info(pct_df)
+    ret_dic = get_fof_nav_between(wind_code, from_date, to_date)
+    pct_df, date_latest = ret_dic['fund_df'], ret_dic['date_latest']
+    logger.info(pct_df)
     # pct_df.to_csv('%s.csv' % wind_code)
     # pct_df.plot(legend=False)
     # plt.show()
@@ -717,8 +716,8 @@ if __name__ == '__main__':
     # logger.info(index_df)
 
     # 根据子基金投资额及子基金策略比例调整fof基金总体策略比例
-    wind_code = 'FHF-101701'  # 'FHF-101601'  'FHF-101701'
-    update_fof_stg_pct(wind_code)
+    # wind_code = 'FHF-101701'  # 'FHF-101601'  'FHF-101701'
+    # update_fof_stg_pct(wind_code)
 
     # 获取指定FOF各个确认日截面持仓情况
     # wind_code = 'FHF-101601'  # 'FHF-101601'  'FHF-101701'

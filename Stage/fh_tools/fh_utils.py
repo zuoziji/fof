@@ -3,11 +3,10 @@
 Created on 2016-12-22
 @author: MG
 """
-from mpl_toolkits.mplot3d import axes3d
 import os
 from datetime import datetime, date
 import pytz
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 # from pandas.tslib import Timestamp
 from pandas import Timestamp
@@ -84,17 +83,17 @@ def try_2_date(something):
     return date_ret
 
 
-def df_plot(df):
-    fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
-    x1 = np.array(df.index)
-    y1 = np.array(df.columns)
-    xx = np.tile(x1, (len(y1), 1))
-    yy = np.tile(y1, (len(x1), 1)).T
-    zz = df.T.as_matrix()
-    print(xx.shape, yy.shape, zz.shape)
-    ax.plot_wireframe(xx, yy, zz, rstride=10, cstride=0)
-    plt.tight_layout()
-    plt.show()
+# def df_plot(df):
+#     fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+#     x1 = np.array(df.index)
+#     y1 = np.array(df.columns)
+#     xx = np.tile(x1, (len(y1), 1))
+#     yy = np.tile(y1, (len(x1), 1)).T
+#     zz = df.T.as_matrix()
+#     print(xx.shape, yy.shape, zz.shape)
+#     ax.plot_wireframe(xx, yy, zz, rstride=10, cstride=0)
+#     plt.tight_layout()
+#     plt.show()
 
 
 def get_first(iterable, func):
@@ -254,7 +253,7 @@ def get_df_between_date(data_df, date_frm, date_to):
     return new_data_df
 
 
-def return_risk_analysis(nav_df, date_frm=None, date_to=None, freq='weekly', rf=0.02):
+def return_risk_analysis(nav_df: pd.DataFrame, date_frm=None, date_to=None, freq='weekly', rf=0.02):
     """
     按列统计 rr_df 收益率绩效 
     :param nav_df: 收益率DataFrame，index为日期，每一列为一个产品的净值走势
@@ -460,7 +459,7 @@ def drawback_analysis(data_df, keep_max=False):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
-    file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\禄象\禄象全天候策略净值曲线22.xlsx'
+    file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\FOF 鑫隆\鑫隆稳进FOF母基金净值（截至20171103）.xlsx'
     file_path_no_extention, _ = os.path.splitext(file_path)
     data_df = pd.read_excel(file_path, index_col=0)
     stat_df = return_risk_analysis(data_df, freq=None)  # , freq='daily'
