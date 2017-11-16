@@ -1,6 +1,12 @@
 {% extends "main.html" %}
 
-
+{% block css %}
+<style>
+    .timeline .block {
+        margin-left: 50px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -166,11 +172,6 @@
                     <ul class="list-unstyled timeline">
                       <li>
                         <div class="block">
-                          <div class="tags">
-                            <a class="tag">
-                              <span>管理/经理</span>
-                            </a>
-                          </div>
                           <div class="block_content">
                             <h2 class="title">
                               <a>基金管理人：</a><a>{% if current_user.is_staff %}
@@ -195,11 +196,6 @@
                       </li>
                       <li>
                         <div class="block">
-                          <div class="tags">
-                            <a class="tag">
-                              <span>策略/规模</span>
-                            </a>
-                          </div>
                           <div class="block_content">
                             <h2 class="title">
                               <a>基金策略类型：</a><a>{{ fof.strategy_type | default("",True) }}</a>
@@ -215,11 +211,6 @@
                       </li>
                       <li>
                         <div class="block">
-                          <div class="tags">
-                            <a class="tag">
-                              <span>日期</span>
-                            </a>
-                          </div>
                           <div class="block_content">
                             <h2 class="title">
                               <span>成立日期：</span><strong>{{ fof.fund_setupdate | default("",True) }}</strong>
@@ -235,11 +226,6 @@
                       </li>
                       <li>
                         <div class="block">
-                          <div class="tags">
-                            <a class="tag">
-                              <span>负责人</span>
-                            </a>
-                          </div>
                           <div class="block_content">
                             <h2 class="title">
                               <a>投资负责人：</a><a>{{ fof.fh_inv_manager | default("",True) }}</a>
@@ -259,14 +245,16 @@
                     </ul>
                   </div>
                   <div class="col-md-1">
-                    <button class="btn btn-default"><a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">修改</a></button>
+                    <a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
                   </div>
                   <div class="col-md-4" style="border-left: 1px solid #ccc;">
+                    <h2>联系人信息</h2>
+                    <div class="divider"></div>
                     {% if core_info is not none %}
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
                           <div class="col-sm-12">
-                            <h4 class="brief"><i>产品联系人信息</i></h4>
+                            <h4 class="brief"><i>产品</i></h4>
                             <div class="left col-xs-12">
                               <h2>{{ core_info.product_contact_name }}</h2>
                               <ul class="list-unstyled">
@@ -280,7 +268,7 @@
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
                           <div class="col-sm-12">
-                            <h4 class="brief"><i>基金联系人信息</i></h4>
+                            <h4 class="brief"><i>基金</i></h4>
                             <div class="left col-xs-12">
                               <h2>{{ core_info.fund_manager_name }}</h2>
                               <ul class="list-unstyled">
@@ -294,7 +282,7 @@
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
                           <div class="col-sm-12">
-                            <h4 class="brief"><i>其他联系人信息</i></h4>
+                            <h4 class="brief"><i>其他</i></h4>
                             <div class="left col-xs-12">
                               <h2>{{ core_info.other_contact_name }}</h2>
                               <ul class="list-unstyled">
@@ -311,7 +299,7 @@
                     {% endif %}
                   </div>
                   <div class="col-md-1">
-                    <button class="btn btn-default"><a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}">修改/添加</a></button>
+                    <a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
                   </div>
                 </div>
               </div>
