@@ -3,7 +3,10 @@
 {% block css %}
 <style>
     .timeline .block {
-        margin-left: 50px;
+      margin-left: 0!important;
+    }
+    .profile_details .profile_view .left {
+      margin-top: 0!important;
     }
 </style>
 {% endblock %}
@@ -169,6 +172,8 @@
               <div class="x_panel fixed_height_390">
                 <div class="x_content">
                   <div class="col-md-6">
+                    <h2>基金信息</h2>
+                    <div class="divider"></div>
                     <ul class="list-unstyled timeline">
                       <li>
                         <div class="block">
@@ -256,7 +261,7 @@
                           <div class="col-sm-12">
                             <h4 class="brief"><i>产品</i></h4>
                             <div class="left col-xs-12">
-                              <h2>{{ core_info.product_contact_name }}</h2>
+                              <h4>{{ core_info.product_contact_name }}</h4>
                               <ul class="list-unstyled">
                                 <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.product_contact_phone }}</li>
                                 <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.product_contact_email }}</li>
@@ -270,7 +275,7 @@
                           <div class="col-sm-12">
                             <h4 class="brief"><i>基金</i></h4>
                             <div class="left col-xs-12">
-                              <h2>{{ core_info.fund_manager_name }}</h2>
+                              <h4>{{ core_info.fund_manager_name }}</h4>
                               <ul class="list-unstyled">
                                 <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.fund_manager_phone }}</li>
                                 <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.fund_manager_email }}</li>
@@ -284,7 +289,7 @@
                           <div class="col-sm-12">
                             <h4 class="brief"><i>其他</i></h4>
                             <div class="left col-xs-12">
-                              <h2>{{ core_info.other_contact_name }}</h2>
+                              <h4>{{ core_info.other_contact_name }}</h4>
                               <ul class="list-unstyled">
                                 <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.other_contact_phone }}</li>
                                 <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.other_contact_email }}</li>
