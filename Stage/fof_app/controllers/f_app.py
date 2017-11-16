@@ -239,7 +239,7 @@ def edit_summary(wind_code: str) -> object:
                 v = None
             setattr(fund,k,v)
         db.session.commit()
-        return jsonify(status="ok")
+        return redirect(url_for("f_app.details",wind_code=wind_code))
 
 
 @f_app_blueprint.route('/add_child/<string:wind_code>', methods=['POST', 'GET'])

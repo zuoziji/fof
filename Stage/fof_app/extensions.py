@@ -6,7 +6,7 @@
 """
 
 from functools import wraps
-from flask import abort
+from flask import abort,request,flash,redirect,url_for
 from flask_login import LoginManager, current_user
 from flask_admin import Admin
 from flask_babelex import Babel
@@ -76,7 +76,8 @@ class Permission():
 
     def deny(self):
         logger.error("403　无权访问")
-        abort(403)
+        flash("没有权限使用这个功能", "error")
+        return redirect(request.referrer)
 
     def __call__(self, func):
         logger.info("权限检查 {} {} {}".format(func.__module__, func.__name__, func.__doc__))
