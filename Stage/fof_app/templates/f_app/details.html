@@ -171,8 +171,13 @@
             <div role="tabpanel" class="tab-pane fade" id="tab_content6" aria-labelledby="profile-tab">
               <div class="x_panel fixed_height_390">
                 <div class="x_content">
-                  <div class="col-md-6">
-                    <h2>基金信息</h2>
+                  <div class="col-md-7">
+                    <div class="col-md-11">
+                      <h2>基金信息</h2>
+                    </div>                    
+                    <div class="col-md-1">
+                      <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                    </div><br/><br/>
                     <div class="divider"></div>
                     <ul class="list-unstyled timeline">
                       <li>
@@ -249,13 +254,14 @@
                       </li>
                     </ul>
                   </div>
-                  <div class="col-md-1">
-                    <a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
-                  </div>
-                  <div class="col-md-4" style="border-left: 1px solid #ccc;">
+                  <div class="col-md-5" style="border-left: 1px solid #ccc;">
                       {% if core_info is not none and  current_user.is_core %}
-
-                    <h2>联系人信息</h2>
+                    <div class="col-md-11">
+                      <h2>联系人信息</h2>
+                    </div>                    
+                    <div class="col-md-1">
+                      <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                    </div><br/><br/>
                     <div class="divider"></div>
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
@@ -299,11 +305,10 @@
                           </div>
                         </div>
                       </div>
-                    <div class="col-md-1">
-                    <a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
-                  </div>
                     {% else %}
-                      <P>没有联系人信息</P>
+                      <div style="text-align: center;font-size:15px;height:100%;padding:20px;background: #fafafa;border-radius: 5px;">
+                        <i class="fa fa-user"> 没有联系人信息</i>
+                      </div>
                     {% endif %}
                   </div>
                 </div>
