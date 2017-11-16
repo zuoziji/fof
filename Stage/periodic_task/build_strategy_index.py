@@ -966,7 +966,7 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
     for sheet_name in sheet_names:
         if sheet_name not in col_names:
             continue
-        xls_df = pd.read_excel(file_path, sheetname=sheet_name, index_col=0)
+        xls_df = pd.read_excel(file_path, sheet_name=sheet_name, index_col=0)
         xls_df.index = [try_2_date(xx) for xx in xls_df.index]
         xls_df.sort_index(inplace=True)
         xls_df['weekend_date'] = [xx + timedelta(days=4 - xx.weekday()) for xx in xls_df.index]
@@ -976,7 +976,7 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
         xls_df_weekly = xls_df.ix[date_list].set_index('weekend_date')
         sheet_df_dic[sheet_name] = xls_df_weekly
     # 合并、插值、指数化
-    merge_df = pd.concat([df for df in sheet_df_dic.values()], axis=1)
+    merge_df = pd.concat([df for df in sheet_df_dic.values()], axis=1).sort_index()
     merge_df = fh_utils.DataFrame.interpolate_inner(merge_df).dropna()
     #
     if index_code_name_dic is not None:
@@ -996,6 +996,7 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
     index_s = index_df[col_names].apply(lambda x: x * fund_normolized[x.name]).sum(axis=1)
     # 合并 df
     index_df['组合收益']= index_s
+    index_df.sort_index(inplace=True)
     # 输出 df
     print(index_df)
     stat_df = fh_utils.return_risk_analysis(index_df)
@@ -1124,19 +1125,25 @@ if __name__ == '__main__':
     # quantile_df = get_strategy_mdd_quantile(strategy_type_en, q_list=[0.05, 0.10, 0.2, 0.25, 0.50, 0.6, 0.75, 0.80, 0.85, 0.90, 0.95])
     # print(quantile_df)
 
-    fund_weight = {'万霁资管一号': {'weight': 1, 'rr_amplitude': 1},
-                   '新萌亮点2号': {'weight': 4, 'rr_amplitude': 1},
-                   '睿璞睿洪一号': {'weight': 1, 'rr_amplitude': 1},
-                   '天谷深度价值一号': {'weight': 2, 'rr_amplitude': 0.8},
-                   '思勰思瑞二号': {'weight': 1, 'rr_amplitude': 1},
-                   '红猫智赢一号': {'weight': 1, 'rr_amplitude': 1},
+    # fund_weight = {'万霁资管一号': {'weight': 1, 'rr_amplitude': 1},
+    #                '新萌亮点2号': {'weight': 4, 'rr_amplitude': 1},
+    #                '睿璞睿洪一号': {'weight': 1, 'rr_amplitude': 1},
+    #                '天谷深度价值一号': {'weight': 2, 'rr_amplitude': 0.8},
+    #                '思勰思瑞二号': {'weight': 1, 'rr_amplitude': 1},
+    #                '红猫智赢一号': {'weight': 1, 'rr_amplitude': 1},
+    #                }
+    fund_weight = {'FOF拟合净值': {'weight': 1, 'rr_amplitude': 1},
                    }
     file_path = r'D:\Works\F复华投资\产品路演、宣传材料\FOF净值拟合计算\FOF净值拟合计算使用 2017-11-9.xlsx'
+    # fund_weight = {'鑫隆稳进FOF': {'weight': 1, 'rr_amplitude': 1}
+    #                }
+    # file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\FOF 鑫隆\鑫隆稳进FOF母基金净值（截至20171103）.xlsx'
     # '000001.SH': '上证指数'
     # '000300.SH': '沪深300'
     # '000905.SH': '中证500'
     # '399102.SZ': '创业板综'
-    index_code_name_dic = {'399102.SZ': '创业板综'}
+    # '399102.SZ': '创业板综'
+    index_code_name_dic = {'000001.SH': '上证指数'}
     index_dic = nav_xls_2_index(file_path, fund_weight, index_code_name_dic=index_code_name_dic)
     index_df = index_dic['index_df']
     stat_df = index_dic['stat_df']
