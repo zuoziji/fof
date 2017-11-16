@@ -14,15 +14,16 @@ from flask import render_template, Blueprint, redirect, url_for, abort, request,
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from pandas import DataFrame
-from sqlalchemy import and_, exc, or_,func
+from sqlalchemy import and_, exc, or_
 from analysis.portfolio_optim_fund import calc_portfolio_optim_fund as c4
 from analysis.portfolio_optim_strategy import calc_portfolio_optim_fund
 from backend import upload_file, data_handler, fund_nav_import_csv
-from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, get_stress_data, get_stg,child_charts
+from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, \
+    get_stress_data, get_stg,child_charts,get_core_info
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
-    Invest_corp, query_invest, Invest_corp_file,FUND_NAV_CALC
+    Invest_corp, query_invest, Invest_corp_file,FUND_NAV_CALC,Fund_Core_Info
 from fof_app.tasks import run_scheme_testing
 from periodic_task.build_strategy_index import get_strategy_index_quantile
 from fof_app.extensions import permission, cache
@@ -170,17 +171,18 @@ def details(wind_code: str) -> object:
 
     # child_charts
 
-
     fhs_obj, copula_obj, multi_obj, capital_data = get_stress_data(wind_code)
     stg_obj = get_stg(wind_code)
     stg = stg_obj['stg']
     stg_charts = stg_obj['stg_charts']
+
+    core_info = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
     return render_template('details.html', fof=fof, child=child, stg=stg, fund_file=file_json,
                            time_line=time_line, result=result, data_name=data_name, fund_rr=rr_chunk
                            , date_latest=date_latest, acc=acc, fof_list=fof_list,
                            stg_charts=stg_charts,
                            fhs_obj=fhs_obj, copula_obj=copula_obj, multi_obj=multi_obj,
-                           capital_data=capital_data)
+                           capital_data=capital_data,core_info=core_info)
 
 @f_app_blueprint.route('/get_child_charts',methods=['POST','GETS'])
 def get_child_charts():
@@ -191,6 +193,29 @@ def get_child_charts():
         return jsonify(status='ok',data=result)
 
 
+@f_app_blueprint.route('/download_main_charts')
+def download_main_charts():
+    logger.info("导出数据")
+    data = request.args.to_dict()
+    wind_code = data['wind_code']
+    full_year = datetime.datetime.now() - datetime.timedelta(days=365)
+    ret_dic = data_handler.get_fof_nav_between(wind_code, full_year.strftime("%Y-%m-%d"),
+                                               datetime.date.today().strftime('%Y-%m-%d'))
+    df = ret_dic['fund_df']
+    file_name = wind_code+"净值数据"+".csv"
+    df.to_csv()
+    corp_path = current_app.config['CORP_FOLDER']
+    corp_file_path = path.join(corp_path, file_name)
+    df.to_csv(corp_file_path)
+    response = make_response(send_file(corp_file_path, as_attachment=True, attachment_filename=file_name))
+    basename = os.path.basename(file_name)
+    response.headers["Content-Disposition"] = \
+        "attachment;" \
+        "filename*=UTF-8''{utf_filename}".format(
+            utf_filename=quote(basename.encode('utf-8'))
+        )
+    os.remove(corp_file_path)
+    return response
 @f_app_blueprint.route('/edit_summary/<string:wind_code>', methods=['POST', 'GET'])
 @login_required
 @permission
@@ -537,6 +562,8 @@ def del_file():
 
 
 @f_app_blueprint.route('/maintain_acc')
+@login_required
+@permission
 def maintain_acc():
     fof_list = cache.get(str(current_user.id))
     fund_list = set()
@@ -1440,6 +1467,7 @@ def data_select2():
 
 @f_app_blueprint.route('/invest_corp')
 @login_required
+@permission
 def invest_corp():
     """
     数据库所有的投顾的表格,每种级别投顾的个数
@@ -1543,6 +1571,7 @@ def append_file_upload(uid):
 
 @f_app_blueprint.route('/corp/<uid>', methods=['GET', 'POST'])
 @login_required
+@permission
 def corp(uid):
     """
     投顾详细信息页面,展示投顾每个产品的历史净值图表,上传文件，修改投顾级别
@@ -1775,6 +1804,7 @@ def noopsyche_add():
 
 @f_app_blueprint.route('/batch')
 @login_required
+@permission
 def batch():
     fof_list = cache.get(str(current_user.id))
     return render_template('batch.html', fof_list=fof_list)
@@ -1848,9 +1878,12 @@ def test():
 
 
 @f_app_blueprint.route('/market_report',methods=['GET','POST'])
+@login_required
+@permission
 def market_report():
     if request.method == 'GET':
-        return render_template('market_report.html')
+        fof_list = cache.get(str(current_user.id))
+        return render_template('market_report.html',fof_list=fof_list)
     if request.method == 'POST':
         date_range = request.json
         try:
@@ -1880,6 +1913,8 @@ def market_report():
 
 
 @f_app_blueprint.route('/download_report/')
+@login_required
+@permission
 def download_report():
     data = request.args.to_dict()
     file_path = data['file_name']
@@ -1893,6 +1928,27 @@ def download_report():
         )
     os.remove(file_path)
     return response
+
+
+@f_app_blueprint.route('/core_info/<wind_code>',methods=['POST','GET'])
+@login_required
+def core_info(wind_code):
+    if request.method == 'GET':
+        fof = get_core_info(wind_code)
+        core_info = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
+        return  render_template('core_info.html',core_info=core_info,fof=fof)
+    if request.method == 'POST':
+        data = request.form.to_dict()
+        code = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
+        if code is None:
+            core_info = Fund_Core_Info(**data)
+            db.session.add(core_info)
+            db.session.commit()
+        else:
+            for k, v in data.items():
+                setattr(code, k, v)
+            db.session.commit()
+        return redirect(url_for("f_app.details", wind_code=wind_code))
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
