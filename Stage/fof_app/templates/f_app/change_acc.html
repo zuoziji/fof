@@ -2,6 +2,22 @@
 {% block css %}
     <link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">
     <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
+    <style>
+        .bootstrap-select{
+            width: 500px!important;
+        }
+        #mytool.col-xs-4{
+            padding-top: 5px;
+        }
+        .dropdown-header {
+            color: #5A738E;
+            padding: 5px 20px;
+            font-weight: 700;
+        }
+        .dropdown-menu li a.opt {
+            padding-left: 4em!important;
+        }
+    </style>
 {% endblock %}
 {% block manager %}
 {% endblock %}
@@ -11,43 +27,39 @@
     <div class="col-md-12 col-xs-12">
         <div class="x_panel">
             <div class="x_title">
-                <h2>净值管理</h2>
-                <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="btn btn-success " onclick="history.go(-1)">返回</a></li>
-                </ul>
+                <h2>净值管理&nbsp;&nbsp;<span style="font-size: 16px;color:#8698aa;"></span></h2>
                 <div class="clearfix"></div>
             </div>
-            <div class="x_panel">
-                <div>
-                    <select class="selectpicker"  Standard title="请选择基金">
-                       <optgroup label="请选择基金">
-                       </optgroup>
+            <div class="col-md-11" style="padding-bottom: 20px;">
+                <select class="selectpicker" Standard title="请选择基金">
+                   <optgroup label="请选择基金">
+                   </optgroup>
 
-                        {% for i in fof_list %}
-                            <optgroup label="{{ i.primary }}">
-                             <option value="{{ i.primary.wind_code }}">{{ i.primary }}</option>
-                                {% for x in i.child %}
-                                    <option value="{{ x.code }}">{{ x.name }}</option>
-                                  {% endfor %}
-                          </optgroup>
-                            {% endfor %}
-                    </select>
-                </div>
-               <div class="x_content">
-                <table id="accTable" class="table table-striped table-bordered center-all ">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>净值时间</th>
-                            <th>单位净值</th>
-                            <th>复权净值</th>
-                            <th>增长率</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                </table>
+                    {% for i in fof_list %}
+                        <optgroup label="{{ i.primary }}">
+                         <option value="{{ i.primary.wind_code }}">{{ i.primary }}</option>
+                            {% for x in i.child %}
+                                <option value="{{ x.code }}">{{ x.name }}</option>
+                              {% endfor %}
+                      </optgroup>
+                        {% endfor %}
+                </select>
             </div>
-        </div>
+            <div class="col-md-1">
+                <a class="btn btn-primary " onclick="history.go(-1)">返回</a>
+            </div>
+            <table id="accTable" class="table table-striped center-all ">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>净值时间</th>
+                        <th>单位净值</th>
+                        <th>累计净值</th>
+                        <th>增长率</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 
@@ -70,8 +82,8 @@
                             <input type="text" class="form-control" id="nav_acc" placeholder="单位净值">
                         </div>
                         <div class="form-group">
-                            <label class="col-md-３ control-label" for="nav">复权净值</label>
-                            <input type="text" class="form-control" id="nav" placeholder="复权净值">
+                            <label class="col-md-３ control-label" for="nav">累计净值</label>
+                            <input type="text" class="form-control" id="nav" placeholder="累计净值">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -191,49 +203,48 @@
 
 
     function ajax(obj) {
-         var table = $("#accTable").DataTable();
-    $.ajax({
-        url:'/f_app/add_acc' ,
-        contentType: 'application/json',
-        method:"POST",
-        dataType:'json',
-        data:JSON.stringify({
-            "nav_date": obj.nav_date,
-            "nav_acc": obj.nav_acc,
-            "nav": obj.nav,
-            "wind_code":obj.wind_code
-        }), success: function (data) {
-            console.log(data);
+        var table = $("#accTable").DataTable();
+        $.ajax({
+            url:'/f_app/add_acc' ,
+            contentType: 'application/json',
+            method:"POST",
+            dataType:'json',
+            data:JSON.stringify({
+                "nav_date": obj.nav_date,
+                "nav_acc": obj.nav_acc,
+                "nav": obj.nav,
+                "wind_code":obj.wind_code
+            }), success: function (data) {
 
-            table.ajax.reload();
-            $("#myModal").modal("hide");
-            $("#myModalLabel").text("新增");
-            clear();
+                table.ajax.reload();
+                $("#myModal").modal("hide");
+                $("#myModalLabel").text("新增");
+                clear();
 
-        }
-    });
+            }
+        });
   }
 
     function del(wind_code,nav_date) {
-         var table = $("#accTable").DataTable();
-    $.ajax({
-        url: "/f_app/del_acc",
-        data: JSON.stringify({"wind_code":wind_code,
-            "nav_date": nav_date
-        }),
-        method:"POST",
-        contentType: 'application/json',
-        dataType:'json',
-        success: function (data) {
-            table.ajax.reload(null,false);
-            new PNotify({
-                title: '删除成功',
-                text:  '',
-                type: 'warn',
-                styling: 'bootstrap3'
-            });
-        }
-    });
+        var table = $("#accTable").DataTable();
+        $.ajax({
+            url: "/f_app/del_acc",
+            data: JSON.stringify({"wind_code":wind_code,
+                "nav_date": nav_date
+            }),
+            method:"POST",
+            contentType: 'application/json',
+            dataType:'json',
+            success: function (data) {
+                table.ajax.reload(null,false);
+                new PNotify({
+                    title: '删除成功',
+                    text:  '',
+                    type: 'warn',
+                    styling: 'bootstrap3'
+                });
+            }
+        });
     }
 
 
@@ -241,9 +252,9 @@
      $('.selectpicker').on('change',function (e) {
 
             var selectItem= $(this).find("option:selected").val();
-            var editFlag = false;
+            var selectItem1= $(this).find("option:selected").text()
             var table;
-
+            $("h2 span").html("("+selectItem1+")");
             $(function () {
                 $('#start_date').datetimepicker();
                 var tpl = $("#tpl").html();
@@ -281,6 +292,7 @@
                                 ]
                             };
                             var html = template(context);
+                            console.log(html)
                             return html;
                         }
                     }
@@ -301,8 +313,8 @@
                     "t" +
                     "<'row'<'col-xs-6'i><'col-xs-6'p>>",
                     "initComplete": function () {
-                        $("#mytool").append('<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加新净值</span></button>');
-                        $("#mytool").append('<button type="button" class="btn btn-success btn-sm col-xs-offset-1" data-toggle="modal" data-target="#upload"><span aria-hidden="true" class="glyphicon glyphicon-open">上传净值文件</span></button>');
+                        $("#mytool").append('<button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>添加新净值');
+                        $("#mytool").append('<button type="button" class="btn btn-default btn-xs col-xs-offset-1" data-toggle="modal" data-target="#upload"><span aria-hidden="true" class="glyphicon glyphicon-open"></span></button>上传净值文件');
                     }
                 });
                 //添加序号
@@ -325,8 +337,8 @@
                     e.stopPropagation();
                     add(selectItem)
                 });
-                 $("#close").click(clear);
-                 $(function () {
+                $("#close").click(clear);
+                $(function () {
     'use strict';
     // Change this to the location of your server-side upload handler:
     var url = '/f_app/upload_acc/'+selectItem,
@@ -376,7 +388,6 @@
             node.appendTo(data.context);
         });
     }).on('fileuploadprocessalways', function (e, data) {
-        console.log(data);
         var index = data.index,
         file = data.files[index],
         node = $(data.context.children()[index]);
