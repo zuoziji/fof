@@ -176,7 +176,7 @@
                       <h2>基金信息</h2>
                     </div>                    
                     <div class="col-md-1">
-                      <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                      <a style="font-size: 25px;" href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
                     </div><br/><br/>
                     <div class="divider"></div>
                     <ul class="list-unstyled timeline">
@@ -306,6 +306,13 @@
                         </div>
                       </div>
                     {% else %}
+                      <div class="col-md-11">
+                        <h2>联系人信息</h2>
+                      </div>
+                      <div class="col-md-1">
+                        <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                      </div><br/><br/>
+                      <div class="divider"></div>
                       <div style="text-align: center;font-size:15px;height:100%;padding:20px;background: #fafafa;border-radius: 5px;">
                         <i class="fa fa-user"> 没有联系人信息</i>
                       </div>
@@ -500,8 +507,13 @@
           toolbox: {
             show : true,
             feature : {
-              mark : {show: true},
-              dataView : {show: true, readOnly: false},
+              mark : {
+                show: false
+              },
+              dataView : {
+                show: true, 
+                readOnly: false
+              },
               magicType : {
                 show: true,
                 type: ['pie', 'funnel'],
@@ -904,7 +916,7 @@ t1chart.setOption(option);
                 myTool1: {
                 show: true,
                 title: '导出数据',
-                icon: 'image://http://echarts.baidu.com/images/favicon.png',
+                icon: 'M204.8 449.422l39.822 45.511 210.49-216.177V967.11H512V278.756l210.489 216.177L768 449.423 483.556 170.666zM56.889 56.89h853.333v56.889H56.89z',
                 onclick: function (){
                   var form = $("<form>");
                   form.attr("style","display:none");
