@@ -1,27 +1,40 @@
 {% extends  "main.html" %}
 {% block css %}
-<link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">
+    <link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">
+    <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
 {% endblock %}
-
+{% block manager %}
+{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12 col-xs-12">
         <div class="x_panel">
             <div class="x_title">
-                {% if current_user.is_staff %}
-                <h2>{{ fof.sec_name}}  修改净值</h2>
-                {% else %}
-                <h2>{{  fof.sec_name if fof.alias is none else  fof.alias }} 修改净值</h2>
-                {% endif %}
+                <h2>净值管理</h2>
                 <ul class="nav navbar-right panel_toolbox">
                     <li><a class="btn btn-success " onclick="history.go(-1)">返回</a></li>
                 </ul>
                 <div class="clearfix"></div>
             </div>
             <div class="x_panel">
+                <div>
+                    <select class="selectpicker"  Standard title="请选择基金">
+                       <optgroup label="请选择基金">
+                       </optgroup>
+
+                        {% for i in fof_list %}
+                            <optgroup label="{{ i.primary }}">
+                             <option value="{{ i.primary.wind_code }}">{{ i.primary }}</option>
+                                {% for x in i.child %}
+                                    <option value="{{ x.code }}">{{ x.name }}</option>
+                                  {% endfor %}
+                          </optgroup>
+                            {% endfor %}
+                    </select>
+                </div>
                <div class="x_content">
-                <table id="example" class="table table-striped table-bordered center-all ">
+                <table id="accTable" class="table table-striped table-bordered center-all ">
                     <thead>
                         <tr>
                             <th></th>
@@ -35,6 +48,7 @@
                 </table>
             </div>
         </div>
+        </div>
     </div>
 
     <div>
@@ -42,9 +56,10 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="myModalLabel">增加一个新的净值</h4>
+                        <h4 class="modal-title" id="myModalLabel" data-tag>增加一个新的净值</h4>
                     </div>
                     <div class="modal-body">
+                        <span id="tag"></span>
                         <div class="form-group">
                             <label class="col-md-2 control-label" for="nav_date">时间</label>
                             <input type="date" class="form-control" id="nav_date" placeholder="时间" name="time"
@@ -67,7 +82,7 @@
             </div>
         </div>
         <div class="modal fade" id="upload" tabindex="-1" role="dialog"
-        aria-labelledby="myModalLabel" aria-hidden="true">
+        aria-labelledby="myModalLabel" aria-hidden="true" >
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -127,7 +142,8 @@
 {% endblock %}
 
 {% block script %}
-
+<script src="../../static/vendors/bootstrap-select/js/bootstrap-select.js"></script>
+<script src="../../static/vendors/bootstrap-select/js/i18n/defaults-zh_CN.js"></script>
 <script src="../../static/vendors/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
 <script src="../../static/vendors/jquery-file-upload/js/jquery.iframe-transport.js"></script>
 <script src="../../static/vendors/jquery-file-upload/js/jquery.fileupload.js"></script>
@@ -146,129 +162,38 @@
 
 <script>
 
-
-    $('#myModal').on('show.bs.modal',function () {
-        if($('#nav_date').val() == ""){
-            var today  = moment().format('YYYY-MM-DD');
-            $('#nav_date').val(today);
-        }
-
-    });
-
-    var table;
-    var editFlag = false;
-    $(function () {
-        $('#start_date').datetimepicker();
-        var tpl = $("#tpl").html();
-        var template = Handlebars.compile(tpl);
-        table = $('#example').DataTable({
-            ajax: {
-                url: "/f_app/show_acc/"+{{ wind_code|tojson |safe }}
-            },
-            "order": [[1, 'desc']],
-            "serverSide": false,
-            "columns": [
-            {"data": null},
-            {"data": "nav_date"},
-            {"data": "nav_acc"},
-            {"data": "nav"},
-            {"data":"pct"},
-            {"data": null}
-            ],
-            "columnDefs": [
-            {
-                "searchable": false,
-                "orderable": false,
-                "targets": [0.-1]
-            },
-            {
-                "targets": 5,
-                "render": function (a, b, c, d) {
-                    var context =
-                    {
-                        func: [
-                        {"name": "修改", "fn": "edit(\'" + c.nav_date + "\',\'" + c.nav_acc + "\',\'" + c.nav + "\',\'" + c.pct + "\',\'" +  "\')", "type": "primary"},
-                        {"name": "删除", "fn": "del(\'" + {{ wind_code |tojson|safe }} + "\',\'" + c.nav_date + "\')", "type": "danger"}
-                        ]
-                    };
-                    var html = template(context);
-                    return html;
-                }
-            }
-            ],
-            "language": {
-                "lengthMenu": "每页 _MENU_ 条记录",
-                "zeroRecords": "没有找到记录",
-                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
-                "infoEmpty": "无记录",
-                "search": "搜索：",
-                "infoFiltered": "(从 _MAX_ 条记录过滤)",
-                "paginate": {
-                    "previous": "上一页",
-                    "next": "下一页"
-                }
-            },
-            "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
-            "t" +
-            "<'row'<'col-xs-6'i><'col-xs-6'p>>",
-            "initComplete": function () {
-                $("#mytool").append('<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加新净值</span></button>');
-                $("#mytool").append('<button type="button" class="btn btn-success btn-sm col-xs-offset-1" data-toggle="modal" data-target="#upload"><span aria-hidden="true" class="glyphicon glyphicon-open">上传净值文件</span></button>');
-            }
-        });
-        //添加序号
-        //不管是排序，还是分页，还是搜索最后都会重画，这里监听draw事件即可
-        table.on('draw.dt',function() {
-            table.column(0, {
-                search: 'applied',
-                order: 'applied'
-            }).nodes().each(function(cell, i) {
-                i = i+1;
-                var page = table.page.info();
-                var pageno = page.page;
-                var length = page.length;
-                var columnIndex = (i+pageno*length);
-                cell.innerHTML = columnIndex;
-            });
-        }).draw();
-        $("#save").click(add);
-        $("#close").click(clear);
-    });
-
-    function clear() {
+     function clear() {
       $("#myModalLabel").text("新增");
       $("#nav_date").val("").attr("disabled",false);
       $("#nav_acc").val("");
       $("#nav").val("");
       $("#pct").val("");
-      editFlag = false;
-  }
+            }
+     function add(windCode) {
+        var addJson = {
+            "nav_date": $("#nav_date").val(),
+            "nav_acc": $("#nav_acc").val(),
+            "nav": $("#nav").val(),
+            "wind_code":windCode,
+        };
+        ajax(addJson);
+      }
 
-  function add() {
-    var addJson = {
-        "nav_date": $("#nav_date").val(),
-        "nav_acc": $("#nav_acc").val(),
-        "nav": $("#nav").val(),
-        "wind_code":{{ wind_code|tojson|safe }}
-    };
-    ajax(addJson);
-}
 
-function edit(nav_date,nav_acc,nav) {
-    editFlag = true;
-    $("#myModalLabel").text("修改");
-    $("#nav_date").val(nav_date).attr("disabled",true);
-    $("#nav_acc").val(nav_acc);
-    $("#nav").val(nav);
-    $("#myModal").modal("show");
-}
-function ajax(obj) {
-    var url ="/f_app/add_acc" ;
-    if(editFlag){
-        url = "/f_app/edit_acc";
+      function edit(nav_date,nav_acc,nav) {
+        $("#myModalLabel").text("修改");
+        $("#nav_date").val(nav_date).attr("disabled",true);
+        $("#nav_acc").val(nav_acc);
+        $("#nav").val(nav);
+        $("#myModal").modal("show");
     }
+
+
+
+    function ajax(obj) {
+         var table = $("#accTable").DataTable();
     $.ajax({
-        url:url ,
+        url:'/f_app/add_acc' ,
         contentType: 'application/json',
         method:"POST",
         dataType:'json',
@@ -278,28 +203,19 @@ function ajax(obj) {
             "nav": obj.nav,
             "wind_code":obj.wind_code
         }), success: function (data) {
-            if(data['status'] == "error"){
-              new PNotify({
-                title: '这条记录已存在',
-                text:  obj.nav_date +"  " + obj.nav_acc,
-                type: 'warn',
-                styling: 'bootstrap3'
-            });
-          }else{
-            if(editFlag){
-                table.ajax.reload(null,false);
-            }else{
-                table.ajax.reload();
-            }
+            console.log(data);
+
+            table.ajax.reload();
             $("#myModal").modal("hide");
             $("#myModalLabel").text("新增");
             clear();
-            }
+
         }
     });
-}
+  }
 
-function del(wind_code,nav_date) {
+    function del(wind_code,nav_date) {
+         var table = $("#accTable").DataTable();
     $.ajax({
         url: "/f_app/del_acc",
         data: JSON.stringify({"wind_code":wind_code,
@@ -318,14 +234,102 @@ function del(wind_code,nav_date) {
             });
         }
     });
-}
+    }
 
 
 
-$(function () {
+     $('.selectpicker').on('change',function (e) {
+
+            var selectItem= $(this).find("option:selected").val();
+            var editFlag = false;
+            var table;
+
+            $(function () {
+                $('#start_date').datetimepicker();
+                var tpl = $("#tpl").html();
+                var template = Handlebars.compile(tpl);
+                var selectItem= $(this).find("option:selected").val();
+                table = $('#accTable').DataTable({
+                    ajax: {
+                        url: "/f_app/show_acc/"+selectItem
+                    },
+                    "order": [[1, 'desc']],
+                    "serverSide": false,
+                    "destroy": true,
+                    "columns": [
+                    {"data": null},
+                    {"data": "nav_date"},
+                    {"data": "nav_acc"},
+                    {"data": "nav"},
+                    {"data":"pct"},
+                    {"data": null}
+                    ],
+                    "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": [0.-1]
+                    },
+                    {
+                        "targets": 5,
+                        "render": function (a, b, c, d) {
+                            var context =
+                            {
+                                func: [
+                                {"name": "修改", "fn": "edit(\'" + c.nav_date + "\',\'" + c.nav_acc + "\',\'" + c.nav + "\',\'" + c.pct + "\')", "type": "primary"},
+                                {"name": "删除", "fn": "del(\'" + selectItem + "\',\'" + c.nav_date + "\')", "type": "danger"}
+                                ]
+                            };
+                            var html = template(context);
+                            return html;
+                        }
+                    }
+                    ],
+                    "language": {
+                        "lengthMenu": "每页 _MENU_ 条记录",
+                        "zeroRecords": "没有找到记录",
+                        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                        "infoEmpty": "无记录",
+                        "search": "搜索：",
+                        "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                        "paginate": {
+                            "previous": "上一页",
+                            "next": "下一页"
+                        }
+                    },
+                    "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
+                    "t" +
+                    "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                    "initComplete": function () {
+                        $("#mytool").append('<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加新净值</span></button>');
+                        $("#mytool").append('<button type="button" class="btn btn-success btn-sm col-xs-offset-1" data-toggle="modal" data-target="#upload"><span aria-hidden="true" class="glyphicon glyphicon-open">上传净值文件</span></button>');
+                    }
+                });
+                //添加序号
+                //不管是排序，还是分页，还是搜索最后都会重画，这里监听draw事件即可
+                table.on('draw.dt',function() {
+                    table.column(0, {
+                        search: 'applied',
+                        order: 'applied'
+                    }).nodes().each(function(cell, i) {
+                        i = i+1;
+                        var page = table.page.info();
+                        var pageno = page.page;
+                        var length = page.length;
+                        var columnIndex = (i+pageno*length);
+                        cell.innerHTML = columnIndex;
+                    });
+                }).draw();
+
+                $("#save").on("click",function (e) {
+                    e.stopPropagation();
+                    add(selectItem)
+                });
+                 $("#close").click(clear);
+                 $(function () {
     'use strict';
     // Change this to the location of your server-side upload handler:
-    var url = '/f_app/upload_acc/'+{{ wind_code | tojson|safe }},
+    var url = '/f_app/upload_acc/'+selectItem,
     uploadButton = $('<button/>')
     .addClass('btn btn-primary')
     .prop('disabled', true)
@@ -428,6 +432,29 @@ $(function () {
     }).prop('disabled', !$.support.fileInput)
     .parent().addClass($.support.fileInput ? undefined : 'disabled');
 });
+
+            });
+        });
+    $('#myModal').on('show.bs.modal',function () {
+        if($('#nav_date').val() == ""){
+            var today  = moment().format('YYYY-MM-DD');
+            $('#nav_date').val(today);
+        }
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 </script>
 
