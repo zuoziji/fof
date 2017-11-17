@@ -133,7 +133,7 @@
 
           <div class="form-group">
            <div class="col-md-3 col-md-offset-1 ">
-               <a href="{{ url_for('f_app.details',wind_code=wind_code) }}">
+               <a href="{{ url_for('f_app.home',wind_code=wind_code) }}">
                    <input type="button" class="btn btn-success" value="返回">
                </a>
            </div>
@@ -215,8 +215,25 @@
                 "nav": obj.nav,
                 "wind_code":obj.wind_code
             }), success: function (data) {
+                if(data.acc == "edit"){
+                    table.ajax.reload(null,false);
+                    new PNotify({
+                    title: '修改成功',
+                    text:  '',
+                    type: 'success',
+                    styling: 'bootstrap3'
+                });
 
-                table.ajax.reload();
+                }else{
+                     table.ajax.reload();
+                    new PNotify({
+                    title: '添加成功',
+                    text:  '',
+                    type: 'success',
+                    styling: 'bootstrap3'
+                });
+                }
+
                 $("#myModal").modal("hide");
                 $("#myModalLabel").text("新增");
                 clear();
@@ -252,9 +269,9 @@
      $('.selectpicker').on('change',function (e) {
 
             var selectItem= $(this).find("option:selected").val();
-            var selectItem1= $(this).find("option:selected").text()
-            var table;
-            $("h2 span").html("("+selectItem1+")");
+            var selectItemText= $(this).find("option:selected").text();
+
+            $("h2 span").html("("+selectItemText+")");
             $(function () {
                 $('#start_date').datetimepicker();
                 var tpl = $("#tpl").html();
@@ -292,7 +309,6 @@
                                 ]
                             };
                             var html = template(context);
-                            console.log(html)
                             return html;
                         }
                     }
@@ -334,7 +350,7 @@
                 }).draw();
 
                 $("#save").on("click",function (e) {
-                    e.stopPropagation();
+                   // e.stopPropagation();
                     add(selectItem)
                 });
                 $("#close").click(clear);

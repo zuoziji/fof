@@ -653,7 +653,7 @@ def add_acc():
             fof_list = get_all_fof()
             cache.set(key=str(current_user.id), value=fof_list)
             logger.info("用户{}基金列表缓存已更新".format(current_user.username))
-        return jsonify(status='ok')
+        return jsonify(acc="add")
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))
         post_data = request.json
@@ -670,33 +670,10 @@ def add_acc():
             session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
             session.execute(replace_nav_str, {'wind_code': request.json['wind_code'],
                                               'nav_date': request.json['nav_date'], 'force_update': True})
-        return jsonify(status='ok')
+        return jsonify(acc="edit")
 
 
-@f_app_blueprint.route('/edit_acc', methods=['POST', 'GET'])
-@login_required
-def edit_acc():
-    """
-    编辑已存在的一条净值记录
-    :by hdhuang
-    :return:
-    """
-    post_data = request.json
-    acc_record = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == post_data['wind_code']),
-                                       (FUND_NAV.nav_date == post_data['nav_date'])).first()
-    acc_record.nav_acc = post_data['nav_acc']
-    acc_record.nav = post_data['nav']
-    db.session.add(acc_record)
-    db.session.commit()
-    sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
-    replace_nav_str = "call proc_replace_fund_nav_by_wind_code(:wind_code, :nav_date,:force_update)"
 
-    with get_db_session(get_db_engine()) as session:
-        logger.info("开始执行存储过程")
-        session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
-        session.execute(replace_nav_str,{'wind_code':request.json['wind_code'],
-                                         'nav_date':request.json['nav_date'],'force_update':True})
-    return jsonify(status='ok')
 
 
 @f_app_blueprint.route('/change_acc', methods=['POST', 'GET'])
