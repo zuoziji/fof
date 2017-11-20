@@ -1,4 +1,6 @@
+import math
 import pandas as pd
+import numpy as np
 from sqlalchemy.types import String, Date, FLOAT, Integer
 from config_fh import get_db_session, get_db_engine, STR_FORMAT_DATE
 import os
@@ -265,8 +267,20 @@ def check_fund_nav_multi(file_path, ret_df=False):
             error_dic[wind_code] = "%s 不是有效的基金代码" % wind_code
         if wind_code_name_dic[wind_code] != data_dic['基金名称']:
             error_dic[wind_code + '_name'] = "%s 与 %s 不匹配" % (wind_code, data_dic['基金名称'])
+        try:
+            if math.isnan(data_dic['单位净值']):
+                error_dic[wind_code + '_nav'] = "%s 基金净值为空或不是有效数字" % wind_code
+        except:
+            error_dic[wind_code + '_nav'] = "%s 基金净值不是有效数字" % wind_code
+        try:
+            if math.isnan(data_dic['累计净值']):
+                error_dic[wind_code + '_navacc'] = "%s 累计净值为空或不是有效数字" % wind_code
+        except:
+            error_dic[wind_code + '_navacc'] = "%s 累计净值不是有效数字" % wind_code
+        if not isinstance(data_dic['日期'], pd.datetime):
+            error_dic[wind_code + '日期'] = "%s 日期%s不是有效日期值" % (wind_code, data_dic['日期'])
 
-        return data_df if ret_df else data_list, [error_info for _, error_info in error_dic.items()]
+    return data_df if ret_df else data_list, [error_info for _, error_info in error_dic.items()]
 
 
 def import_fund_nav_multi(file_path, mode='delete_insert'):
