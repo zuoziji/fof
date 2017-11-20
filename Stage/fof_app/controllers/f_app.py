@@ -31,7 +31,8 @@ from periodic_task.build_strategy_index import calc_index_by_wind_code_dic
 from backend.Datatables import DataTablesServer
 from backend.fund_nav_calc import calc_fof_nav
 from config_fh import get_db_session
-from backend.market_report import gen_analysis,gen_report
+from backend.market_report import gen_report
+from backend.fund_nav_import_csv import  check_fund_nav_multi,import_fund_nav_multi
 
 
 logger = logging.getLogger()
@@ -1942,6 +1943,24 @@ def core_info(wind_code):
                 setattr(code, k, v)
             db.session.commit()
         return redirect(url_for("f_app.details", wind_code=wind_code))
+
+
+@f_app_blueprint.route('/import_nav',methods=['GET','POST'])
+def import_nav():
+    if request.method == 'GET':
+        fof_list = cache.get(str(current_user.id))
+        return render_template("import_nav.html",fof_list=fof_list)
+
+    if request.method == "POST":
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            file_path = os.path.join(current_app.config['ACC_FOLDER'], file.filename)
+            file.save(file_path)
+            data_dict, error_list = check_fund_nav_multi(file_path)
+            return render_template("import_nav.html",data_dict=data_dict,error_list=error_list)
+            #import_fund_nav_multi(file_path)
+            #return file_path
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

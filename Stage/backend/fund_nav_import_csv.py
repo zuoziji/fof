@@ -5,6 +5,7 @@ import os
 from fh_tools.fh_utils import str_2_date, get_first, pattern_data_format, try_2_date
 import xlrd
 import logging
+
 logger = logging.getLogger()
 
 
@@ -80,32 +81,69 @@ def update_fundnav_by_file(wind_code, file_path, mode='delete_insert', skip_rows
     fund_nav_df.dropna(subset=['nav'], inplace=True)
     fund_nav_df['nav_acc'] = fund_nav_df[['nav', 'nav_acc']].fillna(method='ffill', axis=1)['nav_acc']
     fund_nav_df['wind_code'] = wind_code
-    fund_nav_df['source_mark'] = 2
-    # lambda x: datetime.strptime(x, STR_FORMAT_DATE)
-    data_str = get_first(fund_nav_df['nav_date'], lambda x: type(x) == str)
-    if data_str is not None:
-        date_str_format = pattern_data_format(data_str)
-        nav_date_s = fund_nav_df['nav_date'].apply(
-            lambda x: str_2_date(x, date_str_format=date_str_format))
-        fund_nav_df['nav_date'] = nav_date_s
-    else:
-        nav_date_s = fund_nav_df['nav_date'].apply(try_2_date)
-        fund_nav_df['nav_date'] = nav_date_s
-    if nav_date_s.shape[0] > 0:
-        date_min, date_max = try_2_date(nav_date_s.min()), try_2_date(nav_date_s.max())
-    else:
-        date_min, date_max = None, None
-    # 更新数据库
-    engine = get_db_engine()
-    if mode == 'delete_insert':
-        # nav_date_s = fund_nav_df['nav_date']
+    update_fund_nav_df(fund_nav_df, mode=mode)
+
+
+def update_fund_nav_df(data_df, mode='delete_insert'):
+    """
+    将净值df 文件更新到数据库。df文件格式 wind_code, nav_date, nav, nav_acc
+    :param fund_nav_df: 
+    :param mode: 
+    :return: 
+    """
+    data_df['source_mark'] = 2
+    for wind_code, fund_nav_df in data_df.groupby('wind_code'):
+        # lambda x: datetime.strptime(x, STR_FORMAT_DATE)
+        data_str = get_first(fund_nav_df['nav_date'], lambda x: type(x) == str)
+        if data_str is not None:
+            date_str_format = pattern_data_format(data_str)
+            nav_date_s = fund_nav_df['nav_date'].apply(
+                lambda x: str_2_date(x, date_str_format=date_str_format))
+            fund_nav_df['nav_date'] = nav_date_s
+        else:
+            nav_date_s = fund_nav_df['nav_date'].apply(try_2_date)
+            fund_nav_df['nav_date'] = nav_date_s
+        fund_nav_df.dropna(inplace=True)
         if nav_date_s.shape[0] > 0:
+            date_min, date_max = try_2_date(nav_date_s.min()), try_2_date(nav_date_s.max())
+        else:
+            date_min, date_max = None, None
+        # 更新数据库
+        engine = get_db_engine()
+        if mode == 'delete_insert':
+            # nav_date_s = fund_nav_df['nav_date']
+            if nav_date_s.shape[0] > 0:
+                with get_db_session(engine) as session:
+                    # 清理历史数据
+
+                    sql_str = 'delete from fund_nav where wind_code = :wind_code and nav_date between :date_frm and :date_to'
+                    session.execute(sql_str, [{'wind_code': wind_code,
+                                               'date_frm': date_min,
+                                               'date_to': date_max}])
+                    # 数据插入表
+                    table_name = 'fund_nav'
+                    fund_nav_df.set_index(['wind_code', 'nav_date'], inplace=True)
+                    fund_nav_df.to_sql(table_name, engine, if_exists='append',
+                                       dtype={
+                                           'wind_code': String(20),
+                                           'nav_date': Date,
+                                           'nav': FLOAT,
+                                           'nav_acc': FLOAT,
+                                           'source_mark': Integer
+                                       })
+                    # 执行存储过程，将相关批次数据统一更新
+                    if date_max is not None:
+                        sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
+                        session.execute(sql_str, [{'wind_code': wind_code,
+                                                   'nav_date': date_max,
+                                                   'force_update': True}])
+
+        elif mode == 'remove_insert':
             with get_db_session(engine) as session:
+                nav_date_s = fund_nav_df['nav_date']
                 # 清理历史数据
-                sql_str = 'delete from fund_nav where wind_code = :wind_code and nav_date between :date_frm and :date_to'
-                session.execute(sql_str, [{'wind_code': wind_code,
-                                           'date_frm': date_min,
-                                           'date_to': date_max}])
+                sql_str = 'delete from fund_nav where wind_code = :wind_code'
+                session.execute(sql_str, [{'wind_code': wind_code}])
                 # 数据插入表
                 table_name = 'fund_nav'
                 fund_nav_df.set_index(['wind_code', 'nav_date'], inplace=True)
@@ -123,49 +161,25 @@ def update_fundnav_by_file(wind_code, file_path, mode='delete_insert', skip_rows
                     session.execute(sql_str, [{'wind_code': wind_code,
                                                'nav_date': date_max,
                                                'force_update': True}])
+        elif mode == 'replace_insert':
+            data_list = list(fund_nav_df.T.to_dict().values())
+            with get_db_session() as session:
+                sql_str = "REPLACE INTO fund_nav (wind_code, nav_date, nav, nav_acc, source_mark) values (:wind_code, :nav_date, :nav, :nav_acc, :source_mark)"
+                session.execute(sql_str, data_list)
+                # 执行存储过程，将相关批次数据统一更新
+                if date_max is not None:
+                    sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
+                    session.execute(sql_str, [{'wind_code': wind_code,
+                                               'nav_date': date_max,
+                                               'force_update': True}])
+        else:
+            raise ValueError('mode="%s" is not available' % mode)
 
-    elif mode == 'remove_insert':
+        # 更新 fund_info 表统计信息
+        sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
         with get_db_session(engine) as session:
-            nav_date_s = fund_nav_df['nav_date']
-            # 清理历史数据
-            sql_str = 'delete from fund_nav where wind_code = :wind_code'
-            session.execute(sql_str, [{'wind_code': wind_code}])
-            # 数据插入表
-            table_name = 'fund_nav'
-            fund_nav_df.set_index(['wind_code', 'nav_date'], inplace=True)
-            fund_nav_df.to_sql(table_name, engine, if_exists='append',
-                               dtype={
-                                   'wind_code': String(20),
-                                   'nav_date': Date,
-                                   'nav': FLOAT,
-                                   'nav_acc': FLOAT,
-                                   'source_mark': Integer
-                               })
-            # 执行存储过程，将相关批次数据统一更新
-            if date_max is not None:
-                sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
-                session.execute(sql_str, [{'wind_code': wind_code,
-                                           'nav_date': date_max,
-                                           'force_update': True}])
-    elif mode == 'replace_insert':
-        data_list = list(fund_nav_df.T.to_dict().values())
-        with get_db_session() as session:
-            sql_str = "REPLACE INTO fund_nav (wind_code, nav_date, nav, nav_acc, source_mark) values (:wind_code, :nav_date, :nav, :nav_acc, :source_mark)"
-            session.execute(sql_str, data_list)
-            # 执行存储过程，将相关批次数据统一更新
-            if date_max is not None:
-                sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
-                session.execute(sql_str, [{'wind_code': wind_code,
-                                           'nav_date': date_max,
-                                           'force_update': True}])
-    else:
-        raise ValueError('mode="%s" is not available' % mode)
-
-    # 更新 fund_info 表统计信息
-    sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
-    with get_db_session(engine) as session:
-        session.execute(sql_str, {'wind_code': wind_code, 'force_update': True})
-    logger.info('import fund_nav %d data on %s' % (fund_nav_df.shape[0], wind_code))
+            session.execute(sql_str, {'wind_code': wind_code, 'force_update': True})
+        logger.info('import fund_nav %d data on %s' % (fund_nav_df.shape[0], wind_code))
 
 
 def update_fundnav_by_sheet_name(wind_code_sheet_name_dic_list, file_path, mode='replace_insert', skip_rows=0):
@@ -209,6 +223,77 @@ def import_fund_nav_fof2(file_path):
     # update_fundnav_by_sheet_name(wind_code_sheet_name_dic_list, file_path, mode='delete_insert', skip_rows=1)
 
 
+def check_fund_nav_multi(file_path, ret_df=False):
+    """
+    检查基金净值文件格式是否有效
+    返回error_list, df.to_dict(默认)
+    :param file_path: 
+    :param ret_df: 
+    :return: 
+    """
+    data_list, data_df, error_dic = [], None, {}
+    _, file_extension = os.path.splitext(file_path)
+    if file_extension == '.csv':
+        data_df = pd.read_csv(file_path)
+    elif file_extension in ('.xls', '.xlsx'):
+        data_df = pd.read_excel(file_path)
+    else:
+        error_dic['file type'] = '不支持 %s 净值文件类型' % file_extension
+    if data_df.shape[0] == 0:
+        error_dic['data len'] = '数据表为空'
+        return data_df if ret_df else data_list, [error_info for _, error_info in error_dic.items()]
+
+    col_name_list = list(data_df.columns)
+    data_list = data_df.to_dict('record')
+    # 字段检查
+    col_name_list = list(data_df.columns)
+    missing_col_list = []
+    for col_name in {'基金代码', '基金名称', '日期', '单位净值', '累计净值', '份额分红', '金额分红'}:
+        if col_name not in col_name_list:
+            missing_col_list.append(col_name)
+    if len(missing_col_list) > 0:
+        error_dic['data col'] = '当前数据缺少字段 %s' % missing_col_list
+
+    # 基金代码检查
+    engine = get_db_engine()
+    sql_str = "select wind_code_s, sec_name_s from fund_essential_info"
+    with get_db_session(engine) as session:
+        wind_code_name_dic = dict(session.execute(sql_str).fetchall())
+    for data_dic in data_list:
+        wind_code = data_dic['基金代码']
+        if wind_code not in wind_code_name_dic:
+            error_dic[wind_code] = "%s 不是有效的基金代码" % wind_code
+        if wind_code_name_dic[wind_code] != data_dic['基金名称']:
+            error_dic[wind_code + '_name'] = "%s 与 %s 不匹配" % (wind_code, data_dic['基金名称'])
+
+        return data_df if ret_df else data_list, [error_info for _, error_info in error_dic.items()]
+
+
+def import_fund_nav_multi(file_path, mode='delete_insert'):
+    """
+    根据excel文件 上传基金净值
+    文件格式包含表头
+    表头格式：基金代码	基金名称	日期	单位净值	累计净值	金额分红  份额分红
+    基金代码，基金名称之间需要对应
+    :param file_path:
+    :param mode:
+    :return:
+    """
+    # 文件检查
+    data_df, error_list = check_fund_nav_multi(file_path, ret_df=True)
+    if error_list is not None and len(error_list) > 0:
+        raise ValueError('\n'.join(error_list))
+    imp_data_df = data_df.rename(columns={'基金代码': 'wind_code',
+                                          '基金名称': 'sec_name',
+                                          '日期': 'nav_date',
+                                          '单位净值': 'nav',
+                                          '累计净值': 'nav_acc',
+                                          '份额分红': 'share',
+                                          '金额分红': 'cash'})
+    imp_data_df = imp_data_df[['wind_code', 'nav_date', 'nav', 'nav_acc']]
+    update_fund_nav_df(imp_data_df, mode=mode)
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
     # file_path = r'd:\Downloads\nav_file.xlsx'
@@ -222,9 +307,9 @@ if __name__ == '__main__':
     # 文件上传方式更新基金净值
     # wind_code = 'XT1605537.XT'
     # file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\杉树欣欣 2017-05-16.xlsx'
-    wind_code = 'FHC-XYJ20160707'
-    file_path = r'd:\Downloads\海楚3号.xlsx'
-    update_fundnav_by_file(wind_code, file_path)  # , mode='replace_insert'
+    # wind_code = 'FHF-XM20170322A'
+    # file_path = r'D:\Backup\WeChat Files\WeChat Files\Mr_MarsDog\Files\新萌量化1103.xlsx'
+    # update_fundnav_by_file(wind_code, file_path)  # , mode='replace_insert'
 
     # 鑫隆FOF 一期、二期净值
     # wind_code = 'FHF101601'
@@ -235,3 +320,10 @@ if __name__ == '__main__':
 
     # file_path = r"Z:\投后管理\产品净值\FOF基金\产品净值\FOF一期净值.xlsx"
     # import_fund_nav_fof1(file_path)
+
+    # excel文件检查
+    file_path = r'd:\Works\F复华投资\FOF管理系统\净值计算\基金净值上传用文件2017-11-16.xlsx'
+    data_dict, error_list = check_fund_nav_multi(file_path)
+    import_fund_nav_multi(file_path)
+    # for err_info in error_list:
+    #     print(err_info)
