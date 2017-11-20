@@ -180,14 +180,7 @@
                 <ul class="nav side-menu">
                   <li><a><i class="fa fa-bug"></i>基金管理<span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-
-                        <li><a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}">修改基金</a></li>
-                        <li><a href="{{ url_for('f_app.add_child',wind_code=fof.wind_code) }}">添加子基金</a></li>
-                        <li><a href="{{ url_for('f_app.add_stg',wind_code=fof.wind_code) }}">添加策略</a></li>
-                        <li><a href="{{ url_for('f_app.fof_upload',wind_code=fof.wind_code) }}">添加文件</a></li>
-                        <li><a href="{{ url_for('f_app.change_acc',wind_code=fof.wind_code) }}">修改净值</a> </li>
                         <li><a href="{{ url_for('f_app.calendar',wind_code=fof.wind_code) }}">相关日程</a> </li>
-                        <li><a href="{{ url_for('f_app.benchmark',wind_code=fof.wind_code) }}">方案分析</a> </li>
 
                     </ul>
                   </li>

@@ -117,7 +117,7 @@
 
               </div>
               <div class="col-lg-5 col-md-5 col-sm-5 btn-group" id="t2button"
-                   style="position: absolute;top:50px;left:150px;">
+                   style="position: absolute;top:50px;left:5px;">
                 <button class="btn btn-xs" value="batch">批次</button>
                 <button class="btn btn-xs btn-info active" value="fund">基金</button>
               </div>
@@ -135,17 +135,30 @@
               <!-- end user projects -->
             </div>
             <div role="tabpanel" class="tab-pane fade" id="tab_content3" aria-labelledby="profile-tab">
-              <table class="table table-bordered center-all" id="tab3" width="100%">
-                <thead>
-                <tr>
-                  <th>文件名称</th>
-                  <th>文件类型</th>
-                  <th>上传时间</th>
-                  <th></th>
-                </tr>
-                </thead>
+              <div class="x_panel fixed_height_390">
+                <div class="x_title">
+                  <div class="col-md-11">
+                    <h2>文件信息</h2>
+                  </div>                    
+                  <div class="col-md-1">
+                    <a href="{{ url_for('f_app.fof_upload',wind_code=fof.wind_code) }}">
+                      <button class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> 添加文件</button>
+                    </a>
+                  </div>
+                  <div class="clearfix"></div>
+                </div>
+                <table class="table table-bordered center-all" id="tab3" width="100%">
+                  <thead>
+                  <tr>
+                    <th>文件名称</th>
+                    <th>文件类型</th>
+                    <th>上传时间</th>
+                    <th></th>
+                  </tr>
+                  </thead>
 
-              </table>
+                </table>
+              </div>
             </div>
             <div role="tabpanel" class="tab-pane fade" id="tab_content5" aria-labelledby="profile-tab">
               <div id="capital_data" style="height:500px;padding:10px;"></div>
@@ -172,13 +185,15 @@
               <div class="x_panel fixed_height_390">
                 <div class="x_content">
                   <div class="col-md-7">
-                    <div class="col-md-11">
-                      <h2>基金信息</h2>
-                    </div>                    
-                    <div class="col-md-1">
-                      <a style="font-size: 25px;" href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
-                    </div><br/><br/>
-                    <div class="divider"></div>
+                    <div class="x_title">
+                      <div class="col-md-11">
+                        <h2>基金信息</h2>
+                      </div>
+                      <div class="col-md-1">
+                        <a style="font-size: 25px;" href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                      </div>
+                      <div class="clearfix"></div>
+                    </div>
                     <ul class="list-unstyled timeline">
                       <li>
                         <div class="block">
@@ -255,14 +270,16 @@
                     </ul>
                   </div>
                   <div class="col-md-5" style="border-left: 1px solid #ccc;">
-                      {% if core_info is not none and  current_user.is_core %}
-                    <div class="col-md-11">
-                      <h2>联系人信息</h2>
-                    </div>                    
-                    <div class="col-md-1">
-                      <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
-                    </div><br/><br/>
-                    <div class="divider"></div>
+                    <div class="x_title">
+                      <div class="col-md-11">
+                        <h2>联系人信息</h2>
+                      </div>                    
+                      <div class="col-md-1">
+                        <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                      </div>
+                      <div class="clearfix"></div>
+                    </div>
+                    {% if core_info is not none and  current_user.is_core %}
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
                           <div class="col-sm-12">
@@ -306,13 +323,6 @@
                         </div>
                       </div>
                     {% else %}
-                      <div class="col-md-11">
-                        <h2>联系人信息</h2>
-                      </div>
-                      <div class="col-md-1">
-                        <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
-                      </div><br/><br/>
-                      <div class="divider"></div>
                       <div style="text-align: center;font-size:15px;height:100%;padding:20px;background: #fafafa;border-radius: 5px;">
                         <i class="fa fa-user"> 没有联系人信息</i>
                       </div>
@@ -325,7 +335,14 @@
             <div role="tabpanel" class="tab-pane fade" id="tab_content7" aria-labelledby="profile-tab">        
             <div class="x_panel fixed_height_390">
               <div class="x_title">
-                <h4>基本净值信息</h4>
+                <div class="col-md-11">
+                  <h4>基本净值信息</h4>
+                </div>
+                <div class="col-md-1">
+                  <a style="font-size: 25px;" href="{{ url_for('f_app.benchmark',wind_code=fof.wind_code) }}">
+                    <button class="btn btn-primary btn-sm"><i class="fa fa-line-chart"></i> 方案分析</button>
+                  </a>
+                </div>
                 <div class="clearfix"></div>
               </div>
               <div class="x_content">
@@ -473,6 +490,7 @@
           },
           legend: {
             left: 150,
+            top: 10,
             width : 700,
             padding: [0,0,25,0],
             data:legend,
@@ -648,6 +666,8 @@ for(var i=0;i<stgCharts.value.length;i++){
       formatter:  "{a} <br/>{b} : {c} ({d}%)"
     },
     legend: {
+      left: 150,
+      top: 2,
       data:stg_legend
     },
     toolbox: {

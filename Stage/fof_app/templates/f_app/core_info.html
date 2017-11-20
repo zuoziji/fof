@@ -8,16 +8,15 @@
             <div class="x_panel">
                 <div class="x_title">
                     {% if current_user.is_staff %}
-                    <h2>{{ fof.sec_name}}  修改基本信息   <span>{{ fof.wind_code }}(基金代码)</span></h2>
+                    <h2>{{ fof.sec_name}}  修改联系人信息   <span>{{ fof.wind_code }}(基金代码)</span></h2>
                     {% else %}
-                    <h2>{{ fof.alias }}  修改基本信息   <span>{{ fof.wind_code }}(基金代码)</span></h2>
+                    <h2>{{ fof.alias }}  修改联系人信息   <span>{{ fof.wind_code }}(基金代码)</span></h2>
                     {% endif %}
                     <div class="clearfix"></div>
                 </div>
                 <div class="x_content">
                     <form class="form-horizontal form-label-left" method="POST" action="{{ url_for('f_app.core_info',wind_code=fof.wind_code)}}">    
                         <input type="text" name="wind_code" class="form-control input-md" value="{{ fof.wind_code }}" style="display: none;">
-                        <h2 class="page-header" style="margin-top:20px;">联系人信息</h2>
                         <div class="row">
                             <label class="control-label col-md-1 col-sm-1 col-xs-3">基金:</label>
                             <div class="form-group col-md-3">
