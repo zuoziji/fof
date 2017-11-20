@@ -506,28 +506,31 @@
           ],
           toolbox: {
             show : true,
+            orient: 'vertical',
+            padding: 20,
+            itemGap: 20,
+            itemSize: 20,
             feature : {
               mark : {
                 show: false
               },
-              dataView : {
-                show: true, 
-                readOnly: false
-              },
-              magicType : {
-                show: true,
-                type: ['pie', 'funnel'],
-                option: {
-                  funnel: {
-                    x: '25%',
-                    width: '50%',
-                    funnelAlign: 'left',
-                    max: 1700
+              myTool1: {
+                  show: true,
+                  title: '添加子基金',
+                  icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
+                  onclick: function (){
+                      window.location.href="{{ url_for('f_app.add_child',wind_code=fof.wind_code) }}";
                   }
-                }
               },
-              restore : {show: true},
-              saveAsImage : {show: true}
+              saveAsImage : {
+                show: true,
+                icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+              }
+            },
+            iconStyle: {
+              normal: {
+                color: "#09487e"
+              }
             }
           }
         };
@@ -649,23 +652,29 @@ for(var i=0;i<stgCharts.value.length;i++){
     },
     toolbox: {
       show : true,
+      orient: 'vertical',
+      padding: 20,
+      itemGap: 20,
+      itemSize: 20,
       feature : {
         mark : {show: true},
-        dataView : {show: true, readOnly: false},
-        magicType : {
-          show: true,
-          type: ['pie', 'funnel'],
-          option: {
-            funnel: {
-              x: '25%',
-              width: '50%',
-              funnelAlign: 'left',
-              max: 1700
+        myTool1: {
+            show: true,
+            title: '添加策略',
+            icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
+            onclick: function (){
+                window.location.href="{{ url_for('f_app.add_stg',wind_code=fof.wind_code) }}";
             }
-          }
         },
-        restore : {show: true},
-        saveAsImage : {show: true}
+        saveAsImage : {
+          show: true,
+          icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+        }
+      },
+      iconStyle: {
+        normal: {
+          color: "#09487e"
+        }
       }
     }
   };
@@ -912,11 +921,23 @@ t1chart.setOption(option);
           },
           toolbox: {
             show : true,
+            orient: 'vertical',
+            padding: 20,
+            itemGap: 20,
+            itemSize: 20,
             feature : {
-                myTool1: {
+              myTool2: {
+                  show: true,
+                  title: '添加净值',
+                  icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
+                  onclick: function (){
+                      window.location.href="{{ url_for('f_app.change_acc',wind_code=fof.wind_code) }}";
+                  }
+              },
+              myTool1: {
                 show: true,
                 title: '导出数据',
-                icon: 'M204.8 449.422l39.822 45.511 210.49-216.177V967.11H512V278.756l210.489 216.177L768 449.423 483.556 170.666zM56.889 56.89h853.333v56.889H56.89z',
+                icon: 'M512 128l184 192H544v448h-64V320H328l184-192z m384 384h-64v320H192V512h-64v384h768V512z',
                 onclick: function (){
                   var form = $("<form>");
                   form.attr("style","display:none");
@@ -932,12 +953,17 @@ t1chart.setOption(option);
                   form.submit();
                   form.remove();
                 }
-            },
-              dataView : {show: true, readOnly: false},
-              magicType : {show: true, type: ['line', 'bar']},
-              restore : {show: true},
-              saveAsImage : {show: true},
+              },
+              saveAsImage : {
+                show: true,
+                icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+              }
 
+            },
+            iconStyle: {
+              normal: {
+                color: "#09487e"
+              }
             }
           },
           calculable : true,
