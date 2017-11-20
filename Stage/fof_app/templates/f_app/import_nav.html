@@ -1,0 +1,38 @@
+{% extends "main.html" %}
+
+
+{% block manager %}
+
+{% endblock %}
+
+{% block content %}
+
+  <div>
+  <form method="POST" action="{{ url_for("f_app.import_nav") }}"  enctype=multipart/form-data>
+      <input type="file" name="file">
+      <button class="btn btn-default" type="submit">submit</button>
+  </form>
+
+  </div>
+    <div>
+    {% if error_list | length == 0 %}
+
+     <p>nothing </p>
+
+    {% else %}
+    {{ error_list }}
+    {% endif %}
+    {% for i in data_dict %}
+     {% for k,v in i.items() %}
+         {{ k,v }}
+         {% endfor %}
+        <hr>
+    {% endfor %}
+    </div>
+<button class="btn btn-defualt">confirm</button>
+{% endblock %}
+
+<script>
+
+
+</script>
