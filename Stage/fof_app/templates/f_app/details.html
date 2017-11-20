@@ -3,7 +3,10 @@
 {% block css %}
 <style>
     .timeline .block {
-        margin-left: 50px;
+      margin-left: 0!important;
+    }
+    .profile_details .profile_view .left {
+      margin-top: 0!important;
     }
 </style>
 {% endblock %}
@@ -168,7 +171,14 @@
             <div role="tabpanel" class="tab-pane fade" id="tab_content6" aria-labelledby="profile-tab">
               <div class="x_panel fixed_height_390">
                 <div class="x_content">
-                  <div class="col-md-6">
+                  <div class="col-md-7">
+                    <div class="col-md-11">
+                      <h2>基金信息</h2>
+                    </div>                    
+                    <div class="col-md-1">
+                      <a style="font-size: 25px;" href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                    </div><br/><br/>
+                    <div class="divider"></div>
                     <ul class="list-unstyled timeline">
                       <li>
                         <div class="block">
@@ -244,19 +254,21 @@
                       </li>
                     </ul>
                   </div>
-                  <div class="col-md-1">
-                    <a href="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
-                  </div>
-                  <div class="col-md-4" style="border-left: 1px solid #ccc;">
-                    <h2>联系人信息</h2>
+                  <div class="col-md-5" style="border-left: 1px solid #ccc;">
+                      {% if core_info is not none and  current_user.is_core %}
+                    <div class="col-md-11">
+                      <h2>联系人信息</h2>
+                    </div>                    
+                    <div class="col-md-1">
+                      <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                    </div><br/><br/>
                     <div class="divider"></div>
-                    {% if core_info is not none %}
                       <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
                         <div class="well profile_view col-md-12">
                           <div class="col-sm-12">
                             <h4 class="brief"><i>产品</i></h4>
                             <div class="left col-xs-12">
-                              <h2>{{ core_info.product_contact_name }}</h2>
+                              <h4>{{ core_info.product_contact_name }}</h4>
                               <ul class="list-unstyled">
                                 <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.product_contact_phone }}</li>
                                 <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.product_contact_email }}</li>
@@ -270,7 +282,7 @@
                           <div class="col-sm-12">
                             <h4 class="brief"><i>基金</i></h4>
                             <div class="left col-xs-12">
-                              <h2>{{ core_info.fund_manager_name }}</h2>
+                              <h4>{{ core_info.fund_manager_name }}</h4>
                               <ul class="list-unstyled">
                                 <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.fund_manager_phone }}</li>
                                 <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.fund_manager_email }}</li>
@@ -284,7 +296,7 @@
                           <div class="col-sm-12">
                             <h4 class="brief"><i>其他</i></h4>
                             <div class="left col-xs-12">
-                              <h2>{{ core_info.other_contact_name }}</h2>
+                              <h4>{{ core_info.other_contact_name }}</h4>
                               <ul class="list-unstyled">
                                 <li><i style="padding-right:10px;" class="fa fa-phone"></i>{{ core_info.other_contact_phone }}</li>
                                 <li><i style="padding-right: 10px;" class="fa fa-envelope"></i>{{ core_info.other_contact_email }}</li>
@@ -294,12 +306,17 @@
                         </div>
                       </div>
                     {% else %}
-                      <P>没有联系人信息</P>
-
+                      <div class="col-md-11">
+                        <h2>联系人信息</h2>
+                      </div>
+                      <div class="col-md-1">
+                        <a style="font-size: 25px;" href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><i class="fa fa-edit"></i></a>
+                      </div><br/><br/>
+                      <div class="divider"></div>
+                      <div style="text-align: center;font-size:15px;height:100%;padding:20px;background: #fafafa;border-radius: 5px;">
+                        <i class="fa fa-user"> 没有联系人信息</i>
+                      </div>
                     {% endif %}
-                  </div>
-                  <div class="col-md-1">
-                    <a href="{{ url_for('f_app.core_info',wind_code=fof.wind_code) }}"><button class="btn btn-primary"><i class="fa fa-edit"></i></button></a>
                   </div>
                 </div>
               </div>
@@ -489,23 +506,31 @@
           ],
           toolbox: {
             show : true,
+            orient: 'vertical',
+            padding: 20,
+            itemGap: 20,
+            itemSize: 20,
             feature : {
-              mark : {show: true},
-              dataView : {show: true, readOnly: false},
-              magicType : {
-                show: true,
-                type: ['pie', 'funnel'],
-                option: {
-                  funnel: {
-                    x: '25%',
-                    width: '50%',
-                    funnelAlign: 'left',
-                    max: 1700
-                  }
-                }
+              mark : {
+                show: false
               },
-              restore : {show: true},
-              saveAsImage : {show: true}
+              myTool1: {
+                  show: true,
+                  title: '添加子基金',
+                  icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
+                  onclick: function (){
+                      window.location.href="{{ url_for('f_app.add_child',wind_code=fof.wind_code) }}";
+                  }
+              },
+              saveAsImage : {
+                show: true,
+                icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+              }
+            },
+            iconStyle: {
+              normal: {
+                color: "#09487e"
+              }
             }
           }
         };
@@ -627,23 +652,29 @@ for(var i=0;i<stgCharts.value.length;i++){
     },
     toolbox: {
       show : true,
+      orient: 'vertical',
+      padding: 20,
+      itemGap: 20,
+      itemSize: 20,
       feature : {
         mark : {show: true},
-        dataView : {show: true, readOnly: false},
-        magicType : {
-          show: true,
-          type: ['pie', 'funnel'],
-          option: {
-            funnel: {
-              x: '25%',
-              width: '50%',
-              funnelAlign: 'left',
-              max: 1700
+        myTool1: {
+            show: true,
+            title: '添加策略',
+            icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
+            onclick: function (){
+                window.location.href="{{ url_for('f_app.add_stg',wind_code=fof.wind_code) }}";
             }
-          }
         },
-        restore : {show: true},
-        saveAsImage : {show: true}
+        saveAsImage : {
+          show: true,
+          icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+        }
+      },
+      iconStyle: {
+        normal: {
+          color: "#09487e"
+        }
       }
     }
   };
@@ -890,11 +921,23 @@ t1chart.setOption(option);
           },
           toolbox: {
             show : true,
+            orient: 'vertical',
+            padding: 20,
+            itemGap: 20,
+            itemSize: 20,
             feature : {
-                myTool1: {
+              myTool2: {
+                  show: true,
+                  title: '添加净值',
+                  icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
+                  onclick: function (){
+                      window.location.href="{{ url_for('f_app.change_acc',wind_code=fof.wind_code) }}";
+                  }
+              },
+              myTool1: {
                 show: true,
                 title: '导出数据',
-                icon: 'image://http://echarts.baidu.com/images/favicon.png',
+                icon: 'M512 128l184 192H544v448h-64V320H328l184-192z m384 384h-64v320H192V512h-64v384h768V512z',
                 onclick: function (){
                   var form = $("<form>");
                   form.attr("style","display:none");
@@ -910,12 +953,17 @@ t1chart.setOption(option);
                   form.submit();
                   form.remove();
                 }
-            },
-              dataView : {show: true, readOnly: false},
-              magicType : {show: true, type: ['line', 'bar']},
-              restore : {show: true},
-              saveAsImage : {show: true},
+              },
+              saveAsImage : {
+                show: true,
+                icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+              }
 
+            },
+            iconStyle: {
+              normal: {
+                color: "#09487e"
+              }
             }
           },
           calculable : true,

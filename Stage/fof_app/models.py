@@ -79,6 +79,7 @@ class UserModel(db.Model):
     is_admin = db.Column(db.Boolean)
     is_staff = db.Column(db.Boolean)
     is_report = db.Column(db.Boolean)
+    is_core = db.Column(db.Boolean)
     update_nav = db.Column(db.Boolean)
     confirmed = db.Column(db.Boolean, default=False)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)

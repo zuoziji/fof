@@ -6,7 +6,7 @@
 """
 from functools import wraps
 from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db,FOF_FUND_PCT,FUND_STG_PCT,code_get_name,Fund_Core_Info
-from flask import abort, request, current_app
+from flask import abort, request, current_app,redirect,flash
 from flask_login import current_user
 from datetime import date
 import logging,json
@@ -57,9 +57,11 @@ def fund_owner(func):
                     ret = func(wind_code)
                     return ret
                 else:
-                    abort(408)
+                    flash("看起来你现在访问的是一个基金的批次,当前的策略还不支持对子基金的批次执行这个操作，请稍后在访问", "error")
+                    return redirect(request.referrer)
         else:
-            abort(403)
+            flash("没有权限使用这个功能", "error")
+            return redirect(request.referrer)
     return _deco
 
 def check_code_order(wind_code):

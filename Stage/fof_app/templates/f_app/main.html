@@ -52,6 +52,8 @@
                 <a href="{{ url_for('f_app.home') }}" class="site_title"> <span>复华投资</span></a>
               </div>
 
+
+
               <div class="search col-md-5 col-xs-12">
                 <span class="glyphicon glyphicon-search pull-left"></span>
                 <input type="search" class="form-control pull-left">
@@ -78,12 +80,19 @@
           </div>
         </div>
         <!-- /top navigation -->
-        {% for message in get_flashed_messages() %}
-            <div class="alert alert-warning">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                {{ message }}
-            </div>
-            {% endfor %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+                  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div style="width:500px;margin:60px auto 0;left:0; right:0; top:0; position: fixed;text-align: center;z-index: 999;" class="alert alert-{{ category }} alert-dismissible" role="alert">
+                      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                      <span class="sr-only">Error:</span>
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <!-- <strong>Title</strong> --> {{ message }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
 
       <div class="main_container">
         <div class="col-md-3 left_col">
@@ -135,9 +144,9 @@
                   <li><a><i class="fa fa-windows"></i>系统管理<span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="{{ url_for('f_app.batch') }}">基金要素管理</a></li>
-                      <li><a href="/admin/fund_info/">数据库维护</a>
                       <li><a href="{{ url_for('f_app.fund_corp') }}">基金管理</a></li>
-                      <li><a href="{{ url_for('f_app.maintain_acc') }}">净值管理</a></li>
+                        <li><a href="{{ url_for('f_app.change_acc')}}">净值管理</a></li>
+                      <li class="disabled"><a href="#">净值管理NG</a></li>
                         <li><a><i class="fa fa-angle-double-down"></i>建立FOF　</a>
                             <ul class="nav child_menu">
                                 <li><a href="{{ url_for('f_app.manual_add') }}">自选模式</a></li>
