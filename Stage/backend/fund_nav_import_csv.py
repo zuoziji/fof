@@ -235,12 +235,17 @@ def check_fund_nav_multi(file_path, ret_df=False):
     """
     data_list, data_df, error_dic = [], None, {}
     _, file_extension = os.path.splitext(file_path)
-    if file_extension == '.csv':
-        data_df = pd.read_csv(file_path)
-    elif file_extension in ('.xls', '.xlsx'):
-        data_df = pd.read_excel(file_path)
-    else:
-        error_dic['file type'] = '不支持 %s 净值文件类型' % file_extension
+    try:
+        if file_extension == '.csv':
+            data_df = pd.read_csv(file_path)
+        elif file_extension in ('.xls', '.xlsx'):
+            data_df = pd.read_excel(file_path)
+        else:
+            error_dic['file type'] = '不支持 %s 净值文件类型' % file_extension
+    except:
+        error_dic['file read'] = '文件内容读取失败'
+        return data_df if ret_df else data_list, [error_info for _, error_info in error_dic.items()]
+
     if data_df.shape[0] == 0:
         error_dic['data len'] = '数据表为空'
         return data_df if ret_df else data_list, [error_info for _, error_info in error_dic.items()]
