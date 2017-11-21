@@ -1957,7 +1957,7 @@ def import_nav():
             file_path = os.path.join(current_app.config['ACC_FOLDER'], file.filename)
             file.save(file_path)
             data_dict, error_list = check_fund_nav_multi(file_path)
-            return render_template("import_nav.html",data_dict=data_dict,error_list=error_list)
+            return render_template("import_nav.html",data_dict=data_dict,error_list=error_list,file_path=file_path)
             #import_fund_nav_multi(file_path)
             #return file_path
 
