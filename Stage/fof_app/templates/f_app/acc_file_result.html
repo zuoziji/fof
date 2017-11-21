@@ -46,9 +46,13 @@
 {% endblock %}
 
 {% block script %}
+<script src="../../static/vendors/moment/moment.js"></script>
   <script>
   var  data  = {{ data_dict |tojson }};
   $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%" style="text-align:center;"></table>');
+  $.each(data,function(index,value) {
+    data[index]["日期"]=(moment(data[index]["日期"]).format('YYYY-MM-DD'))
+  });
   var table1=$('#table').DataTable({
       "info":false,
       "paging": false,
