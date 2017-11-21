@@ -26,13 +26,13 @@
                 </tr>
               </thead>
               <tbody>
-                {% for i in data_dict %}
-                  <tr>
-                    {% for k,v in i.items() %}
-                      <td>{{ v }}</td>
-                    {% endfor %}
-                  </tr>
-                {% endfor %}
+{#                {% for i in data_dict %}#}
+{#                  <tr>#}
+{#                    {% for k,v in i.items() %}#}
+{#                      <td>{{ v }}</td>#}
+{#                    {% endfor %}#}
+{#                  </tr>#}
+{#                {% endfor %}#}
               </tbody>
           </table>
         </div>
@@ -69,6 +69,9 @@
 {% endblock %}
 
 {% block script %}
-
+  <script>
+  var  data  = {{ data_dict |tojson }}
+  console.log(data)
+  </script>
 
 {% endblock %}

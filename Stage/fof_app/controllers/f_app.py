@@ -1964,7 +1964,10 @@ def import_nav():
 @login_required
 def confirm_acc():
     if request.method == 'POST':
-        print(request.form)
+        file_path = request.form['file_path']
+        import_fund_nav_multi(file_path=file_path)
+        flash("上传成功",category="success")
+        os.remove(file_path)
         return redirect(url_for("f_app.home"))
 
 def allowed_file(filename):
