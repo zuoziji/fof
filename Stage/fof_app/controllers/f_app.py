@@ -10,7 +10,7 @@ from os import path
 from urllib.parse import quote
 import numpy as np
 from flask import render_template, Blueprint, redirect, url_for, abort, request, current_app, \
-    jsonify, send_file, make_response, session
+    jsonify, send_file, make_response, session,flash
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from pandas import DataFrame
@@ -1953,14 +1953,16 @@ def import_nav():
 
     if request.method == "POST":
         file = request.files['file']
+        file_path = request.form['file_path']
         if file and allowed_file(file.filename):
             file_path = os.path.join(current_app.config['ACC_FOLDER'], file.filename)
             file.save(file_path)
             data_dict, error_list = check_fund_nav_multi(file_path)
-            return render_template("import_nav.html",data_dict=data_dict,error_list=error_list,file_path=file_path)
-            #import_fund_nav_multi(file_path)
-            #return file_path
-
+            return render_template("acc_file_result.html",data_dict=data_dict,error_list=error_list,file_path=file_path)
+        if file_path:
+            import_fund_nav_multi(file_path)
+            flash("上传成功")
+            return redirect(url_for('f_app.import'))
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

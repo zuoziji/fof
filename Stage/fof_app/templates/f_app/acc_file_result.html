@@ -1,0 +1,41 @@
+{% extends "main.html" %}
+{% block manager %}
+{% endblock %}
+
+{% block content %}
+ <div>
+ {% if error_list | length == 0 %}
+
+     <p>暂时没有找到可用的数据 </p>
+
+    {% else %}
+      {{ error_list }}
+    {% endif %}
+
+      <table class="table" style="text-align: center;">
+        <thead>
+          <tr>
+            <th>份额分红</th>
+            <th>单位净值</th>
+            <th>基金代码</th>
+            <th>基金名称</th>
+            <th>日期</th>
+            <th>累计净值</th>
+            <th>金额分红</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in data_dict %}
+            <tr>
+              {% for k,v in i.items() %}
+                <td>{{ v }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+     </table>
+    {{ file_path }}
+ </div>
+
+{% endblock %}
+
