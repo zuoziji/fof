@@ -3,39 +3,72 @@
 {% endblock %}
 
 {% block content %}
- <div>
- {% if error_list | length == 0 %}
+<div class="row">
+    {% if error_list | length == 0 %}
+    <div class="x_panel fixed_height_390">
+        <div class="x_title">
+          <div class="col-md-10">
+            <h2>预览净值</h2>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+        <div class="col-md-12">
+          <table class="table table-bordered" style="text-align: center;">
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>份额分红</th>
+                  <th>金额分红</th>
+                  <th>基金名称</th>
+                  <th>基金代码</th>
+                  <th>单位净值</th>
+                  <th>累计净值</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for i in data_dict %}
+                  <tr>
+                    {% for k,v in i.items() %}
+                      <td>{{ v }}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+        </div>
 
-     <p>暂时没有找到可用的数据 </p>
-
+        <div class="col-md-1 col-md-offset-5">
+          <form method="POST" action="{{ url_for('f_app.confirm_acc') }}"  enctype=multipart/form-data>
+            <input type="text" name="file_path" style="display:none;" value="{{ file_path }}">
+            <button class="btn btn-primary" type="submit" id="upload">提交</button>
+          </form>
+        </div>
+        <div class="col-md-1">
+          <a class="btn btn-default" href="{{ url_for('f_app.import_nav')}}">返回</a>
+        </div>
+    </div>
     {% else %}
-      {{ error_list }}
+      <div class="x_title">
+        <div class="col-md-11">
+          <h2>预览净值</h2>
+        </div>                    
+        <div class="col-md-1">
+          <a class="btn btn-default" href="{{ url_for('f_app.import_nav')}}">返回</a>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+      <div class="col-md-4 col-md-offset-4" style="text-align: center;margin-top:100px;">
+        {% for i in error_list %}
+          <p>{{i}}</p>
+        {% endfor %}
+      </div>  
     {% endif %}
-
-      <table class="table" style="text-align: center;">
-        <thead>
-          <tr>
-            <th>份额分红</th>
-            <th>单位净值</th>
-            <th>基金代码</th>
-            <th>基金名称</th>
-            <th>日期</th>
-            <th>累计净值</th>
-            <th>金额分红</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for i in data_dict %}
-            <tr>
-              {% for k,v in i.items() %}
-                <td>{{ v }}</td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-     </table>
-    {{ file_path }}
+    
  </div>
 
 {% endblock %}
 
+{% block script %}
+
+
+{% endblock %}

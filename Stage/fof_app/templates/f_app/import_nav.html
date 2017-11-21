@@ -11,10 +11,14 @@
 {% endblock %}
 
 {% block content %}
-    <form id="form" method="POST" action="{{ url_for("f_app.import_nav") }}"  enctype=multipart/form-data>
+    <div class="x_title">
+      <h2>上传净值</h2>
+      <div class="clearfix"></div>
+    </div>
+    <form id="form" method="POST" action="{{ url_for('f_app.import_nav') }}"  enctype=multipart/form-data>
       <div class="row">
-        <div class="col-sm-1">
-          <div class="container" >
+        <div class="col-sm-1 col-sm-offset-3">
+          <div class="container">
               <!-- The fileinput-button span is used to style the file input field as button -->
               <span class="btn btn-success fileinput-button" id="add">
                   <i class="glyphicon glyphicon-plus"></i>
@@ -23,55 +27,18 @@
                   <input id="fileupload" type="file" name="file" multiple >
               </span>
               <div id="files" class="files"></div>
-
-              <br>
           </div>
         </div>
-        <div class="col-sm-11">
-          <p class="filename" style="margin-top: 8px;">请选择净值文件</p>
-          <!-- <p class="error" style="display: none;color:#f00;margin-top: 8px;">请选择文件</p> -->
+        <div class="col-sm-3">
+          <input class="form-control filename" value="请选择净值文件">
         </div>
-      </div>
-        {{ file_path }}
-      <div class="row">
         <div class="col-sm-1">
           <button class="btn btn-primary" type="submit" id="upload">上传</button>
         </div>
       </div>
+      <div class="row">
+      </div>
     </form>
-    <div>
-    {% if error_list | length == 0 %}
-
-     <p>暂时没有找到可用的数据 </p>
-
-    {% else %}
-      {{ error_list }}
-    {% endif %}
-
-      <table class="table" style="text-align: center;">
-        <thead>
-          <tr>
-            <th>份额分红</th>
-            <th>单位净值</th>
-            <th>基金代码</th>
-            <th>基金名称</th>
-            <th>日期</th>
-            <th>累计净值</th>
-            <th>金额分红</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for i in data_dict %}
-            <tr>
-              {% for k,v in i.items() %}
-                <td>{{ v }}</td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <button class="btn btn-defualt">confirm</button>
 {% endblock %}
 
 {% block script %}
@@ -79,7 +46,12 @@
 $(function(){
   $("#form").on("submit",function(){          //提交
     if($("#fileupload").val()!=""){
+      var str=$("#fileupload").val();
       $(".filename").css("color","#73879C");
+      if(str.indexOf("xls")<0&&str.indexOf("xlsx")<0){
+        $(".filename").css("color","#f00");
+        $(".filename").val("请选择格式为.xls或.xlsx的净值文件");
+      }
         return true;
     } else{
       $(".filename").css("color","#f00");
@@ -87,9 +59,14 @@ $(function(){
     }
   })
   $("#fileupload").on("change",function(){
-    $(".filename").html($("#fileupload").val());
+    $(".filename").val($("#fileupload").val());
     if($("#fileupload").val()!=""){
+      var str=$("#fileupload").val();
       $(".filename").css("color","#73879C");
+      if(str.indexOf("xls")<0&&str.indexOf("xlsx")<0){
+        $(".filename").css("color","#f00");
+        $(".filename").val("请选择格式为.xls或.xlsx的净值文件");
+      }
     } else{
       $(".filename").css("color","#f00");
     }
