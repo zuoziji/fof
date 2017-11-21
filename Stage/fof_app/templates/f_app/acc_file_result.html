@@ -12,31 +12,8 @@
           </div>
           <div class="clearfix"></div>
         </div>
-        <div class="col-md-12">
-          <table class="table table-bordered" style="text-align: center;">
-              <thead>
-                <tr>
-                  <th>日期</th>
-                  <th>份额分红</th>
-                  <th>金额分红</th>
-                  <th>基金名称</th>
-                  <th>基金代码</th>
-                  <th>单位净值</th>
-                  <th>累计净值</th>
-                </tr>
-              </thead>
-              <tbody>
-{#                {% for i in data_dict %}#}
-{#                  <tr>#}
-{#                    {% for k,v in i.items() %}#}
-{#                      <td>{{ v }}</td>#}
-{#                    {% endfor %}#}
-{#                  </tr>#}
-{#                {% endfor %}#}
-              </tbody>
-          </table>
+        <div class="col-md-12" id="myTabContent">
         </div>
-
         <div class="col-md-1 col-md-offset-5">
           <form method="POST" action="{{ url_for('f_app.confirm_acc') }}"  enctype=multipart/form-data>
             <input type="text" name="file_path" style="display:none;" value="{{ file_path }}">
@@ -70,8 +47,43 @@
 
 {% block script %}
   <script>
-  var  data  = {{ data_dict |tojson }}
-  console.log(data)
+  var  data  = {{ data_dict |tojson }};
+  $("#myTabContent").append('<table class="table table-bordered" id="table" width="100%" style="text-align:center;"></table>');
+  var table1=$('#table').DataTable({
+      "info":false,
+      "paging": false,
+      "columns": [
+        {'title':'日期',
+          'data':'日期'},
+        {'title':'基金代码',
+          'data':'基金代码'},
+        {'title':'基金名称',
+          'data':'基金名称'},
+        {'title':'单位净值',
+          'data':'单位净值'},
+        {'title':'累计净值',
+          'data':'累计净值'},
+        {'title':'份额分红',
+          'data':'份额分红'},
+        {'title':'金额分红',
+          'data':'金额分红'}
+      ],
+      'data':data,
+      "language": {
+          "lengthMenu": "每页 _MENU_ 条记录",
+          "zeroRecords": "没有找到记录",
+          "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+          "infoEmpty": "无记录",
+          "search": "搜索：",
+          "infoFiltered": "(从 _MAX_ 条记录过滤)",
+          "paginate": {
+              "previous": "上一页",
+              "next": "下一页"
+          }
+      },
+      "order": [[2, 'asc']],
+      "displayLength": 10
+  });
   </script>
 
 {% endblock %}
