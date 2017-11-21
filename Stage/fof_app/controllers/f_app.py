@@ -1946,6 +1946,7 @@ def core_info(wind_code):
 
 
 @f_app_blueprint.route('/import_nav',methods=['GET','POST'])
+@login_required
 def import_nav():
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
@@ -1953,16 +1954,18 @@ def import_nav():
 
     if request.method == "POST":
         file = request.files['file']
-        file_path = request.form['file_path']
         if file and allowed_file(file.filename):
             file_path = os.path.join(current_app.config['ACC_FOLDER'], file.filename)
             file.save(file_path)
             data_dict, error_list = check_fund_nav_multi(file_path)
             return render_template("acc_file_result.html",data_dict=data_dict,error_list=error_list,file_path=file_path)
-        if file_path:
-            import_fund_nav_multi(file_path)
-            flash("上传成功")
-            return redirect(url_for('f_app.import'))
+
+@f_app_blueprint.route('/confirm_acc',methods=['POST','GET'])
+@login_required
+def confirm_acc():
+    if request.method == 'POST':
+        print(request.form)
+        return redirect(url_for("f_app.home"))
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
