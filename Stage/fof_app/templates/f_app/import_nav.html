@@ -1,38 +1,99 @@
+<!DOCTYPE HTML>
+
 {% extends "main.html" %}
 
+{% block css %}
+  <link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">    
+{% endblock %}
 
 {% block manager %}
 
 {% endblock %}
 
 {% block content %}
+    <form id="form" method="POST" action="{{ url_for("f_app.import_nav") }}"  enctype=multipart/form-data>
+      <div class="row">
+        <div class="col-sm-1">
+          <div class="container" >
+              <!-- The fileinput-button span is used to style the file input field as button -->
+              <span class="btn btn-success fileinput-button" id="add">
+                  <i class="glyphicon glyphicon-plus"></i>
+                  <span>添加文件</span>
+                  <!-- The file input field used as target for the file upload widget -->
+                  <input id="fileupload" type="file" name="file" multiple >
+              </span>
+              <div id="files" class="files"></div>
 
-  <div>
-  <form method="POST" action="{{ url_for("f_app.import_nav") }}"  enctype=multipart/form-data>
-      <input type="file" name="file">
-      <button class="btn btn-default" type="submit">submit</button>
-  </form>
-
-  </div>
+              <br>
+          </div>
+        </div>
+        <div class="col-sm-11">
+          <p class="filename" style="margin-top: 8px;">请选择净值文件</p>
+          <!-- <p class="error" style="display: none;color:#f00;margin-top: 8px;">请选择文件</p> -->
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-1">
+          <button class="btn btn-primary" type="submit" id="upload">上传</button>
+        </div>
+      </div>
+    </form>
     <div>
     {% if error_list | length == 0 %}
 
-     <p>nothing </p>
+     <p>暂时没有找到可用的数据 </p>
 
     {% else %}
-    {{ error_list }}
+      {{ error_list }}
     {% endif %}
-    {% for i in data_dict %}
-     {% for k,v in i.items() %}
-         {{ k,v }}
-         {% endfor %}
-        <hr>
-    {% endfor %}
+
+      <table class="table" style="text-align: center;">
+        <thead>
+          <tr>
+            <th>份额分红</th>
+            <th>单位净值</th>
+            <th>基金代码</th>
+            <th>基金名称</th>
+            <th>日期</th>
+            <th>累计净值</th>
+            <th>金额分红</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in data_dict %}
+            <tr>
+              {% for k,v in i.items() %}
+                <td>{{ v }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-<button class="btn btn-defualt">confirm</button>
+    <button class="btn btn-defualt">confirm</button>
 {% endblock %}
 
+{% block script %}
 <script>
-
-
+$(function(){
+  $("#form").on("submit",function(){          //提交
+    if($("#fileupload").val()!=""){
+      $(".filename").css("color","#73879C");
+        return true;
+    } else{
+      $(".filename").css("color","#f00");
+        return false;
+    }
+  })
+  $("#fileupload").on("change",function(){
+    $(".filename").html($("#fileupload").val());
+    if($("#fileupload").val()!=""){
+      $(".filename").css("color","#73879C");
+    } else{
+      $(".filename").css("color","#f00");
+    }
+  })
+})
 </script>
+
+{% endblock %}
