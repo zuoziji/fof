@@ -64,6 +64,17 @@
           <div id="myTabContent" class="tab-content">
             <div role="tabpanel" class="tab-pane active in" id="tab_content4" aria-labelledby="home-tab">
               <div class="dashboard_graph x_panel">
+                <div class="x_title">
+                  <div class="col-md-11">
+                    <h4>净值信息</h4>
+                  </div>
+                  <div class="col-md-1">
+                    <a style="font-size: 25px;" href="{{ url_for('f_app.change_acc',wind_code=fof.wind_code) }}">
+                      <button class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> 添加净值</button>
+                    </a>
+                  </div>
+                  <div class="clearfix"></div>
+                </div>
                 <div class="x_content">
                   <div class="demo-container" style="height:400px" id="mainUp">
                     <div id="main" style="height:375px;"></div>
@@ -101,9 +112,26 @@
 
 
             </div>
-            <div role="tabpanel" class="tab-pane fade  " id="tab_content1" aria-labelledby="profile-tab">
+            <div role="tabpanel" class="tab-pane fade" id="tab_content1" aria-labelledby="profile-tab">
               <!-- start recent activity -->
-              <div id="t1chart" style="height:500px;padding:10px;"></div>
+              <div class="dashboard_graph x_panel">
+                <div class="x_title">
+                  <div class="col-md-11">
+                    <h4>策略信息</h4>
+                  </div>
+                  <div class="col-md-1">
+                    <a style="font-size: 25px;" href="{{ url_for('f_app.add_stg',wind_code=fof.wind_code) }}">
+                      <button class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> 添加策略</button>
+                    </a>
+                  </div>
+                  <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                  <div class="demo-container">
+                    <div id="t1chart" style="height:500px;"></div>
+                  </div>
+                </div>
+              </div>
               <table class="table table-bordered " id="tab1" width="100%">
                 <thead>
                 <tr>
@@ -120,11 +148,28 @@
                  style="position: relative;">
               <!-- start user projects -->
 
-              <div id="t2chart" style="height:500px;padding:10px;">
+              <div class="dashboard_graph x_panel">
+                <div class="x_title">
+                  <div class="col-md-11">
+                    <h4>子基金信息</h4>
+                  </div>
+                  <div class="col-md-1">
+                    <a style="font-size: 25px;" href="{{ url_for('f_app.add_child',wind_code=fof.wind_code) }}">
+                      <button class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> 添加子基金</button>
+                    </a>
+                  </div>
+                  <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                  <div class="demo-container">
+                    <div id="t2chart" style="height:500px;">
+                  </div>
+                </div>
+              </div>
 
               </div>
               <div class="col-lg-5 col-md-5 col-sm-5 btn-group" id="t2button"
-                   style="position: absolute;top:50px;left:5px;">
+                   style="position: absolute;top:120px;left:20px;">
                 <button class="btn btn-xs" value="batch">批次</button>
                 <button class="btn btn-xs btn-info active" value="fund">基金</button>
               </div>
@@ -648,14 +693,6 @@
               mark : {
                 show: false
               },
-              myTool1: {
-                  show: true,
-                  title: '添加子基金',
-                  icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
-                  onclick: function (){
-                      window.location.href="{{ url_for('f_app.add_child',wind_code=fof.wind_code) }}";
-                  }
-              },
               saveAsImage : {
                 show: true,
                 icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
@@ -794,14 +831,6 @@ for(var i=0;i<stgCharts.value.length;i++){
       itemSize: 15,
       feature : {
         mark : {show: true},
-        myTool1: {
-            show: true,
-            title: '添加策略',
-            icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
-            onclick: function (){
-                window.location.href="{{ url_for('f_app.add_stg',wind_code=fof.wind_code) }}";
-            }
-        },
         saveAsImage : {
           show: true,
           icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
@@ -830,7 +859,7 @@ for(var i=0;i<stgCharts.value.length;i++){
 }
 t1chart.setOption(option);
 }else{
-  $('#t1chart').html("<p>暂时没有找到可用的数据</p> ")
+  $('#t1chart').hide();
 }
     //tab2
     var table2 = $('#tab2').DataTable({
@@ -1062,14 +1091,6 @@ t1chart.setOption(option);
             itemGap: 20,
             itemSize: 15,
             feature : {
-              myTool2: {
-                  show: true,
-                  title: '添加净值',
-                  icon: 'path://M896 480H544.8V128h-65.6v352H128v66.4h351.2V896h65.6V546.4H896z',
-                  onclick: function (){
-                      window.location.href="{{ url_for('f_app.change_acc',wind_code=fof.wind_code) }}";
-                  }
-              },
               myTool1: {
                 show: true,
                 title: '导出数据',
