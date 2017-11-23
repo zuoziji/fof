@@ -175,25 +175,6 @@
               </div>
             {% block manager %}
 
-                 {% if current_user.is_admin %}
-              <div class="menu_section">
-                <h3>管理</h3>
-                <ul class="nav side-menu">
-                  <li><a><i class="fa fa-bug"></i>基金管理<span class="fa fa-chevron-down"></span></a>
-                    <ul class="nav child_menu">
-                        <li><a href="{{ url_for('f_app.calendar',wind_code=fof.wind_code) }}">相关日程</a> </li>
-
-                    </ul>
-                  </li>
-
-
-                </ul>
-              </div>
-             {% endif %}
-
-
-
-
             {% endblock %}
             </div>
             <!-- /sidebar menu -->
