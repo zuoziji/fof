@@ -76,9 +76,13 @@ def check_code_order(wind_code):
 def get_core_info(wind_code):
     core_info = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
     if core_info is None:
-        fof_mapping = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code).first()
-        fof = FoFModel.query.filter_by(wind_code=fof_mapping.wind_code).first()
-        return fof
+        fof = FoFModel.query.filter_by(wind_code=wind_code).first()
+        if fof:
+            return fof
+        else:
+            fof_mapping = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code).first()
+            fof = FoFModel.query.filter_by(wind_code=fof_mapping.wind_code).first()
+            return fof
     else:
         return core_info
 def chunks(l: list, n: int):
