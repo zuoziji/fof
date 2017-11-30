@@ -12,6 +12,7 @@ from config_fh import get_db_engine, WIND_REST_URL
 import pandas as pd
 from sqlalchemy.types import String, Date, Float
 import logging
+logger = logging.getLogger()
 
 
 def import_wind_future_daily():
@@ -31,23 +32,27 @@ def import_wind_future_daily():
     # w.start()
     rest = WindRest(WIND_REST_URL)  # 初始化服务器接口，用于下载万得数据
     try:
-        for wind_code, date_pair in future_date_dic.items():
+        logger.info("%d future instrument will be handled", len(future_date_dic))
+        for n_future, (wind_code, date_pair) in enumerate(future_date_dic.items()):
+            # 暂时只处理 RU 期货合约信息
+            # if wind_code.find('RU') == -1:
+            #     continue
             date_frm, date_to = date_pair
             if date_frm > date_to:
                 continue
-            print('get %s between %s and %s' % (wind_code, date_frm, date_to))
+            logger.info('%d) get %s between %s and %s', n_future, wind_code, date_frm, date_to)
             # data_df_tmp = wsd_cache(w, wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
             #                         date_frm, date_to, "")
             data_df_tmp = rest.wsd(wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
                                     date_frm, date_to, "")
             data_df_tmp['wind_code'] = wind_code
             data_df_list.append(data_df_tmp)
-            if len(data_df_list) >= 10:
-                break
+            # if len(data_df_list) >= 50:
+            #     break
     finally:
         data_df_count = len(data_df_list)
         if data_df_count > 0:
-            print('merge data with %d df' % data_df_count)
+            logger.info('merge data with %d df', data_df_count)
             data_df = pd.concat(data_df_list)
             data_df.index.rename('trade_date', inplace=True)
             data_df = data_df.reset_index().set_index(['wind_code', 'trade_date'])
@@ -70,9 +75,9 @@ def import_wind_future_daily():
                                'position': Float,
                                'st_stock': Float,
                            })
-            print('%d data import' % data_count)
+            logger.info('%d data import', data_count)
         else:
-            print('no data for merge')
+            logger.info('no data for merge')
         # w.close()
 
 
