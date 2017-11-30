@@ -78,7 +78,7 @@ def import_wind_future_info():
         {'subject_name': '铁矿石', 'regex': r"I\d{4}\.SHF",
          'sectorid': '1000006502000000', 'date_establish': '2013-10-18'},
         {'subject_name': '天然橡胶', 'regex': r"RU\d{4}\.SHF",
-         'sectorid': 'a599010208000000', 'date_establish': '2000-01-03'},  # 橡胶1995年开始有合约数据，这里方便使用，仅处理2000年以后的合约数据
+         'sectorid': 'a599010208000000', 'date_establish': '1995-06-01'},
     ]
     wind_code_set = set()
     ndays_per_update = 60
