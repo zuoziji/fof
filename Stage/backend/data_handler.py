@@ -26,17 +26,79 @@ def get_fund_nav(fund_code_list, from_date, to_date):
     from_date = from_date if type(from_date) is str else datetime.strptime(from_date, STR_FORMAT_DATE)
     to_date = to_date if type(to_date) is str else datetime.strptime(to_date, STR_FORMAT_DATE)
     param_str = ", ".join(['%s' for n in range(fund_code_count)])
-    sql_str = 'select wind_code, nav_date_friday, nav_acc from fund_nav_friday where wind_code in (%s)' % param_str
+    sql_str = 'select wind_code, nav_date, nav_acc from fund_nav where wind_code in (%s)' % param_str
     engine = get_db_engine()
-    df = pd.read_sql(sql_str, engine, params=fund_code_list, parse_dates=['nav_date_friday'])
+    df = pd.read_sql(sql_str, engine, params=fund_code_list, parse_dates=['nav_date'])
     if df.shape[0] == 0:
         logger.info('No data found')
         return None
-    fund_df_all = df.pivot(index='nav_date_friday', columns='wind_code', values='nav_acc') \
+    fund_df_all = df.pivot(index='nav_date', columns='wind_code', values='nav_acc') \
         .ffill().bfill()
     fund_df = fund_df_all.iloc[(from_date <= fund_df_all.index) & (fund_df_all.index <= to_date)]
     pct_df = (fund_df.pct_change().fillna(0) + 1).cumprod()
     return pct_df
+
+
+def get_fof_fund_pct_each_nav_date(wind_code_p):
+    """
+    根据母基金代码获取每个净值日的子基金配比
+    :param wind_code_p: 
+    :return: 
+    """
+    # 获取基金净值信息
+    engine = get_db_engine()
+    sql_str = 'select nav_date, nav_acc from fund_nav where wind_code = %s'
+    nav_df = pd.read_sql(sql_str, engine, params=[wind_code_p], parse_dates=['nav_date'], index_col='nav_date')
+    if nav_df.shape[0] == 0:
+        logger.info('No data found')
+        return None, None
+    nav_date_list = list(nav_df.index)
+    nav_date_list.sort()
+    # 获取子基金比例信息
+    sql_str = """select fei.wind_code wind_code, ffp.wind_code_s, ifnull(fi.sec_name, fei.sec_name_s) sec_name, date_adj, invest_scale 
+from fof_fund_pct ffp 
+left join fund_essential_info fei
+on wind_code_p = %s
+and ffp.wind_code_s = fei.wind_code_s
+left join fund_info fi
+on fei.wind_code = fi.wind_code
+"""
+    data_df = pd.read_sql(sql_str, engine, params=[wind_code_p], parse_dates=['date_adj'])
+    sec_name_date_scale_df = data_df.groupby(['wind_code', 'sec_name', 'date_adj']).sum()
+    fof_fund_pct_df = sec_name_date_scale_df.reset_index().pivot(index='sec_name', columns='date_adj', values='invest_scale').fillna(0)
+    date_fund_scale_dic = fof_fund_pct_df.to_dict()  # 'records'
+    date_4_scale_list = list(date_fund_scale_dic.keys())
+    date_4_scale_list.sort()
+    if len(date_4_scale_list) == 0:
+        return nav_df, None
+    # 设置全0记录
+    zero_scale_dic = {sec_name: 0 for sec_name in date_fund_scale_dic[date_4_scale_list[0]].keys()}
+    # 循环查找每一个日期，先前寻找 当期日期 在 fof_fund_pct_df 中记录对应的最近的日期
+    # 将相应的配比记录进行复制作为当期子基金持仓纪录
+    nav_date_fund_scale_dic = {}
+    date_index_count = len(date_4_scale_list)
+    nav_date_count = len(nav_date_list)
+    for rownum, copy_date_cur in enumerate(date_4_scale_list):
+        for n_date in range(len(nav_date_fund_scale_dic), nav_date_count):
+            nav_date = nav_date_list[n_date]
+            if nav_date < copy_date_cur:
+                if rownum == 0:
+                    nav_date_fund_scale_dic[nav_date] = zero_scale_dic
+                else:
+                    nav_date_fund_scale_dic[nav_date] = date_fund_scale_dic[date_4_scale_list[rownum - 1]]
+            elif nav_date == copy_date_cur:
+                nav_date_fund_scale_dic[nav_date] = date_fund_scale_dic[copy_date_cur]
+                break
+            else:
+                break
+
+    # 没有找到，则说明当期最新的配比为最后一次配比状态
+    last_scale_dic = date_fund_scale_dic[date_4_scale_list[-1]]
+    for nav_date in nav_date_list[len(nav_date_fund_scale_dic):]:
+        nav_date_fund_scale_dic[nav_date] = last_scale_dic
+    # 将配比信息合并成DataFrame
+    nav_date_fund_scale_df = pd.DataFrame(nav_date_fund_scale_dic).T
+    return nav_df, nav_date_fund_scale_df
 
 
 def get_fund_nav_between(wind_code, from_date, to_date, index_code='000300.SH'):
@@ -695,12 +757,12 @@ if __name__ == '__main__':
     # print(nav_df)
 
     # 获取母基金及子基金走势
-    wind_code = 'XT1619361.XT'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'
-    from_date, to_date = '2016-10-8', '2017-9-8'
+    # wind_code = 'XT1619361.XT'  # 'FHF-101601' 'XT1605537.XT' 'FHF-101602' 'FHF-101701B'
+    # from_date, to_date = '2016-10-8', '2017-9-8'
     # ret_dic = get_fof_nav_rr_between(wind_code, from_date, to_date)
-    ret_dic = get_fof_nav_between(wind_code, from_date, to_date)
-    pct_df, date_latest = ret_dic['fund_df'], ret_dic['date_latest']
-    logger.info(pct_df)
+    # ret_dic = get_fof_nav_between(wind_code, from_date, to_date)
+    # pct_df, date_latest = ret_dic['fund_df'], ret_dic['date_latest']
+    # logger.info(pct_df)
     # pct_df.to_csv('%s.csv' % wind_code)
     # pct_df.plot(legend=False)
     # plt.show()
@@ -724,3 +786,8 @@ if __name__ == '__main__':
     # date_fund_pct_df = get_fof_fund_pct_df(wind_code)
     # print(date_fund_pct_df)
     # date_fund_pct_df.to_csv('%s date_fund_pct_df.csv' % wind_code)
+
+    # 获取 每一个净值日期的子基金配比记录
+    wind_code_p = 'FHF-101601'
+    nav_df, nav_date_fund_scale_df = get_fof_fund_pct_each_nav_date(wind_code_p)
+    print(nav_date_fund_scale_df)
