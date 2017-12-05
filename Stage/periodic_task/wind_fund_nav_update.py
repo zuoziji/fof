@@ -82,7 +82,9 @@ wfn.nav_date = fn.nav_date
 where fn.nav_date is null"""
     with get_db_session() as session:
         session.execute(sql_str)
-    logger.info('导入结束')
+        logger.info('导入结束')
+        date_min_since = session.execute("select func_calc_fund_nav_rr_all()").fetchone()
+        logger.info('更新自 %s 起基金收益率信息', date_min_since)
 
 
 def update_wind_fund_nav(get_df=False, wind_code_list=None):
