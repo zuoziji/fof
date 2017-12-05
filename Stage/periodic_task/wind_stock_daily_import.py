@@ -167,7 +167,7 @@ def import_stock_daily():
                           wind_code, ipo_date, delist_date in table.fetchall()}
     today_t_1 = date.today() - ONE_DAY
     data_df_list = []
-    logger.info('%d stocks will been import', len(stock_date_dic))
+    logger.info('%d stocks will been import into wind_trade_date', len(stock_date_dic))
     try:
         for stock_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
             date_ipo, date_delist = date_pair
@@ -226,34 +226,91 @@ def import_stock_daily():
                                    'ev2_to_ebitda': Float,
                                }
                                )
-            logger.info('%d data imported', data_df_all.shape[0])
+            logger.info('%d data imported into wind_stock_daily', data_df_all.shape[0])
 
+
+def import_stock_daily_wch():
+    """
+    插入股票日线数据到最近一个工作日-1
+    :return: 
+    """
+    w = WindRest(WIND_REST_URL)
+    engine = get_db_engine()
+    with get_db_session(engine) as session:
+        # 获取每只股票最新交易日数据
+        sql_str = 'select wind_code, max(date) from wind_stock_daily_wch group by wind_code'
+        table = session.execute(sql_str)
+        stock_trade_date_latest_dic = dict(table.fetchall())
+        # 获取市场有效交易日数据
+        sql_str = "select trade_date from wind_trade_date where trade_date > '2005-1-1'"
+        table = session.execute(sql_str)
+        trade_date_sorted_list = [t[0] for t in table.fetchall()]
+        trade_date_sorted_list.sort()
+        # 获取每只股票上市日期、退市日期
+        table = session.execute('SELECT wind_code, ipo_date, delist_date FROM wind_stock_info')
+        stock_date_dic = {wind_code: (ipo_date, delist_date if delist_date is None or delist_date > UN_AVAILABLE_DATE else None) for
+                          wind_code, ipo_date, delist_date in table.fetchall()}
+    today_t_1 = date.today() - ONE_DAY
+    data_df_list = []
+    logger.info('%d stocks will been import into wind_trade_date_wch', len(stock_date_dic))
+    try:
+        for stock_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
+            date_ipo, date_delist = date_pair
+            # 获取 date_from
+            if wind_code in stock_trade_date_latest_dic:
+                date_latest_t1 = stock_trade_date_latest_dic[wind_code] + ONE_DAY
+                date_from = max([date_latest_t1, DATE_BASE, date_ipo])
+            else:
+                date_from = max([DATE_BASE, date_ipo])
+            date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
+            # 获取 date_to
+            if date_delist is None:
+                date_to = today_t_1
+            else:
+                date_to = min([date_delist, today_t_1])
+            date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
+            if date_from is None or date_to is None or date_from > date_to:
+                continue
+            # 获取股票量价等行情数据
+            wind_indictor_str = "open,high,low,close"
+            ohlc_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "PriceAdj=B")
+            if ohlc_df is None:
+                logger.warning('%d) %s has no ohlc data during %s %s', stock_num, wind_code, date_from, date_to)
+                continue
+            wind_indictor_str = "close,volume,total_shares,free_float_shares,val_pe_deducted_ttm,pb_lf,ev2,ev2_to_ebitda"
+            other_data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
+            if other_data_df is None:
+                logger.warning('%d) %s has no data during %s %s', stock_num, wind_code, date_from, date_to)
+                continue
+            other_data_df.rename(columns={'CLOSE': 'CloseUnadj',
+                                          'TOTAL_SHARES': 'TotalShare',
+                                          'FREE_FLOAT_SHARES': 'FreeFloatShare',
+                                          'VAL_PE_DEDUCTED_TTM': 'PE',
+                                          'PB_LF': 'PB',
+                                          'EV2': 'EV',
+                                          'EV2_TO_EBITDA': 'EVEBITDA',
+                                          }, inplace=True)
+            data_df = ohlc_df.merge(other_data_df, how='outer', left_index=True, right_index=True)
+            logger.info('%d) %d data of %s between %s and %s', stock_num, data_df.shape[0], wind_code, date_from, date_to)
+            data_df['wind_code'] = wind_code
+            data_df_list.append(data_df)
+            if len(data_df_list) > 10:
+                break
+    finally:
+        # 导入数据库
+        if len(data_df_list) > 0:
+            data_df_all = pd.concat(data_df_list)
+            data_df_all.index.rename('date', inplace=True)
+            data_df_all.reset_index(inplace=True)
+            data_df_all.set_index(['wind_code', 'date'], inplace=True)
+            data_df_all.to_sql('wind_stock_daily_wch', engine, if_exists='append')
+            logger.info('%d data imported into wind_stock_daily_wch', data_df_all.shape[0])
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 更新每日股票数据
     # import_stock_daily()
-
+    import_stock_daily_wch()
     # 添加某列信息
     # fill_history()
-    fill_col()
-
-# startdate = '2005-01-03'
-# enddate = '2014-12-31'
-# stockcodes, stocknames = get_stockcodes(enddate)
-# stockloc = 1085
-# costtime = 0
-# stockcodes = stockcodes[stockloc:]
-# stocknames = stocknames[stockloc:]
-# with get_db_session() as session:
-#     for stockcode, stockname in zip(stockcodes, stocknames):
-#         timestart = time.time()
-#         stockre = get_tradeinfo(stockcode, stockname, startdate, enddate)
-#         stockre.set_index(['Trade_Date', 'Stock_Code', 'Stock_Name'], inplace=True)  #
-#         indexnames = ['Trade_Date', 'Stock_Code', 'Stock_Name']
-#         save_df2db(stockre, indexnames, session)
-#         timeend = time.time()
-#         costtime = costtime + timeend - timestart
-#         # conn.close()
-#         print('Success Transfer %s, %s' % (stockcode, stockname),
-#               "本次耗时：%d" % round(timeend - timestart), "累计耗时：%d" % costtime)
+    # fill_col()
