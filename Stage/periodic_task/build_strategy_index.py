@@ -677,7 +677,7 @@ def statistic_fund_by_strategy(date_from_str, date_to_str, create_csv=True, do_f
         fund_index_df.to_csv(file_path)
         file_path = get_cache_file_path('策略指数统计 %s %s.csv' % (date_from_str, date_to_str))
         statistic_df.to_csv(file_path)
-    stat_df = return_risk_analysis(fund_index_df, date_from_str, date_to_str, freq=50, rf=0.02)
+    stat_df = return_risk_analysis(fund_index_df, date_from_str, date_to_str, freq='weekly', rf=0.02)
     logger.info('统计区间：%s - %s\n%s', date_from_str, date_to_str, stat_df)
 
     return stat_df
@@ -941,6 +941,7 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
         stat_df = None
     if len(stg_idx_mid_dic) > 0:
         stg_idx_mid_df = pd.DataFrame(stg_idx_mid_dic)
+        stg_idx_mid_df.interpolate(inplace=True)
     return stg_idx_quantile_dic, stat_df, stg_idx_mid_df
 
 
@@ -1008,24 +1009,24 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
-    # stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
-    # for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
-    #     date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]
-    #     date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
-    #
-    #     file_path = get_cache_file_path('%s_每周idx_分位图.csv' % stg)
-    #     date_idx_quantile_df.to_csv(file_path)
-    #     logger.info(file_path)
-    #     file_path = get_cache_file_path('%s_每周idx_按机构.csv' % stg)
-    #     date_mgr_idx_df.to_csv(file_path)
-    #     logger.info(file_path)
-    # file_path = get_cache_file_path('策略绩效统计_按机构.csv')
-    # stat_df.to_csv(file_path)
-    # logger.info(file_path)
-    # file_path = get_cache_file_path('各策略指数走势_按机构.csv')
-    # stg_idx_mid_df.to_csv(file_path)
-    # logger.info(file_path)
+    date_from_str, date_to_str = '2016-12-1', '2017-12-1'
+    stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
+    for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
+        date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]
+        date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
+
+        file_path = get_cache_file_path('%s_每周idx_分位图.csv' % stg)
+        date_idx_quantile_df.to_csv(file_path)
+        logger.info(file_path)
+        file_path = get_cache_file_path('%s_每周idx_按机构.csv' % stg)
+        date_mgr_idx_df.to_csv(file_path)
+        logger.info(file_path)
+    file_path = get_cache_file_path('策略绩效统计_按机构.csv')
+    stat_df.to_csv(file_path)
+    logger.info(file_path)
+    file_path = get_cache_file_path('各策略指数走势_按机构.csv')
+    stg_idx_mid_df.to_csv(file_path)
+    logger.info(file_path)
 
     # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
     # date_from_str, date_to_str = '2016-9-26', '2017-9-30'
@@ -1036,6 +1037,7 @@ if __name__ == '__main__':
     # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name(strategy_type_en, date_from_str, date_to_str, do_filter=6, statistic=True, create_csv=False)
     # fund_nav_df = get_fund_nav_weekly_by_strategy(strategy_type_en, date_from_str, date_to_str, show_fund_name=True)
     # print(fund_nav_df)
+
     # 单独统计某一策略绩效
     # stg_index_s, stg_statistic_dic = stat_strategy_index_by_name('long_only', date_from_str, date_to_str,
     #                                                              create_csv=False)
@@ -1120,7 +1122,7 @@ if __name__ == '__main__':
     # rr.to_csv('%s rr.csv' % wind_code_p)
     # print(rr)
 
-    #
+    # 最大回撤曲线
     # strategy_type_en = 'fof'
     # quantile_df = get_strategy_mdd_quantile(strategy_type_en, q_list=[0.05, 0.10, 0.2, 0.25, 0.50, 0.6, 0.75, 0.80, 0.85, 0.90, 0.95])
     # print(quantile_df)
@@ -1132,22 +1134,19 @@ if __name__ == '__main__':
     #                '思勰思瑞二号': {'weight': 1, 'rr_amplitude': 1},
     #                '红猫智赢一号': {'weight': 1, 'rr_amplitude': 1},
     #                }
-    fund_weight = {'FOF拟合净值': {'weight': 1, 'rr_amplitude': 1},
-                   }
-    file_path = r'D:\Works\F复华投资\产品路演、宣传材料\FOF净值拟合计算\FOF净值拟合计算使用 2017-11-9.xlsx'
-    # fund_weight = {'鑫隆稳进FOF': {'weight': 1, 'rr_amplitude': 1}
+    # fund_weight = {'FOF拟合净值': {'weight': 1, 'rr_amplitude': 1},
     #                }
-    # file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\FOF 鑫隆\鑫隆稳进FOF母基金净值（截至20171103）.xlsx'
+    # file_path = r'D:\Works\F复华投资\产品路演、宣传材料\FOF净值拟合计算\FOF净值拟合计算使用 2017-11-9.xlsx'
     # '000001.SH': '上证指数'
     # '000300.SH': '沪深300'
     # '000905.SH': '中证500'
     # '399102.SZ': '创业板综'
     # '399102.SZ': '创业板综'
-    index_code_name_dic = {'000001.SH': '上证指数'}
-    index_dic = nav_xls_2_index(file_path, fund_weight, index_code_name_dic=index_code_name_dic)
-    index_df = index_dic['index_df']
-    stat_df = index_dic['stat_df']
-    mdd_df = index_dic['mdd_df']
-    index_df.to_excel(get_cache_file_path('投资组合收益%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
-    stat_df.to_excel(get_cache_file_path('投资组合收益 绩效分析%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
-    mdd_df.to_excel(get_cache_file_path('投资组合收益 回撤分析%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
+    # index_code_name_dic = {'000001.SH': '上证指数'}
+    # index_dic = nav_xls_2_index(file_path, fund_weight, index_code_name_dic=index_code_name_dic)
+    # index_df = index_dic['index_df']
+    # stat_df = index_dic['stat_df']
+    # mdd_df = index_dic['mdd_df']
+    # index_df.to_excel(get_cache_file_path('投资组合收益%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
+    # stat_df.to_excel(get_cache_file_path('投资组合收益 绩效分析%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
+    # mdd_df.to_excel(get_cache_file_path('投资组合收益 回撤分析%s %s %s.xlsx' % (min(index_df.index), max(index_df.index), "".join(index_code_name_dic.values()))))
