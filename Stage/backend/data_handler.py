@@ -52,7 +52,8 @@ def get_fof_fund_pct_each_nav_date(wind_code_p):
     if nav_df.shape[0] == 0:
         logger.info('No data found')
         return None, None
-    nav_date_list = list(nav_df.index)
+    nav_date_list = [ nav_date.strftime(STR_FORMAT_DATE) for nav_date in nav_df.index]
+    nav_df.index = nav_date_list
     nav_date_list.sort()
     # 获取子基金比例信息
     sql_str = """select fei.wind_code wind_code, ffp.wind_code_s, ifnull(fi.sec_name, fei.sec_name_s) sec_name, date_adj, invest_scale 
@@ -64,6 +65,7 @@ left join fund_info fi
 on fei.wind_code = fi.wind_code
 """
     data_df = pd.read_sql(sql_str, engine, params=[wind_code_p], parse_dates=['date_adj'])
+    data_df['date_adj'] = data_df['date_adj'].apply(lambda nav_date: nav_date.strftime(STR_FORMAT_DATE))
     sec_name_date_scale_df = data_df.groupby(['wind_code', 'sec_name', 'date_adj']).sum()
     fof_fund_pct_df = sec_name_date_scale_df.reset_index().pivot(index='sec_name', columns='date_adj', values='invest_scale').fillna(0)
     date_fund_scale_dic = fof_fund_pct_df.to_dict()  # 'records'
