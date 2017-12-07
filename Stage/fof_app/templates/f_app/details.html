@@ -76,8 +76,14 @@
                   <div class="clearfix"></div>
                 </div>
                 <div class="x_content">
+                  <div class="col-lg-5 col-md-5 col-sm-5 btn-group" id="t4button"
+                       style="position: absolute;top:70px;z-index: 99;">
+                      <button class="btn btn-xs btn-info active" value="networth">净值</button>
+                      <button class="btn btn-xs" value="scale">配比</button>
+                  </div>
                   <div class="demo-container" style="height:400px" id="mainUp">
                     <div id="main" style="height:375px;"></div>
+                    <div id="sub" style="height:375px;"></div>
                   </div>
                 </div>
               </div>
@@ -594,7 +600,8 @@
   var copula = {{ copula_obj |tojson }};
   var multi = {{ multi_obj | tojson }};
   var capital_data = {{ capital_data | tojson }};
-
+  var nav_obj = {{ nav_obj | tojson }};
+  var scale_obj = {{ scale_obj | tojson }};
 
   function  t2charts(wind_code,displayType) {
    var obj = {"wind_code":wind_code,'disPlayType':displayType};
@@ -1009,7 +1016,6 @@ t1chart.setOption(option);
             var wind_code = {{ fof.wind_code | tojson}};
             t2charts(wind_code,'fund');
           });
-
            $("#t2button > button.btn").on("click", function(){
             $(".btn-group > .btn").removeClass("active btn-info");
             var disPlayType = this.value;
@@ -1025,6 +1031,170 @@ t1chart.setOption(option);
                     legendSwitch[data_name[i]] = false;
                 }
             }
+
+            //子基金配比
+            if(JSON.stringify(scale_obj)!=="{}"){
+              $("#t4button > button.btn").on("click", function(){
+                $(".btn-group > .btn").removeClass("active btn-info");
+                $(this).addClass('active btn-info');
+                var disPlayType = this.value;
+                if(disPlayType=="networth"){
+                  $("#main").show().siblings().hide();
+                }else{
+                  $("#sub").show().siblings().hide();
+                }
+              });
+
+
+            var echartLine = echarts.init(document.getElementById('sub'), "shine");
+            var selfName = data_name[0];
+
+            option = {
+              title : {
+                text: '子基金配比',
+                subtext: '一年内子基金配比'
+              },
+              tooltip : {
+                trigger: 'axis',
+                formatter:function (obj) {
+                 var result = '';
+                 var date ;
+                 for(var i=0;i<obj.length;i++){
+                  var value;
+                  if(isNaN(obj[i].value)){
+                   value  = "----";
+                 }else{
+                  value = obj[i].data.toFixed(4)
+                }
+                if(i === (obj.length -1)){
+                  date = obj[i].axisValue;
+                }
+                result +=
+                '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + obj[i].color +'"></span>'+obj[i].seriesName +'&nbsp;'+ value +'<br>';
+                    }
+                    return "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+date+"<br />"+result
+                  }
+                },
+                dataZoom: [
+                  {
+                    type: 'slider',
+                    show: true,
+                    xAxisIndex: [0],
+                    start: 0,
+                    end: 100
+                  }
+                ],
+                legend: {
+                  orient: 'horizontal',
+                  top: 0,
+                  left: 150,
+                  width : 1200,
+                  padding: [0,10,10,0],
+                  data: '',
+                  itemGap: 10,
+                  itemHeight: 10,
+                  selected: legendSwitch,
+                  formatter: function (data) {
+                      return data+'   '
+                  }
+                },
+                grid:{
+                  y2: 90,
+                  top: 80
+                },
+                toolbox: {
+                  show : true,
+                  orient: 'vertical',
+                  padding: 20,
+                  itemGap: 20,
+                  itemSize: 15,
+                  feature : {
+                    saveAsImage : {
+                      show: true,
+                      icon: 'M328 576h152V128h64v448h152L512 768 328 576z m568-64h-64v320H192V512h-64v384h768V512z'
+                    }
+
+                  },
+                  iconStyle: {
+                    normal: {
+                      color: "#09487e"
+                    }
+                  }
+                },
+                calculable : true,
+                xAxis : [
+                {
+                  type : 'category',
+                  boundaryGap : false,
+                  data : '',
+                  splitLine:{
+                    　　　　show:true
+                  　　 }
+
+                }
+                ],
+                yAxis : [
+                {
+                  type : 'value',
+                  scale:true,
+                  axisLabel : {
+                      formatter: '{value}   '
+                  }
+
+                },
+                {
+                  type : 'value',
+                  name:'',
+                  axisLabel : {
+                      formatter: '   {value}'
+                  }
+                }
+                ],
+                series : [
+
+                ]
+              };
+              var legend_data=[];
+              var time=[];
+              var line_data=[];
+              var lineObj = {'name':result[0].name,"type":'line',"smooth":true,'data':''};
+              for(k in nav_obj.nav_acc){
+                time.push(k);
+                line_data.push(nav_obj.nav_acc[k]);
+              }
+              option.xAxis[0].data=time;
+              lineObj.data=line_data;
+              option.series.push(lineObj);
+              legend_data.push(result[0].name);
+              for(k in scale_obj){
+                legend_data.push(k);
+              }
+              for(k in scale_obj){
+                var barObj = {'name':k,"type":'bar',"smooth":true,
+                  yAxisIndex:1,
+                  stack: '总量',
+                  label: {
+                      normal: {
+                          show: false,
+                          position: 'insideRight'
+                      }
+                  },'data':'',barWidth:30};
+                var data=[];
+                for(k2 in scale_obj[k]){
+                  data.push(scale_obj[k][k2]);
+                }
+                barObj.data=data;
+                option.series.push(barObj);
+              }
+              option.legend.data=legend_data;
+              echartLine.setOption(option);
+
+              $("#sub").hide();
+            }else{
+              $("#t4button").hide();
+            }
+
+
 
            if (time_line.length > 0  ){
 
