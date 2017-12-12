@@ -1,8 +1,181 @@
 {% extends "main.html" %}
 
-
-
 {% block  content %}
 
- {{ fund }}
+<div class="x_panel">
+  <div class="x_title">
+    <div class="col-md-11">
+      <h2>基金信息</h2>
+    </div>                    
+    <div class="col-md-1" style="text-align: right;">
+      <a style="font-size: 25px;" href="{{ url_for('f_app.edit_summary',wind_code=fund.wind_code) }}"><i class="fa fa-edit"></i></a>
+    </div>
+		<div class="clearfix"></div>
+  </div>
+  <div class="x_content">
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+        	<th colspan="4" style="text-align: left!important;background: #eee;">基本信息 >></th>
+      	</tr>
+        <tr>
+          <th width="300">基金代码:</th>
+          <td width="400">{{ fund.wind_code if fund.wind_code is not none else "" }}</td>
+          <th width="300">基金名称:</th>
+          <td width="400">{{ fund.sec_name if fund.sec_name is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>策略类型:</th>
+          <td>{{ fund.strategy_type if fund.strategy_type is not none else "" }}</td>
+          <th>基金管理人信息:</th>
+          <td>{{ fund.fund_mgrcomp if fund.fund_mgrcomp is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>基金成立日期:</th>
+          <td>{{ fund.fund_setupdate if fund.fund_setupdate is not none else "" }}</td>
+          <th>基金终止日期:</th>
+          <td>{{ fund.fund_maturitydate if fund.fund_maturitydate is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>存在年数(存续期限):</th>
+          <td>{{ fund.fund_existingyear if fund.fund_existingyear is not none else "" }}</td>
+          <th>存续年限:</th>
+          <td>{{ fund.fund_ptmyear if fund.fund_ptmyear is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>基金类型:</th>
+          <td>{{ fund.fund_type if fund.fund_type is not none else "" }}</td>
+          <th>基金经理:</th>
+          <td>{{ fund.fund_fundmanager if fund.fund_fundmanager is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>基金状态:</th>
+          <td>{{ fund.fund_status if fund.fund_status is not none else "" }}</td>
+          <th>基金别名:</th>
+          <td>{{ fund.alias if fund.alias is not none else "" }}</td>
+        </tr>
+        <tr>
+        	<th colspan="4" style="text-align: left!important;background: #eee;">规模信息 >></th>
+      	</tr>
+        <tr>
+          <th>A类份额规模（募集端的份额）:</th>
+          <td>{{ fund.scale_a if fund.scale_a is not none else "" }}</td>
+          <th>B类份额规模（募集端的份额）:</th>
+          <td>{{ fund.scale_b if fund.scale_b is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>优先级资产规模:</th>
+          <td>{{ fund.priority_asset if fund.priority_asset is not none else "" }}</td>
+          <th>劣后级资产规模:</th>
+          <td>{{ fund.inferior_asset if fund.inferior_asset is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>总规模:</th>
+          <td>{{ fund.scale_tot if fund.scale_tot is not none else "" }}</td>
+          <th></th>
+          <td></td>
+        </tr>
+        <tr>
+        	<th colspan="4" style="text-align: left!important;background: #eee;">比率信息 >></th>
+      	</tr>
+        <tr>
+          <th>优先级年华收益率:</th>
+          <td>{{ fund.priority_interest_rate if fund.priority_interest_rate is not none else "" }}</td>
+          <th>年化收益率:</th>
+          <td>{{ fund.annual_return if fund.annual_return is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>最大回撤率:</th>
+          <td>{{ fund.nav_acc_mdd if fund.nav_acc_mdd is not none else "" }}</td>
+          <th>夏普比率:</th>
+          <td>{{ fund.sharpe if fund.sharpe is not none else "" }}</td>
+        </tr>
+        <div></div>
+        <tr>
+          <th>数据源:</th>
+	          {% if fund.source_mark == 1 %}
+	          <td>手动</td>
+	          {% else %}  
+	          <td>wind</td>          
+	          {% endif %}
+          <th>基金评级信息:</th>
+	          {% if fund.rank == 0 %}
+	          <td>未评级</td>
+	          {% elif fund.rank == 1 %}
+	          <td>不关注</td>
+	          {% elif fund.rank == 2 %}
+	          <td>观察</td>
+	          {% elif fund.rank == 3 %}
+	          <td>备选</td>
+	          {% elif fund.rank == 4 %}
+	          <td>核心池</td>
+	          {% else %}  
+	          <td></td>          
+	          {% endif %}
+        </tr>
+        <tr>
+        	<th colspan="4" style="text-align: left!important;background: #eee;">净值信息 >></th>
+      	</tr>
+        <tr>
+          <th>最新净值:</th>
+          <td>{{ fund.nav_acc_latest if fund.nav_acc_latest is not none else "" }}</td>
+          <th>最新净值日期:</th>
+          <td>{{ fund.nav_date_latest if fund.nav_date_latest is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>最新交易日:</th>
+          <td>{{ fund.trade_date_latest if fund.trade_date_latest is not none else "" }}</td>
+          <th>投资负责人:</th>
+          <td>{{ fund.fh_inv_manager if fund.fh_inv_manager is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>产品负责人:</th>
+          <td>{{ fund.fh_prod_manager if fund.fh_prod_manager is not none else "" }}</td>
+          <th>渠道负责人:</th>
+          <td>{{ fund.fh_channel_manager if fund.fh_channel_manager is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>0 其他公司基金; 1 复华旗下的基金</th>
+          <td>{{ fund.belongtofh if fund.belongtofh is not none else "" }}</td>
+          <th>基金托管人:</th>
+          <td>{{ fund.custodian if fund.custodian is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>行政服务机构:</th>
+          <td>{{ fund.service_institution if fund.service_institution is not none else "" }}</td>
+          <th>管理人电话:</th>
+          <td>{{ fund.phone_fund_mgrcomp if fund.phone_fund_mgrcomp is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>净值维护方式：</th>
+	          {% if fund.nav_maintain_mode == False %}
+	          <td>手动维护</td>
+            {% else %}
+	          <td>自动计算</td>
+            {% endif %}
+          <th></th>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block script %}
+
+<script>
+
+
+
+
+</script>
+
 {% endblock %}

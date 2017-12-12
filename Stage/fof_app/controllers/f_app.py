@@ -225,7 +225,7 @@ def download_main_charts():
 @f_app_blueprint.route('/edit_summary/<string:wind_code>', methods=['POST', 'GET'])
 @login_required
 @permission
-@fund_owner
+# @fund_owner
 def edit_summary(wind_code: str) -> object:
     """
     编辑基金的基础信息  需要优化，计划使用flask-bootstrap和wtf生成表单
@@ -1762,7 +1762,7 @@ def get_fund():
 def view_fund(wind_code):
     fund = FoFModel.query.filter_by(wind_code=wind_code).first()
     if fund is not None:
-        return render_template("view_fund.html",fund=fund)
+        return render_template("view_fund.html",fund=fund.to_json())
 
 
 

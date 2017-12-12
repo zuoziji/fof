@@ -8,7 +8,7 @@
 
 
 
-<div class="row tile_count">
+<div class="row tile_count" style="margin-bottom: 0;">
             <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top" id="all"><i class="fa fa-user"></i>大数据投顾池</span>
               <div class="count"><a href="#" data-tag="5">{{ all_data.all.length }}</a> </div>
@@ -111,7 +111,13 @@
                       return '<a href=/f_app/view_fund/'+wind_code+'><button type="button" class="btn btn-info btn-xs">详细信息</button></a>';
                   }
               }
-          ]
+          ],
+          "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
+          "t" +
+          "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+          "initComplete": function () {
+              $("#mytool").append('<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#crud"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加新的基金</span></button>');
+          }
     });
        $('.count').on( 'click', 'a', function () {
            var tag =  $(this).data().tag;
