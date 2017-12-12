@@ -1,0 +1,130 @@
+{% extends "main.html" %}
+
+
+
+{% block manager %}
+{% endblock %}
+{% block content %}
+
+
+
+<div class="row tile_count">
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top" id="all"><i class="fa fa-user"></i>大数据投顾池</span>
+              <div class="count"><a href="#" data-tag="5">{{ all_data.all.length }}</a> </div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top" id="1"><i class="fa fa-clock-o"></i> 归档投顾池</span>
+              <div class="count"><a href="#" data-tag="2">{{ all_data.archive}}</a></div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-user"></i> 观察投顾池</span>
+              <div class="count green"><a href="#" data-tag="3">{{ all_data.observe }}</a> </div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top" id="4"><i class="fa fa-user"></i> 核心投顾池</span>
+              <div class="count"><a href="#" data-tag="4">{{ all_data.core }}</a></div>
+            </div>
+
+          </div>
+        <div class="x_content">
+           <table class="table table-bordered center-all" id="fund_tab" width="100%" >
+              <thead>
+              <tr>
+                <th>基金代码</th>
+                <th>基金名称</th>
+                <th>成立时间</th>
+                <th>基金管理人</th>
+                <th>基金经理</th>
+                <th>当前状态</th>
+                <th>评测结果</th>
+                <th></th>
+              </tr>
+              </thead>
+            </table>
+
+        </div>
+
+
+
+
+
+{% endblock %}
+
+{% block script %}
+ <script>
+
+   $(document).ready(function () {
+      var fundTab =  $('#fund_tab').DataTable({
+         "info":false,
+            "paging": true,
+            "displayLength": 20,
+                "language": {
+                "lengthMenu": "每页 _MENU_ 条记录",
+                "zeroRecords": "没有找到记录",
+                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                "infoEmpty": "无记录",
+                "search": "搜索：",
+                "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                "processing":"正在处理;....",
+                "paginate": {
+                    "previous": "上一页",
+                    "next": "下一页"
+                }
+            },
+         serverSide: true,   //启用服务器端分页
+         processing: true,  //隐藏加载提示,自行处理
+		 "sAjaxSource": "{{ url_for('f_app.get_fund') }}",
+          columns: [
+              { data: 'wind_code' },
+              { data: 'sec_name'},
+              {data:'fund_setupdate'},
+              {data:'fund_fundmanager'},
+              {data:'fund_mgrcomp'},
+              {data:'fund_status',
+                  "render":function (data) {
+                      if(data == null){
+                          return "未知"
+                      }else if(data == 0){
+                          return "未运行"
+                      }else if(data == 1){
+                          return "运行"
+                      }
+                  }
+              },
+              {data:"rank",
+                  "render": function(data) {
+                      if(data==0 || null){
+                        return "未访谈"
+                      }else if(data==2){ 
+                        return "已归档"
+                      }else if(data==3){
+                        return "观察中"
+                      }else if(data==4){
+                        return "核心池"
+                      }
+                  }
+              },
+              {data:null,
+                  "render": function(data, type, row) {
+                      var wind_code = data.wind_code;
+                      return '<a href=/f_app/view_fund/'+wind_code+'><button type="button" class="btn btn-info btn-xs">详细信息</button></a>';
+                  }
+              }
+          ]
+    });
+       $('.count').on( 'click', 'a', function () {
+           var tag =  $(this).data().tag;
+                fundTab
+            .columns(6)
+            .search($(this).data().tag)
+            .draw();
+
+        });
+
+   })
+
+
+ </script>
+
+{% endblock %}

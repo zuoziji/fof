@@ -61,7 +61,12 @@ class DataTablesServer(object):
             return filter
         elif self.request_values['sSearch_6'] != "" and (self.request_values['sSearch_6'] != "5"):
             tag = self.request_values['sSearch_6']
-            filter = "WHERE review_status = %s" %tag
+            key = None
+            if self.table == 'fund_info':
+                key = "rank"
+            elif self.table == "fund_mgrcomp_info":
+                key = "review_status"
+            filter = "WHERE %s = %s" %(key,tag)
             return filter
     def ordering(self):
         order = ""

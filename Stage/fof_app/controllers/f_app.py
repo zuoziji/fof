@@ -1719,26 +1719,50 @@ def add_corp():
 
 
 
-@f_app_blueprint.route('/fund_corp')
+@f_app_blueprint.route('/fund_manage')
 @login_required
-def fund_corp():
+def fund_manage():
     """
-    数据库所有基金展现
-    :by zhoushaobo
+    基金管理
+    :by hdhuang
     :return:
     """
     fof_list = cache.get(str(current_user.id))
-    invest = FOF_FUND_PCT.query.all()
-    child = []
-    for i in invest:
-        data = {}
-        data['name'] = code_get_name(i.wind_code_s)
-        data['date'] = i.date_adj.strftime("%Y-%m-%d")
-        data['scale'] = i.invest_scale
-        data['code'] = i.wind_code_s
-        child.append(data)
+    fund = FoFModel.query.all()
+    core_invest = FoFModel.query.filter_by(rank=4).all()
+    observe_invest = FoFModel.query.filter_by(rank=3).all()
+    archive_invest = FoFModel.query.filter_by(rank=2).all()
+    all_data = {"core": len(core_invest), 'all': {"data": fund, 'length': len(fund)}, "observe": len(observe_invest),
+                "archive": len(archive_invest)}
+    return render_template("f_app/fund_manage.html", fof_list=fof_list,all_data=all_data)
 
-    return render_template("f_app/fund_corp.html", fof_list=fof_list, all_data=child)
+
+@f_app_blueprint.route('/get_fund')
+@login_required
+def get_fund():
+    """
+    Datatables插件服务器端获取数据方式
+    :param 数据中每个列的名称,要和Datatables中列一致
+    :by hdhuang
+    :return:
+    """
+    columns = ['wind_code', 'sec_name', 'fund_setupdate', 'fund_fundmanager', 'fund_mgrcomp', 'fund_status',
+               'rank', ]
+    index_column = "wind_code"
+    table = "fund_info"
+    result = DataTablesServer(request, columns=columns, table=table, index=index_column).output_result()
+    for i in result['aaData']:
+        if i['fund_setupdate'] is not None:
+            i['fund_setupdate'] = i['fund_setupdate'].strftime('%Y-%m-%d')
+        if i['rank'] is None:
+            i['rank'] = 0
+    return json.dumps(result)
+
+@f_app_blueprint.route('/view_fund/<wind_code>',methods=['POST','GET'])
+def view_fund(wind_code):
+    fund = FoFModel.query.filter_by(wind_code=wind_code).first()
+    if fund is not None:
+        return render_template("view_fund.html",fund=fund)
 
 
 
