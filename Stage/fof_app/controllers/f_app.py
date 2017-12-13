@@ -1772,7 +1772,11 @@ def view_fund(wind_code):
 def new_fund():
     if request.method == "GET":
         fof_list = cache.get(str(current_user.id))
-        return render_template('new_fund.html', fof_list=fof_list)
+        new_format = "FHC-{0:0>4}"
+        wind_code_regexp = r'FHC-.{4}$'
+        last_code = db.session.query(FoFModel).filter(FoFModel.wind_code.op('regexp')(wind_code_regexp)).all()[-1]
+        new_code = new_format.format(int(last_code.wind_code[4:]) + 1)
+        return render_template('new_fund.html', fof_list=fof_list,new_code=new_code)
 
 
 

@@ -28,7 +28,12 @@
 
                         <h2 class="page-header">基金信息</h2>
                         <div class="row">
-                            <input type="text" name="wind_code" class="form-control input-md" >
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金代码</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="alias" class="form-control input-md"  value="{{ new_code }}" readonly >
+                                </div>
+                            </div>
                             <div class="form-group col-md-4">
                                 <label class="control-label col-md-4 col-sm-4 col-xs-12">基金名称</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
