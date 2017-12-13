@@ -27,7 +27,7 @@
                 <div class="x_content">
                     <form id="crud-form" class="form-horizontal form-label-left" method="POST" action="{{ url_for('f_app.edit_summary',wind_code=fof.wind_code)}}" onsubmit="return valid()">
 
-                        <h2 class="page-header">基金信息</h2>
+                        <h2 class="page-header">基本信息</h2>
                         <div class="row">
                             <input type="text" name="wind_code" class="form-control input-md" value="{{ fof.wind_code }}" style="display:none;">
                             <div class="form-group col-md-4">
@@ -45,28 +45,16 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金经理</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">存在年限</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="text" name="fund_mgrcomp" class="form-control input-md" value="{{ fof.fund_mgrcomp }}">
+                                    <input type="number" name="fund_existingyear" class="form-control input-md" value="{{ fof.fund_existingyear }}">
+                                    
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">策略类型</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">存续年限</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <select class="form-control" name="strategy_type" id="strategy_type">
-                                        <option value="股票多头策略">股票多头策略</option>
-                                        <option value="股票多空策略">股票多空策略</option>
-                                        <option value="事件驱动策略">事件驱动策略</option>
-                                        <option value="其他股票策略">其他股票策略</option>
-                                        <option value="阿尔法策略">阿尔法策略</option>
-                                        <option value="债券策略">债券策略</option>
-                                        <option value="货币市场策略">货币市场策略</option>
-                                        <option value="管理期货策略">管理期货策略</option>
-                                        <option value="套利策略">套利策略</option>
-                                        <option value="宏观策略">宏观策略</option>
-                                        <option value="组合基金策略">组合基金策略</option>
-                                        <option value="现金管理">现金管理</option>
-                                    </select>
+                                    <input type="number" name="fund_ptmyear" class="form-control input-md" value="{{ fof.fund_ptmyear }}">
                                 </div>
                             </div>
                         </div>
@@ -86,15 +74,15 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金管理人员</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金经理</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="text" name="fund_fundmanager" class="form-control input-md" value="{{ fof.fund_fundmanager }}">
+                                    <input type="text" name="fund_mgrcomp" class="form-control input-md" value="{{ fof.fund_mgrcomp }}">
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">投资管理人</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金管理人员</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="text" name="fh_inv_manager" class="form-control input-md" value="{{ fof.fh_inv_manager }}">
+                                    <input type="text" name="fund_fundmanager" class="form-control input-md" value="{{ fof.fund_fundmanager }}">
                                 </div>
                             </div>
                         </div>
@@ -123,23 +111,29 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">产品负责人</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">策略类型</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="text" name="fh_prod_manager" class="form-control input-md" value="{{ fof.fh_prod_manager }}">
+                                    <select class="form-control" name="strategy_type" id="strategy_type">
+                                        <option value="股票多头策略">股票多头策略</option>
+                                        <option value="股票多空策略">股票多空策略</option>
+                                        <option value="事件驱动策略">事件驱动策略</option>
+                                        <option value="其他股票策略">其他股票策略</option>
+                                        <option value="阿尔法策略">阿尔法策略</option>
+                                        <option value="债券策略">债券策略</option>
+                                        <option value="货币市场策略">货币市场策略</option>
+                                        <option value="管理期货策略">管理期货策略</option>
+                                        <option value="套利策略">套利策略</option>
+                                        <option value="宏观策略">宏观策略</option>
+                                        <option value="组合基金策略">组合基金策略</option>
+                                        <option value="现金管理">现金管理</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">渠道负责人</label>
-                                <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="text" name="fh_channel_manager" class="form-control input-md" value="{{ fof.fh_channel_manager }}"> 
+                            <div class="col-md-4">
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金状态</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12" style="margin-top:5px;">
+                                    <input type="checkbox" class="flat" checked="{{ fof.fund_status }}" name="fund_status">
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4" style="margin-top:5px;">
-                                <label class="control-label col-md-4 col-md-offset-4" style="text-align: left;">
-                                    <input type="checkbox" class="flat" checked="{{ fof.fund_status }}" name="fund_status"> 基金状态
-                                </label>
                             </div>
                         </div>
                         <div class="panel panel-default" style="border:0px;">
@@ -150,99 +144,107 @@
                             </div>
                             <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                                 <div class="panel-body">
-                                    <h2 class="page-header">规模</h2>
+                                    <h2 class="page-header">规模信息</h2>
                                     <div class="row">
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">总规模</label>
-                                            <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="scale_tot" class="form-control input-md" value="{{ fof.scale_tot }}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="form-group col-md-3">
+                                        <div class="form-group col-md-4">
                                             <label class="control-label col-md-4 col-sm-4 col-xs-12">A类份额规模</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="scale_a" class="form-control input-md" value="{{ fof.scale_a }}">
+                                                <input type="number" name="scale_a" class="form-control input-md" >
                                             </div>
                                         </div>
-                                        <div class="form-group col-md-3">
+                                        <div class="form-group col-md-4">
                                             <label class="control-label col-md-4 col-sm-4 col-xs-12">B类份额规模</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="scale_b" class="form-control input-md" value="{{ fof.scale_b }}">
-                                            </div>
-                                        </div>
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">优先级资产规模</label>
-                                            <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="priority_asset" class="form-control input-md" value="{{ fof.priority_asset }}">
-                                            </div>
-                                        </div>
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">劣后级资产规模</label>
-                                            <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="inferior_asset" class="form-control input-md" value="{{ fof.inferior_asset }}">
+                                                <input type="number" name="scale_b" class="form-control input-md" >
                                             </div>
                                         </div>
                                     </div>
-                                    <h2 class="page-header">净值</h2>
                                     <div class="row">
-                                        <div class="form-group col-md-3">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">优先级资产规模</label>
+                                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                                <input type="number" name="priority_asset" class="form-control input-md" >
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">劣后级资产规模</label>
+                                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                                <input type="number" name="inferior_asset" class="form-control input-md" >
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">总规模</label>
+                                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                                <input type="number" name="scale_tot" class="form-control input-md" >
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h2 class="page-header">净值信息</h2>
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
                                             <label class="control-label col-md-4 col-sm-4 col-xs-12">最新净值</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
                                                 <input type="number" name="nav_acc_latest" class="form-control input-md" value="{{ fof.nav_acc_latest }}">
                                             </div>
                                         </div>
-                                        <div class="form-group col-md-3">
+                                        <div class="form-group col-md-4">
                                             <label class="control-label col-md-4 col-sm-4 col-xs-12">最新净值日期</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
                                                 <input type="date" name="nav_date_latest" class="form-control input-md" value="{{ fof.nav_date_latest }}">
                                             </div>
                                         </div>
                                     </div>
-                                    <h2 class="page-header">收益率</h2>
+                                    <h2 class="page-header">比率信息</h2>
                                     <div class="row">
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12" style="padding-left:0;">优先级年化收益率</label>
-                                            <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="priority_interest_rate" class="form-control input-md" value="{{ fof.priority_interest_rate }}">
-                                            </div>
-                                        </div>
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">年化收益率</label>
-                                            <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="annual_return" class="form-control input-md" value="{{ fof.annual_return  }}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h2 class="page-header">占比</h2>
-                                    <div class="row">
-                                        <div class="form-group col-md-3">
+                                        <div class="form-group col-md-4">
                                             <label class="control-label col-md-4 col-sm-4 col-xs-12">最大回撤比</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
                                                 <input type="number" name="nav_acc_mdd" class="form-control input-md" value="{{ fof.nav_acc_mdd }}">
                                             </div>
                                         </div>
-                                        <div class="form-group col-md-3">
+                                        <div class="form-group col-md-4">
                                             <label class="control-label col-md-4 col-sm-4 col-xs-12">夏普比</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
                                                 <input type="number" name="sharpe" class="form-control input-md" value="{{ fof.sharpe }}">
                                             </div>
                                         </div>
                                     </div>
-                                    <h2 class="page-header">年限</h2>
                                     <div class="row">
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">存在年限</label>
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12" style="padding-left:0;">优先级年化收益率</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="fund_existingyear" class="form-control input-md" value="{{ fof.fund_existingyear }}">
-                                                
+                                                <input type="number" name="priority_interest_rate" class="form-control input-md" value="{{ fof.priority_interest_rate }}">
                                             </div>
                                         </div>
-                                        <div class="form-group col-md-3">
-                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">存续年限</label>
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">年化收益率</label>
                                             <div class="col-md-8 col-sm-8 col-xs-12">
-                                                <input type="number" name="fund_ptmyear" class="form-control input-md" value="{{ fof.fund_ptmyear }}">
+                                                <input type="number" name="annual_return" class="form-control input-md" value="{{ fof.annual_return  }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h2 class="page-header">其他信息</h2>
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">产品负责人</label>
+                                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                                <input type="text" name="fh_prod_manager" class="form-control input-md" value="{{ fof.fh_prod_manager }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">渠道负责人</label>
+                                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                                <input type="text" name="fh_channel_manager" class="form-control input-md" value="{{ fof.fh_channel_manager }}"> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label col-md-4 col-sm-4 col-xs-12">投资管理人</label>
+                                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                                <input type="text" name="fh_inv_manager" class="form-control input-md" value="{{ fof.fh_inv_manager }}">
                                             </div>
                                         </div>
                                     </div>
