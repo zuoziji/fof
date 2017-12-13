@@ -245,7 +245,8 @@ def edit_summary(wind_code: str) -> object:
                 v = None
             setattr(fund,k,v)
         db.session.commit()
-        return redirect(url_for("f_app.details",wind_code=wind_code))
+        flash(category="success",message="修改成功")
+        return redirect(url_for("f_app.edit_summary",wind_code=wind_code))
 
 
 @f_app_blueprint.route('/add_child/<string:wind_code>', methods=['POST', 'GET'])
@@ -1759,10 +1760,19 @@ def get_fund():
     return json.dumps(result)
 
 @f_app_blueprint.route('/view_fund/<wind_code>',methods=['POST','GET'])
+@login_required
 def view_fund(wind_code):
     fund = FoFModel.query.filter_by(wind_code=wind_code).first()
     if fund is not None:
         return render_template("view_fund.html",fund=fund.to_json())
+
+
+@f_app_blueprint.route('/new_fund',methods=['POST','GET'])
+@login_required
+def new_fund():
+    if request.method == "GET":
+        fof_list = cache.get(str(current_user.id))
+        return render_template('new_fund.html', fof_list=fof_list)
 
 
 
