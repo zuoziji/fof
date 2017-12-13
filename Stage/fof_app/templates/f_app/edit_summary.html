@@ -45,21 +45,6 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">存在年限</label>
-                                <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="number" name="fund_existingyear" class="form-control input-md" value="{{ fof.fund_existingyear }}">
-                                    
-                                </div>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">存续年限</label>
-                                <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="number" name="fund_ptmyear" class="form-control input-md" value="{{ fof.fund_ptmyear }}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-group col-md-4">
                                 <label class="control-label col-md-4 col-sm-4 col-xs-12">成立时间</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
                                     <input name="fund_setupdate" type="date" class="form-control input-md" value="{{ fof.fund_setupdate }}"/>
@@ -80,9 +65,23 @@
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金管理人员</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金管理人</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
                                     <input type="text" name="fund_fundmanager" class="form-control input-md" value="{{ fof.fund_fundmanager }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金托管人</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" name="custodian" class="form-control input-md" value="{{ fof.custodian }}">
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">存续年限</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="number" name="fund_ptmyear" class="form-control input-md" value="{{ fof.fund_ptmyear }}">
                                 </div>
                             </div>
                         </div>

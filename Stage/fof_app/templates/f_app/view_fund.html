@@ -37,18 +37,6 @@
           <td>{{ fund.fund_maturitydate if fund.fund_maturitydate is not none else "" }}</td>
         </tr>
         <tr>
-          <th>存在年数(存续期限):</th>
-          <td>{{ fund.fund_existingyear if fund.fund_existingyear is not none else "" }}</td>
-          <th>存续年限:</th>
-          <td>{{ fund.fund_ptmyear if fund.fund_ptmyear is not none else "" }}</td>
-        </tr>
-        <tr>
-          <th>基金管理人信息:</th>
-          <td>{{ fund.fund_mgrcomp if fund.fund_mgrcomp is not none else "" }}</td>
-          <th>基金经理:</th>
-          <td>{{ fund.fund_fundmanager if fund.fund_fundmanager is not none else "" }}</td>
-        </tr>
-        <tr>
           <th>基金状态:</th>
             {% if fund.source_mark == 1 %}
             <td>运行</td>
@@ -57,6 +45,18 @@
             {% endif %}
           <th>基金别名:</th>
           <td>{{ fund.alias if fund.alias is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>基金管理人:</th>
+          <td>{{ fund.fund_mgrcomp if fund.fund_mgrcomp is not none else "" }}</td>
+          <th>基金经理:</th>
+          <td>{{ fund.fund_fundmanager if fund.fund_fundmanager is not none else "" }}</td>
+        </tr>
+        <tr>
+          <th>基金托管人:</th>
+          <td>{{ fund.custodian if fund.custodian is not none else "" }}</td>
+          <th>存续年限:</th>
+          <td>{{ fund.fund_ptmyear if fund.fund_ptmyear is not none else "" }}</td>
         </tr>
         <tr>
         	<th colspan="4" style="text-align: left!important;background: #eee;">规模信息 >></th>
@@ -156,14 +156,8 @@
         <tr>
           <th>投资负责人:</th>
           <td>{{ fund.fh_inv_manager if fund.fh_inv_manager is not none else "" }}</td>
-          <th>基金托管人:</th>
-          <td>{{ fund.custodian if fund.custodian is not none else "" }}</td>
-        </tr>
-        <tr>
           <th>管理人电话:</th>
           <td>{{ fund.phone_fund_mgrcomp if fund.phone_fund_mgrcomp is not none else "" }}</td>
-          <th></th>
-          <td></td>
         </tr>
       </tbody>
     </table>
