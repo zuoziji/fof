@@ -40,12 +40,6 @@
                                     <input type="text" name="sec_name" class="form-control input-md" >
                                 </div>
                             </div>
-                            <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金别名</label>
-                                <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <input type="text" name="alias" class="form-control input-md"  >
-                                </div>
-                            </div>
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4">
@@ -55,22 +49,9 @@
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label col-md-4 col-sm-4 col-xs-12">策略类型</label>
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金别名</label>
                                 <div class="col-md-8 col-sm-8 col-xs-12">
-                                    <select class="form-control" name="strategy_type" id="strategy_type">
-                                        <option value="股票多头策略">股票多头策略</option>
-                                        <option value="股票多空策略">股票多空策略</option>
-                                        <option value="事件驱动策略">事件驱动策略</option>
-                                        <option value="其他股票策略">其他股票策略</option>
-                                        <option value="阿尔法策略">阿尔法策略</option>
-                                        <option value="债券策略">债券策略</option>
-                                        <option value="货币市场策略">货币市场策略</option>
-                                        <option value="管理期货策略">管理期货策略</option>
-                                        <option value="套利策略">套利策略</option>
-                                        <option value="宏观策略">宏观策略</option>
-                                        <option value="组合基金策略">组合基金策略</option>
-                                        <option value="现金管理">现金管理</option>
-                                    </select>
+                                    <input type="text" name="alias" class="form-control input-md"  >
                                 </div>
                             </div>
                         </div>
@@ -140,10 +121,30 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-4" style="margin-top:5px;">
-                                <label class="control-label col-md-4 col-md-offset-4" style="text-align: left;">
-                                    <input type="checkbox" class="flat"  name="fund_status"> 基金状态
-                                </label>
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">策略类型</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <select class="form-control" name="strategy_type" id="strategy_type">
+                                        <option value="股票多头策略">股票多头策略</option>
+                                        <option value="股票多空策略">股票多空策略</option>
+                                        <option value="事件驱动策略">事件驱动策略</option>
+                                        <option value="其他股票策略">其他股票策略</option>
+                                        <option value="阿尔法策略">阿尔法策略</option>
+                                        <option value="债券策略">债券策略</option>
+                                        <option value="货币市场策略">货币市场策略</option>
+                                        <option value="管理期货策略">管理期货策略</option>
+                                        <option value="套利策略">套利策略</option>
+                                        <option value="宏观策略">宏观策略</option>
+                                        <option value="组合基金策略">组合基金策略</option>
+                                        <option value="现金管理">现金管理</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="control-label col-md-4 col-sm-4 col-xs-12">基金状态</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12" style="margin-top:5px;">
+                                    <input type="checkbox" class="flat" name="fund_status"/>
+                                </div>
                             </div>
                         </div>
                         <div class="panel panel-default" style="border:0px;">

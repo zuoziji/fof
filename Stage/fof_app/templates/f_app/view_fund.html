@@ -8,7 +8,7 @@
       <h2>基金信息</h2>
     </div>                    
     <div class="col-md-1" style="text-align: right;">
-      <a style="font-size: 25px;" href="{{ url_for('f_app.edit_summary',wind_code=fund.wind_code) }}"><i class="fa fa-edit"></i></a>
+      <a href="{{ url_for('f_app.edit_summary',wind_code=fund.wind_code) }}" type="button" class="btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit" style="color:#fff;">编辑</span></a>
     </div>
 		<div class="clearfix"></div>
   </div>
@@ -50,7 +50,11 @@
         </tr>
         <tr>
           <th>基金状态:</th>
-          <td>{{ fund.fund_status if fund.fund_status is not none else "" }}</td>
+            {% if fund.source_mark == 1 %}
+            <td>运行</td>
+            {% else %}  
+            <td>未运行</td>          
+            {% endif %}
           <th>基金别名:</th>
           <td>{{ fund.alias if fund.alias is not none else "" }}</td>
         </tr>
@@ -99,9 +103,7 @@
 	          <td>wind</td>          
 	          {% endif %}
           <th>基金评级信息:</th>
-	          {% if fund.rank == 0 %}
-	          <td>未评级</td>
-	          {% elif fund.rank == 1 %}
+	          {% if fund.rank == 1 %}
 	          <td>不关注</td>
 	          {% elif fund.rank == 2 %}
 	          <td>观察</td>
@@ -110,7 +112,7 @@
 	          {% elif fund.rank == 4 %}
 	          <td>核心池</td>
 	          {% else %}  
-	          <td></td>          
+            <td>未评级</td>        
 	          {% endif %}
         </tr>
         <tr>
@@ -135,8 +137,12 @@
           <td>{{ fund.fh_channel_manager if fund.fh_channel_manager is not none else "" }}</td>
         </tr>
         <tr>
-          <th>0 其他公司基金; 1 复华旗下的基金</th>
-          <td>{{ fund.belongtofh if fund.belongtofh is not none else "" }}</td>
+          <th>所属公司</th>
+            {% if fund.source_mark == 0 %}
+            <td>其他公司基金</td> 
+            {% else %}
+            <td>复华旗下的基金</td>
+            {% endif %}
           <th>基金托管人:</th>
           <td>{{ fund.custodian if fund.custodian is not none else "" }}</td>
         </tr>
