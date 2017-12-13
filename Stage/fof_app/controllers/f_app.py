@@ -1777,7 +1777,14 @@ def new_fund():
         last_code = db.session.query(FoFModel).filter(FoFModel.wind_code.op('regexp')(wind_code_regexp)).all()[-1]
         new_code = new_format.format(int(last_code.wind_code[5:]) + 1)
         return render_template('new_fund.html', fof_list=fof_list,new_code=new_code)
-
+    elif request.method == "POST":
+        data = request.form.to_dict()
+        data = { k:v for k,v in data.items() if len(v) > 0}
+        new_fund = FoFModel(**data)
+        db.session.add(new_fund)
+        db.session.commit()
+        flash(message="添加成功",category="success")
+        return redirect(url_for("f_app.fund_manage"))
 
 
 @f_app_blueprint.route('/noopsyche_add', methods=['POST', 'GET'])
