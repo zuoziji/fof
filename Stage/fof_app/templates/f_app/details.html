@@ -1055,7 +1055,7 @@ t1chart.setOption(option);
                 text: '子基金配比',
                 subtext: '一年内子基金配比'
               },
-              color:['#c12e34','#e6b600', '#0098d9', '#2b821d', '#005eaa','#339ca8',  '#ca8622', '#b9950a','#32a487', '#546570', '#c4ccd3'],
+              color:['#c12e34','#e6b600', '#0098d9', '#2b821d', '#005eaa','#339ca8',  '#ca8622', '#b9950a','#32a487', '#546570', '#c4ccd3','#96b9d8','#296eab','#0becb3','#c7817f','#795310','#2ce4f9','#d9f35c','#8bf320','#4c4c4b'],
               tooltip : {
                 trigger: 'axis',
                 formatter:function (obj) {
@@ -1066,7 +1066,7 @@ t1chart.setOption(option);
                   if(isNaN(obj[i].value)){
                    value  = "----";
                  }else{
-                  value = obj[i].data.toFixed(4)
+                  value = obj[i].data
                 }
                 if(i === (obj.length -1)){
                   date = obj[i].axisValue;
@@ -1182,7 +1182,7 @@ t1chart.setOption(option);
                   },'data':'',barWidth:30};
                 var data=[];
                 for(k2 in scale_obj[k]){
-                  data.push(scale_obj[k][k2]);
+                  data.push(Math.round(scale_obj[k][k2]));
                 }
                 barObj.data=data;
                 option.series.push(barObj);
