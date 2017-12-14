@@ -452,6 +452,10 @@ class FUND_NAV(db.Model):
         return self.wind_code
 
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
 @event.listens_for(FUND_NAV, 'after_insert')
 def receive_after_insert(mapper, connection, target):
     "listen for the 'after_insert' event"

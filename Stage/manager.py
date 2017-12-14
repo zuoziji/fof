@@ -93,7 +93,8 @@ def make_shell_context():
                 fof=models.FoFModel,
                 Server=Server,
                 Role=models.RoleModel,
-                core=models.Fund_Core_Info)
+                core=models.Fund_Core_Info,
+                nav=models.FUND_NAV)
 
 
 if __name__ == '__main__':

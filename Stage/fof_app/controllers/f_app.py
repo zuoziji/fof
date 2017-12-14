@@ -1364,6 +1364,8 @@ def testing_result():
     if request.method == 'GET':
         fof_list = get_all_fof()
         result = INFO_SCHEME.query.all()
+        for i in result:
+            print(i.create_user)
         result = [{"scheme_id": i.scheme_id, "scheme_name": i.scheme_name,
                    "create_time": i.scheme_setupdate, 'task': run_scheme_testing.AsyncResult(i.scheme_name).state,
                    "user": UserModel.query.get(i.create_user).username} for i in result]
@@ -1523,8 +1525,9 @@ def process(uid):
         file = request.files['file']
         file_name = file.filename
         f_content = file.read()
+        upload_date =  request.form['date']
         file_record = Invest_corp_file(mgrcomp_id=uid, file_type='report', upload_user_id=current_user.id,
-                                       upload_datetime=datetime.datetime.now(),
+                                       upload_datetime=upload_date,
                                        file_name=file_name, file_content=f_content, comments=comments)
         db.session.add(file_record)
         db.session.commit()
@@ -1582,16 +1585,36 @@ def corp(uid):
     fof_list = get_all_fof()
     corp = Invest_corp.query.get(uid)
     fof = FoFModel.query.filter_by(mgrcomp_id=uid).all()
-    if current_user.is_admin:
-        files = Invest_corp_file.query.filter(Invest_corp_file.mgrcomp_id==uid).all()
-    elif current_user.is_report:
-        files = Invest_corp_file.query.filter(and_(Invest_corp_file.mgrcomp_id == uid,
-                                                   Invest_corp_file.upload_user_id == current_user.id)).all()
-    report = [{"file_name": i.file_name, "comments": i.comments, "user": UserModel.query.get(i.upload_user_id),
-               "upload_time": i.upload_datetime, "fid": i.file_id} for i in files if i.file_type == 'report']
-    files = [{"file_name": i.file_name, "user": UserModel.query.get(i.upload_user_id),
-              "upload_time": i.upload_datetime, "fid": i.file_id, "file_type": i.file_type} for i in files if
-             i.file_type != 'report']
+    all_files = Invest_corp_file.query.filter(Invest_corp_file.mgrcomp_id==uid).all()
+    if current_user.is_report:
+        all_files = Invest_corp_file.query.filter(and_(Invest_corp_file.mgrcomp_id == uid,
+                                                  Invest_corp_file.upload_user_id == current_user.id)).all()
+    report = []
+    files = []
+    for i in all_files:
+        f = {}
+        f['file_name'] = i.file_name
+        f['user'] = UserModel.query.get(i.upload_user_id)
+        f["upload_time"] =  i.upload_datetime.strftime('%Y-%m-%d')
+        f["fid"] =  i.file_id
+        if i.file_type == "report":
+            f["comments"] =  i.comments
+            report.append(f)
+        else:
+            f['file_type'] = i.file_type
+            files.append(f)
+    # report = [{"file_name": i.file_name,
+    #            "comments": i.comments,
+    #            "user": UserModel.query.get(i.upload_user_id),
+    #            "upload_time": i.upload_datetime,
+    #            "fid": i.file_id} for i in files if i.file_type == 'report']
+    #
+    # files = [{"file_name": i.file_name,
+    #           "user": UserModel.query.get(i.upload_user_id),
+    #           "upload_time": i.upload_datetime,
+    #           "fid": i.file_id,
+    #           "file_type": i.file_type} for i in files if
+    #          i.file_type != 'report']
     if len(fof) > 0:
         fof = [{"name": i.sec_name, "alias": i.alias, "wind_code": i.wind_code,"rank":i.rank} for i in fof]
     else:
