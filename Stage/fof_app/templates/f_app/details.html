@@ -602,7 +602,8 @@
   var capital_data = {{ capital_data | tojson }};
   var nav_obj = {{ nav_obj | tojson }};
   var scale_obj = {{ scale_obj | tojson }};
-
+console.log(nav_obj)
+console.log(scale_obj)
   function  t2charts(wind_code,displayType) {
    var obj = {"wind_code":wind_code,'disPlayType':displayType};
    $.ajax({
@@ -1054,6 +1055,7 @@ t1chart.setOption(option);
                 text: '子基金配比',
                 subtext: '一年内子基金配比'
               },
+              color:['#c12e34','#e6b600', '#0098d9', '#2b821d', '#005eaa','#339ca8',  '#ca8622', '#b9950a','#32a487', '#546570', '#c4ccd3'],
               tooltip : {
                 trigger: 'axis',
                 formatter:function (obj) {
@@ -1093,7 +1095,6 @@ t1chart.setOption(option);
                   data: '',
                   itemGap: 10,
                   itemHeight: 10,
-                  selected: legendSwitch,
                   formatter: function (data) {
                       return data+'   '
                   }
