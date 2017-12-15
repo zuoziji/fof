@@ -506,7 +506,14 @@
                 <div class="clearfix"></div>
               </div>
               <div class="x_content">
-              <table class="table table-bordered center-all" id="tab6" width="100%">
+
+
+              <table class="table table-bordered" id="tab6" style="text-align: center;">
+              </table>
+
+
+
+<!--               <table class="table table-bordered center-all" id="tab6" width="100%">
                 <thead>
                 <tr>
                   <th>最新净值日期</th>
@@ -572,7 +579,7 @@
                   </td>
                 </tr>
                 </tbody>
-              </table>
+              </table> -->
               <table class="table table-bordered center-all" id="tab7" width="100%">
               </table>
 
@@ -619,7 +626,7 @@
   var nav_obj = {{ nav_obj | tojson }};
   var scale_obj = {{ scale_obj | tojson }};
   var year_periods = {{ year_periods | tojson }};
-
+  var risk = {{ risk | tojson }};
 
   function  t2charts(wind_code,displayType) {
    var obj = {"wind_code":wind_code,'disPlayType':displayType};
@@ -1502,6 +1509,17 @@ t1chart.setOption(option);
 
 
 $("#profile-tab6").click(function(){
+  // table6
+  var html='';
+  for(k in risk){
+    if(k=="截止日期"||k=="起始日期"){
+      risk[k]=moment(risk[k]).format('YYYY-MM-DD');
+    }
+    html+=`<tr><th>${k}</th><td>${risk[k]}</td></tr>`;
+  }
+  $('#tab6').html(html);
+
+  //table7
   var date=Object.keys(year_periods).sort();
   var values=[];
   var tr1='<tr><th>月份</th>';
