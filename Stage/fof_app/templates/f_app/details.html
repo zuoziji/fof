@@ -1511,11 +1511,22 @@ t1chart.setOption(option);
 $("#profile-tab6").click(function(){
   // table6
   var html='';
+  var index =0;
   for(k in risk){
+    index++;
+    var over = index%2;
     if(k=="截止日期"||k=="起始日期"){
       risk[k]=moment(risk[k]).format('YYYY-MM-DD');
     }
-    html+=`<tr><th>${k}</th><td>${risk[k]}</td></tr>`;
+    if(over==1){
+      html+=`<tr><th>${k}</th><td>${risk[k]}</td>`;
+    }
+    if(over==0){
+      html+=`<th>${k}</th><td>${risk[k]}</td></tr>`;
+    }
+    if(index==19){
+      html+=`<th></th><td></td></tr>`;
+    }
   }
   $('#tab6').html(html);
 
