@@ -208,16 +208,13 @@ def calc_periods(wind_code):
     df.index = pd.to_datetime(df['nav_date'])
     df = df.drop(['nav','nav_tot','source_mark','wind_code'],axis=1)
     result = df.resample('M', convention='end').pct_change()
-    array = []
+    result_dict = {}
     for k,v in result.T.to_dict().items():
-        result_dict = {}
         month = k.strftime('%Y-%m')
-        result_dict['month'] = month
         if not np.isnan(v['nav_acc']):
             value = v['nav_acc'] * 100
-            result_dict["value"] = "%.3f" % value
-            array.append(result_dict)
-    return array
+            result_dict[month] = "%.3f" % value
+    return result_dict
 
 
 if __name__ == "__main__":
