@@ -1007,6 +1007,10 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
 
 
 if __name__ == '__main__':
+    def calc_rr(data_s: pd.Series):
+        tmp_s = data_s.dropna()
+        rr = tmp_s[-1] / tmp_s[0] - 1
+        return rr
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
     date_from_str, date_to_str = '2016-12-1', '2017-12-1'

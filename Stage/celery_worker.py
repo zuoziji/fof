@@ -44,7 +44,7 @@ def setup_periodic_tasks(sender, **kwargs):
         update_index
     )
     sender.add_periodic_task(
-        crontab(hour=20, minute=0),
+        crontab(hour=16, minute=30),
         update_stock
     )
     sender.add_periodic_task(

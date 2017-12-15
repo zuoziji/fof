@@ -4,8 +4,10 @@ from collections import OrderedDict
 from periodic_task.factor_profit import update_factors
 from periodic_task.wind_fund_info_update import update_wind_fund_info
 from periodic_task.wind_index_daily_import_update import import_wind_index_daily
-from periodic_task.wind_stock_daily_import import import_stock_daily
+from periodic_task.wind_stock_daily_import import import_stock_daily, import_stock_daily_wch
 from periodic_task.wind_stock_info_import import import_wind_stock_info
+from periodic_task.wind_stock_quarterly import import_stock_quertarly
+from periodic_task.wind_convertible_bond import import_cb_info, import_cb_daily
 from stress_testing.copula_fof import do_copula
 from stress_testing.fhs_garch_fund import do_fhs_garch
 from periodic_task.fund_multi_factor_exp import do_fund_multi_factor
@@ -25,7 +27,11 @@ fund_group = OrderedDict([
 stock_group = OrderedDict([
     ('stock info', {'func': import_wind_stock_info, 'params': []}),
     ('stock daily', {'func': import_stock_daily, 'params': []}),
+    ('stock daily wch', {'func': import_stock_daily_wch, 'params': []}),
     ('factor exposure', {'func': update_factors, 'params': []}),
+    ('convertible bond info', {'func': import_cb_info, 'params': []}),
+    ('convertible bond daily', {'func': import_cb_daily, 'params': []}),
+    ('stock quertarly', {'func': import_stock_quertarly, 'params': []}),
 ])
 index_group = OrderedDict([
     ('index daily', {'func': import_wind_index_daily, 'params': []})

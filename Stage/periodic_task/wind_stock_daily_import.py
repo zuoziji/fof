@@ -9,6 +9,8 @@ from sqlalchemy.types import String, Date, Float, Integer
 logger = logging.getLogger()
 DATE_BASE = datetime.strptime('2005-01-01', STR_FORMAT_DATE).date()
 ONE_DAY = timedelta(days=1)
+# 标示每天几点以后下载当日行情数据
+BASE_LINE_HOUR = 16
 
 
 def fill_col():
@@ -146,7 +148,8 @@ and ipo_date < td_to"""
 
 def import_stock_daily():
     """
-    插入股票日线数据到最近一个工作日-1
+    插入股票日线数据到最近一个工作日-1。
+    如果超过 BASE_LINE_HOUR 时间，则获取当日的数据
     :return: 
     """
     w = WindRest(WIND_REST_URL)
@@ -165,7 +168,7 @@ def import_stock_daily():
         table = session.execute('SELECT wind_code, ipo_date, delist_date FROM wind_stock_info')
         stock_date_dic = {wind_code: (ipo_date, delist_date if delist_date is None or delist_date > UN_AVAILABLE_DATE else None) for
                           wind_code, ipo_date, delist_date in table.fetchall()}
-    today_t_1 = date.today() - ONE_DAY
+    date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
     logger.info('%d stocks will been import into wind_trade_date', len(stock_date_dic))
     try:
@@ -180,9 +183,9 @@ def import_stock_daily():
             date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
             # 获取 date_to
             if date_delist is None:
-                date_to = today_t_1
+                date_to = date_ending
             else:
-                date_to = min([date_delist, today_t_1])
+                date_to = min([date_delist, date_ending])
             date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
             if date_from is None or date_to is None or date_from > date_to:
                 continue
@@ -231,7 +234,8 @@ def import_stock_daily():
 
 def import_stock_daily_wch():
     """
-    插入股票日线数据到最近一个工作日-1
+    插入股票日线数据到最近一个工作日-1。
+    如果超过 BASE_LINE_HOUR 时间，则获取当日的数据
     :return: 
     """
     w = WindRest(WIND_REST_URL)
@@ -250,7 +254,7 @@ def import_stock_daily_wch():
         table = session.execute('SELECT wind_code, ipo_date, delist_date FROM wind_stock_info')
         stock_date_dic = {wind_code: (ipo_date, delist_date if delist_date is None or delist_date > UN_AVAILABLE_DATE else None) for
                           wind_code, ipo_date, delist_date in table.fetchall()}
-    today_t_1 = date.today() - ONE_DAY
+    date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
     logger.info('%d stocks will been import into wind_trade_date_wch', len(stock_date_dic))
     try:
@@ -265,22 +269,23 @@ def import_stock_daily_wch():
             date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
             # 获取 date_to
             if date_delist is None:
-                date_to = today_t_1
+                date_to = date_ending
             else:
-                date_to = min([date_delist, today_t_1])
+                date_to = min([date_delist, date_ending])
             date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
             if date_from is None or date_to is None or date_from > date_to:
                 continue
+            logger.debug("%d) 获取股票 %s %s %s 行情数据", stock_num, wind_code, date_from, date_to)
             # 获取股票量价等行情数据
             wind_indictor_str = "open,high,low,close"
             ohlc_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "PriceAdj=B")
             if ohlc_df is None:
-                logger.warning('%d) %s has no ohlc data during %s %s', stock_num, wind_code, date_from, date_to)
+                logger.warning('%d) %s [%s %s] 缺少开高低收（后复权）行情数据', stock_num, wind_code, date_from, date_to)
                 continue
             wind_indictor_str = "close,volume,total_shares,free_float_shares,val_pe_deducted_ttm,pb_lf,ev2,ev2_to_ebitda"
             other_data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
             if other_data_df is None:
-                logger.warning('%d) %s has no data during %s %s', stock_num, wind_code, date_from, date_to)
+                logger.warning('%d) %s [%s %s] 缺少行情数据', stock_num, wind_code, date_from, date_to)
                 continue
             other_data_df.rename(columns={'CLOSE': 'CloseUnadj',
                                           'TOTAL_SHARES': 'TotalShare',
@@ -291,11 +296,9 @@ def import_stock_daily_wch():
                                           'EV2_TO_EBITDA': 'EVEBITDA',
                                           }, inplace=True)
             data_df = ohlc_df.merge(other_data_df, how='outer', left_index=True, right_index=True)
-            logger.info('%d) %d data of %s between %s and %s', stock_num, data_df.shape[0], wind_code, date_from, date_to)
+            logger.info('%d) %s [%s %s] 包含 %d 条历史行情数据', stock_num, wind_code, date_from, date_to, data_df.shape[0])
             data_df['wind_code'] = wind_code
             data_df_list.append(data_df)
-            if len(data_df_list) > 10:
-                break
     finally:
         # 导入数据库
         if len(data_df_list) > 0:
