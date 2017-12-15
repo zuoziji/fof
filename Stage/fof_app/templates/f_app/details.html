@@ -506,60 +506,76 @@
                 <div class="clearfix"></div>
               </div>
               <div class="x_content">
-                <ul class="list-inline widget_tally">
-                  <li class="col-xs-12">
-                    <div class="col-md-1 col-xs-12" style="padding: 0px">
-                      <h3>{{ fof.nav_acc_latest | round(3,'floor') if fof.nav_acc_latest is not none else " "}}</h3>
-                    </div>
-                    <div class="col-md-2 col-xs-12">
-                      <div class="col-md-3 col-xs-12">
-                        {% if acc | length > 0 %}
-                        {% if acc[-1]['pct']| float > 0 %}
-                        <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"
-                              style="color: red;font-size: 40px;position: absolute;left: -16px;"></span>
-                        {% else %}
-                        <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"
-                              style="color: green;font-size: 40px;position: absolute;left: -16px;"></span>
-                        {% endif %}
-                      </div>
-                      <div class="col-md-9 col-xs-12">
-                        {% if acc|length >= 2 %}
-                        <p>{{ (acc[-1]['nav'] | float - acc[-2]['nav'] | float) | round(4,'floor')}}</p>
-                        {% else %}
-                        <p>{{ acc[0]['nav'] }}</p>
-                        {% endif %}
-                        <p>{{ acc[-1]['pct'] }}%</p>
-                      </div>
-                    </div>
-                    {% else %}
-                    {{ "" }}
-                    {% endif %}
-                  </li>
-                  <li class="col-xs-12">
-                    <span>最新净值日期：</span><strong>{{ fof.nav_date_latest if fof.nav_date_latest is not none else ""
-                    }}</strong>
-                  </li>
-                  <li class="col-xs-12">
-                    {{ fof.anual_return }}
-                    <span>年化收益：</span><strong>
+              <table class="table table-bordered center-all" id="tab6" width="100%">
+                <thead>
+                <tr>
+                  <th>最新净值日期</th>
+                  <th>净值</th>
+
+                  {% if acc | length > 0 %}
+                  {% if acc[-1]['pct']| float > 0 %}
+                  <th>上涨幅度</th>
+                  <th>上涨比例</th>
+                  {% else %}
+                  <th>下降幅度</th>
+                  <th>下降比例</th>
+                  {% endif %}
+
+                  {% else %}
+                  <th>上涨幅度</th>
+                  <th>上涨比例</th>
+                  {% endif %}
+                  <th>年化收益</th>
+                  <th>最大回撤</th>
+                  <th>夏普比率</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>{{ fof.nav_date_latest if fof.nav_date_latest is not none else "" }} </td>
+                  <td>{{ fof.nav_acc_latest | round(3,'floor') if fof.nav_acc_latest is not none else " "}}</td>
+
+                  <td>
+                  {% if acc | length > 0 %}
+                  {% if acc|length >= 2 %}
+                  {{ (acc[-1]['nav'] | float - acc[-2]['nav'] | float) | round(4,'floor')}}
+                  {% else %}
+                  {{ acc[0]['nav'] }}
+                  {% endif %}
+                  {% else %}
+                  {{ "" }}
+                  {% endif %}
+                  </td>
+
+                  <td>
+                  {% if acc | length > 0 %}
+                  {{ acc[-1]['pct'] }}%
+                  {% else %}
+                  {{ "" }}
+                  {% endif %}
+                  </td>
+
+                  <td>
                     {% if fof.annual_return is not none %}
                     {{ fof.annual_return | round(3,'floor') }}
                     {% endif %}
-                  </strong>
-                  </li>
-                  <li class="col-xs-12">
-                    <span>最大回撤：</span><strong>
+                  </td>
+                  <td>
                     {% if fof.nav_acc_mdd is not none %}
-                    {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%</strong>
+                    {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%
                     {% endif %}
-                  </li>
-                  <li class="col-xs-12">
-                    <span>夏普比率：</span><strong>
+                  </td>
+                  <td>
                     {% if fof.sharpe is not none %}
-                    {{ fof.sharpe |round(3,'floor') }}</strong>
+                    {{ fof.sharpe |round(3,'floor') }}
                     {% endif %}
-                  </li>
-                </ul>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              <table class="table table-bordered center-all" id="tab7" width="100%">
+              </table>
+
               </div>
             </div>
               <div id="t6chart" style="height:500px;padding:10px;"></div>
@@ -602,8 +618,9 @@
   var capital_data = {{ capital_data | tojson }};
   var nav_obj = {{ nav_obj | tojson }};
   var scale_obj = {{ scale_obj | tojson }};
-console.log(nav_obj)
-console.log(scale_obj)
+  var year_periods = {{ year_periods | tojson }};
+
+
   function  t2charts(wind_code,displayType) {
    var obj = {"wind_code":wind_code,'disPlayType':displayType};
    $.ajax({
@@ -1481,6 +1498,21 @@ t1chart.setOption(option);
         $('#t7chart').html("<p>暂时没有找到可用的数据</p> ")
       }
     //
+
+
+
+$("#profile-tab6").click(function(){
+  var date=Object.keys(year_periods).sort();
+  var values=[];
+  var tr1='<tr><th>月份</th>';
+  var tr2='<tr><td>月度收益率</td>';
+  for(var i=0;i<date.length;i++){
+    tr1+="<th>"+date[i]+"</th>";
+    tr2+="<td>"+year_periods[date[i]]+"</td>";
+  }
+  $('#tab7').html(tr1+"</tr>"+tr2+"</tr>");
+})
+
 
 
 //相关日程
