@@ -19,7 +19,7 @@ from analysis.portfolio_optim_fund import calc_portfolio_optim_fund as c4
 from analysis.portfolio_optim_strategy import calc_portfolio_optim_fund
 from backend import upload_file, data_handler, fund_nav_import_csv
 from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, \
-    get_stress_data, get_stg,child_charts,get_core_info
+    get_stress_data, get_stg,child_charts,get_core_info,calc_periods
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
@@ -182,12 +182,14 @@ def details(wind_code: str) -> object:
     nav_df, nav_date_fund_scale_df = data_handler.get_fof_fund_pct_each_nav_date(wind_code)
     nav_obj = {} if nav_df is None else nav_df.to_dict()
     scale_obj = {} if nav_date_fund_scale_df is None else nav_date_fund_scale_df.to_dict()
+    year_periods = calc_periods(wind_code)
     return render_template('details.html', fof=fof, child=child, stg=stg, fund_file=file_json,
                            time_line=time_line, result=result, data_name=data_name, fund_rr=rr_chunk
                            , date_latest=date_latest, acc=acc, fof_list=fof_list,
                            stg_charts=stg_charts,
                            fhs_obj=fhs_obj, copula_obj=copula_obj, multi_obj=multi_obj,
-                           capital_data=capital_data,core_info=core_info,nav_obj=nav_obj,scale_obj=scale_obj) 
+                           capital_data=capital_data,core_info=core_info,nav_obj=nav_obj,
+                           scale_obj=scale_obj,year_periods=year_periods)
                            
 
 @f_app_blueprint.route('/get_child_charts',methods=['POST','GETS'])
@@ -1603,18 +1605,6 @@ def corp(uid):
         else:
             f['file_type'] = i.file_type
             files.append(f)
-    # report = [{"file_name": i.file_name,
-    #            "comments": i.comments,
-    #            "user": UserModel.query.get(i.upload_user_id),
-    #            "upload_time": i.upload_datetime,
-    #            "fid": i.file_id} for i in files if i.file_type == 'report']
-    #
-    # files = [{"file_name": i.file_name,
-    #           "user": UserModel.query.get(i.upload_user_id),
-    #           "upload_time": i.upload_datetime,
-    #           "fid": i.file_id,
-    #           "file_type": i.file_type} for i in files if
-    #          i.file_type != 'report']
     if len(fof) > 0:
         fof = [{"name": i.sec_name, "alias": i.alias, "wind_code": i.wind_code,"rank":i.rank} for i in fof]
     else:

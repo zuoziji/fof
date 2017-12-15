@@ -5,8 +5,8 @@
 :license: Apache 2.0, see LICENSE for more details.
 """
 from functools import wraps
-from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db,FOF_FUND_PCT,FUND_STG_PCT,code_get_name,Fund_Core_Info
-from flask import abort, request, current_app,redirect,flash
+from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db,FOF_FUND_PCT,FUND_STG_PCT,code_get_name,Fund_Core_Info,FUND_NAV
+from flask import  request, current_app,redirect,flash
 from flask_login import current_user
 from datetime import date
 import logging,json
@@ -14,6 +14,8 @@ from config_fh import get_redis
 from analysis.factor_analysis import temp_load_method
 from sqlalchemy import and_
 from pandas import DataFrame
+import pandas as pd
+import numpy as  np
 
 
 logger = logging.getLogger()
@@ -194,8 +196,28 @@ def child_charts(wind_code,display_type):
             t_status.append(sum_list)
         return {"date":status_date,"value":t_status}
 
-
-
+def calc_periods(wind_code):
+    """
+    计算基金净值月度增长率
+    :param wind_code: 基金代码
+    :return: list
+    """
+    all_record = FUND_NAV.query.filter_by(wind_code=wind_code).all()
+    record_list = [ i.as_dict() for i  in all_record]
+    df = DataFrame(record_list)
+    df.index = pd.to_datetime(df['nav_date'])
+    df = df.drop(['nav','nav_tot','source_mark','wind_code'],axis=1)
+    result = df.resample('M', convention='end').pct_change()
+    array = []
+    for k,v in result.T.to_dict().items():
+        result_dict = {}
+        month = k.strftime('%Y-%m')
+        result_dict['month'] = month
+        if not np.isnan(v['nav_acc']):
+            value = v['nav_acc'] * 100
+            result_dict["value"] = "%.3f" % value
+            array.append(result_dict)
+    return array
 
 
 if __name__ == "__main__":
