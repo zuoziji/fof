@@ -30,16 +30,25 @@ def get_cb_set(date_fetch):
     return set(data_df['wind_code'])
 
 
-def import_cb_info():
-    # 获取全市场可转债数据
-    date_since = datetime.strptime('1999-01-01', STR_FORMAT_DATE).date()
-    date_list = []
-    one_year = timedelta(days=365)
-    while date_since < date.today() - ONE_DAY:
-        date_list.append(date_since)
-        date_since += one_year
+def import_cb_info(first_time=False):
+    """
+    获取全市场可转债数据
+    :param first_time: 第一次执行时将从 1999 年开始查找全部基本信息
+    :return: 
+    """
+    if first_time:
+        date_since = datetime.strptime('1999-01-01', STR_FORMAT_DATE).date()
+        date_list = []
+        one_year = timedelta(days=365)
+        while date_since < date.today() - ONE_DAY:
+            date_list.append(date_since)
+            date_since += one_year
+        else:
+            date_list.append(date.today() - ONE_DAY)
     else:
-        date_list.append(date.today() - ONE_DAY)
+        date_list = [date.today() - ONE_DAY]
+
+    # 获取 wind_code 集合
     wind_code_set = set()
     for fetch_date in date_list:
         data_set = get_cb_set(fetch_date)
@@ -189,5 +198,5 @@ def import_cb_daily():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
 
-    # import_cb_info()
-    import_cb_daily()
+    import_cb_info()
+    # import_cb_daily()

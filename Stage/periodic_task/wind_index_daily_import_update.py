@@ -111,8 +111,8 @@ if __name__ == '__main__':
 
     # 数据库 wind_index_daily 表中新增加指数
     wind_codes = ['000905.SH']
-    import_wind_index_daily_first(wind_codes)
+    # import_wind_index_daily_first(wind_codes)
 
     # 每日更新指数信息
-    # import_wind_index_daily()
+    import_wind_index_daily()
     # fill_wind_index_daily_col()

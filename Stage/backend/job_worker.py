@@ -1,4 +1,10 @@
-﻿import logging
+﻿# -*- coding: utf-8 -*-
+"""
+ （废弃）
+ 此文件内容已经并入 tasks.py 仅备份使用，稍后删除 
+"""
+
+import logging
 from collections import OrderedDict
 
 from periodic_task.factor_profit import update_factors

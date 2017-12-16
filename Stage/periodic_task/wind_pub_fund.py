@@ -34,16 +34,24 @@ def get_wind_code_set(date_fetch):
     return set(wind_code_s)
 
 
-def import_pub_fund_info():
-    # 获取全市场可转债数据
-    date_since = datetime.strptime('2004-01-01', STR_FORMAT_DATE).date()
-    date_list = []
-    one_year = timedelta(days=365)
-    while date_since < date.today() - ONE_DAY:
-        date_list.append(date_since)
-        date_since += one_year
+def import_pub_fund_info(first_time=False):
+    """
+    获取全市场可转债基本信息
+    :param first_time: 第一次执行时将从2004年开始查找全部可转债数据
+    :return: 
+    """
+    if first_time:
+        date_since = datetime.strptime('2004-01-01', STR_FORMAT_DATE).date()
+        date_list = []
+        one_year = timedelta(days=365)
+        while date_since < date.today() - ONE_DAY:
+            date_list.append(date_since)
+            date_since += one_year
+        else:
+            date_list.append(date.today() - ONE_DAY)
     else:
-        date_list.append(date.today() - ONE_DAY)
+        date_list = [date.today() - ONE_DAY]
+    # 获取 wind_code 集合
     wind_code_set = set()
     for fetch_date in date_list:
         data_set = get_wind_code_set(fetch_date)
@@ -113,10 +121,15 @@ def import_pub_fund_info():
 def import_df_list_2_db(data_df_list):
     engine = get_db_engine()
     data_df_all = pd.concat(data_df_list)
+    # 直接的导入会出现 nav_date 重复的问题，因此只能使用 insert ignore 的方式
     # data_df_all.index.rename('trade_date', inplace=True)
     # data_df_all.reset_index(inplace=True)
-    data_df_all.set_index(['wind_code', 'NAV_date'], inplace=True)
-    data_df_all.to_sql('wind_pub_fund_daily', engine, if_exists='append')
+    # data_df_all.set_index(['wind_code', 'NAV_date'], inplace=True)
+    # data_df_all.to_sql('wind_pub_fund_daily', engine, if_exists='append')
+    data_dic_list = data_df_all.to_dict('record')
+    sql_str = "insert ignore into wind_pub_fund_daily(wind_code, NAV_date, NAV_acc, netasset_total) values(:wind_code, :NAV_date, :NAV_acc, :netasset_total)"
+    with get_db_session() as session:
+        session.execute(sql_str, data_dic_list)
     data_count = data_df_all.shape[0]
     logger.info('%d data imported into wind_pub_fund_daily', data_count)
     return data_count
@@ -202,5 +215,5 @@ def import_pub_fund_daily():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
 
-    # import_pub_fund_info()
-    import_pub_fund_daily()
+    import_pub_fund_info()
+    # import_pub_fund_daily()
