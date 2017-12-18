@@ -6,7 +6,7 @@ Created on Fri Feb 17 10:56:11 2017
 """
 
 import pandas as pd
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest,APIError
 from fh_tools.fh_utils import str_2_date
 from sqlalchemy.types import String, Date
 from datetime import datetime, date, timedelta
@@ -170,6 +170,13 @@ on fi.wind_code = wfn.wind_code""",
                     fund_nav_tmp_df = rest.wsd(codes=wind_code, fields='nav,NAV_acc,NAV_date', begin_time=date_begin_str,
                                                end_time=date_end_str, options='Fill=Previous')
                     break
+                except APIError as exp:
+                    # -40520007
+                    if exp.status == -40520007:
+                        trade_date_latest = datetime.strptime(date_end_str, '%Y-%m-%d').date()
+                        wind_code_trade_date_latest[wind_code] = trade_date_latest
+                    logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
+                    continue
                 except Exception as exp:
                     logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
                     continue
