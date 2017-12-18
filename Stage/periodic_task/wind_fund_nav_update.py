@@ -175,7 +175,7 @@ on fi.wind_code = wfn.wind_code""",
                     break
                 except APIError as exp:
                     # -40520007
-                    if exp.status == -40520007:
+                    if exp.ret_dic.setdefault('error_code', 0) == -40520007:
                         trade_date_latest = datetime.strptime(date_end_str, '%Y-%m-%d').date() - date_gap
                         wind_code_trade_date_latest_dic[wind_code] = trade_date_latest
                     logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
