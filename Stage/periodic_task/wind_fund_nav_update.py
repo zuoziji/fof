@@ -207,8 +207,8 @@ on fi.wind_code = wfn.wind_code""",
                     logger.info('%d) %s updated, %d funds left', num, wind_code, code_count - num)
                     if get_df:
                         fund_nav_all_df = fund_nav_all_df.append(fund_nav_tmp_df)
-            if num > 10:  # 调试使用
-                break
+            # if num > 10:  # 调试使用
+            #     break
     finally:
         import_wind_fund_nav_to_fund_nav()
         update_trade_date_latest(wind_code_trade_date_latest_dic)
