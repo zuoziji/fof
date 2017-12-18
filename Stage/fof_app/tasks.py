@@ -169,20 +169,7 @@ def send_email(to, subject, template, **kwargs):
 
 @celery.task(name='test_log', base=MyTask)
 def log(message):
-    """Print some log messages"""
-
-    print(123123123123)
-    # #send_email("kuangmsn@163.com",'压力测试已完成','email/testing',user="kuangmsn@163.com")
-    #   return {"status":"success"}
-
-# # @celery.task
-# # def reverse_messages():
-# #     """Reverse all messages in DB"""
-# #     for message in Message.query.all():
-# #         words = message.text.split()
-# #         message.text = " ".join(reversed(words))
-# #         db.session.commit()
-#
+    pass
 
 if __name__ == '__main__':
     do_task(stress_testing_group)

@@ -182,16 +182,14 @@ def details(wind_code: str) -> object:
     nav_df, nav_date_fund_scale_df = data_handler.get_fof_fund_pct_each_nav_date(wind_code)
     nav_obj = {} if nav_df is None else nav_df.to_dict()
     scale_obj = {} if nav_date_fund_scale_df is None else nav_date_fund_scale_df.to_dict()
-    year_periods,risk = calc_periods(wind_code)
-    print(year_periods)
-    print(risk)
+    year_periods,risk,drawback = calc_periods(wind_code)
     return render_template('details.html', fof=fof, child=child, stg=stg, fund_file=file_json,
                            time_line=time_line, result=result, data_name=data_name, fund_rr=rr_chunk
                            , date_latest=date_latest, acc=acc, fof_list=fof_list,
                            stg_charts=stg_charts,
                            fhs_obj=fhs_obj, copula_obj=copula_obj, multi_obj=multi_obj,
                            capital_data=capital_data,core_info=core_info,nav_obj=nav_obj,
-                           scale_obj=scale_obj,year_periods=year_periods,risk=risk)
+                           scale_obj=scale_obj,year_periods=year_periods,risk=risk,drawback=drawback)
                            
 
 @f_app_blueprint.route('/get_child_charts',methods=['POST','GETS'])
