@@ -22,15 +22,18 @@ w = WindRest(WIND_REST_URL)
 
 def get_wind_code_set(date_fetch):
     date_fetch_str = date_fetch.strftime(STR_FORMAT_DATE)
-    # 纯股票型基金
-    data_df = w.wset("sectorconstituent", "date=%s;sectorid=2001010101000000" % date_fetch_str)
-    if data_df is None:
-        logging.warning('%s 获取股票代码失败', date_fetch_str)
-        return None
-    data_count = data_df.shape[0]
-    logging.info('get %d public offering fund on %s', data_count, date_fetch_str)
-    wind_code_s = data_df['wind_code']
-    wind_code_s = wind_code_s[wind_code_s.apply(lambda x: x.find('!') == -1)]
+    # 纯股票型基金 混合型
+    sectorid_list = ['2001010101000000', '2001010200000000']
+    for sector_id in sectorid_list:
+        data_df = w.wset("sectorconstituent", "date=%s;sectorid=%s" % (date_fetch_str, sector_id))
+        if data_df is None:
+            logging.warning('%s 获取股票代码失败', date_fetch_str)
+            return None
+        data_count = data_df.shape[0]
+        logging.info('get %d public offering fund on %s', data_count, date_fetch_str)
+        wind_code_s = data_df['wind_code']
+        wind_code_s = wind_code_s[wind_code_s.apply(lambda x: x.find('!') == -1)]
+
     return set(wind_code_s)
 
 
