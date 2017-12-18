@@ -6,7 +6,7 @@ Created on Fri Feb 17 10:56:11 2017
 """
 
 import pandas as pd
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest,APIError
 from fh_tools.fh_utils import str_2_date
 from sqlalchemy.types import String, Date
 from datetime import datetime, date, timedelta
@@ -124,9 +124,10 @@ on fi.wind_code = wfn.wind_code""",
     no_data_count = 0
     code_count = len(wind_code_list)
     # 对每个新获取的基金名称进行判断，若存在 fundnav 中，则只获取部分净值
-    wind_code_trade_date_latest = {}
+    wind_code_trade_date_latest_dic = {}
+    date_gap =  timedelta(days=10)
     try:
-        for i, wind_code in enumerate(wind_code_list):
+        for num, wind_code in enumerate(wind_code_list):
             date_begin, date_end= wind_code_date_frm_to_dic[wind_code]
 
             # if date_end > date_last_day:
@@ -134,7 +135,7 @@ on fi.wind_code = wfn.wind_code""",
             if date_begin > date_end:
                 continue
             # 设定数据获取的起始日期
-            # wind_code_trade_date_latest[wind_code] = date_to
+            # wind_code_trade_date_latest_dic[wind_code] = date_to
             # if wind_code in fund_trade_date_begin_dic:
             #     trade_latest = fund_trade_date_begin_dic[wind_code]
             #     if trade_latest > date_end:
@@ -169,7 +170,16 @@ on fi.wind_code = wfn.wind_code""",
                 try:
                     fund_nav_tmp_df = rest.wsd(codes=wind_code, fields='nav,NAV_acc,NAV_date', begin_time=date_begin_str,
                                                end_time=date_end_str, options='Fill=Previous')
+                    trade_date_latest = datetime.strptime(date_end_str, '%Y-%m-%d').date() - date_gap
+                    wind_code_trade_date_latest_dic[wind_code] = trade_date_latest
                     break
+                except APIError as exp:
+                    # -40520007
+                    if exp.ret_dic.setdefault('error_code', 0) == -40520007:
+                        trade_date_latest = datetime.strptime(date_end_str, '%Y-%m-%d').date() - date_gap
+                        wind_code_trade_date_latest_dic[wind_code] = trade_date_latest
+                    logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
+                    continue
                 except Exception as exp:
                     logger.error("%s Failed, ErrorMsg: %s" % (wind_code, str(exp)))
                     continue
@@ -178,7 +188,7 @@ on fi.wind_code = wfn.wind_code""",
 
             if fund_nav_tmp_df is None:
                 logger.info('%s No data', wind_code)
-                # del wind_code_trade_date_latest[wind_code]
+                # del wind_code_trade_date_latest_dic[wind_code]
                 no_data_count += 1
                 logger.warning('%d funds no data', no_data_count)
             else:
@@ -188,18 +198,20 @@ on fi.wind_code = wfn.wind_code""",
                     continue
                 fund_nav_tmp_df['wind_code'] = wind_code
                 # 此处删除 trade_date_latest 之后再加上，主要是为了避免因抛出异常而导致的该条数据也被记录更新
-                # del wind_code_trade_date_latest[wind_code]
+                # del wind_code_trade_date_latest_dic[wind_code]
                 trade_date_latest = fund_nav_df_2_sql(table_name, fund_nav_tmp_df, engine, is_append=True)
                 if trade_date_latest is None:
                     logger.error('%s[%d] data insert failed', wind_code)
                 else:
-                    wind_code_trade_date_latest[wind_code] = trade_date_latest
-                    logger.info('%d) %s updated, %d funds left', i, wind_code, code_count - i)
+                    wind_code_trade_date_latest_dic[wind_code] = trade_date_latest
+                    logger.info('%d) %s updated, %d funds left', num, wind_code, code_count - num)
                     if get_df:
                         fund_nav_all_df = fund_nav_all_df.append(fund_nav_tmp_df)
+            # if num > 10:  # 调试使用
+            #     break
     finally:
         import_wind_fund_nav_to_fund_nav()
-        update_trade_date_latest(wind_code_trade_date_latest)
+        update_trade_date_latest(wind_code_trade_date_latest_dic)
         try:
             update_fund_mgrcomp_info()
         except:
