@@ -12,6 +12,10 @@
     .profile_details .profile_view .left {
       margin-top: 0!important;
     }
+    .tile-stats {
+      height: 168px;
+    }
+
 </style>
 {% endblock %}
 
@@ -507,84 +511,13 @@
               </div>
               <div class="x_content">
 
-
-              <table class="table table-bordered" id="tab6" style="text-align: center;">
-              </table>
-
-
-
-<!--               <table class="table table-bordered center-all" id="tab6" width="100%">
-                <thead>
-                <tr>
-                  <th>最新净值日期</th>
-                  <th>净值</th>
-
-                  {% if acc | length > 0 %}
-                  {% if acc[-1]['pct']| float > 0 %}
-                  <th>上涨幅度</th>
-                  <th>上涨比例</th>
-                  {% else %}
-                  <th>下降幅度</th>
-                  <th>下降比例</th>
-                  {% endif %}
-
-                  {% else %}
-                  <th>上涨幅度</th>
-                  <th>上涨比例</th>
-                  {% endif %}
-                  <th>年化收益</th>
-                  <th>最大回撤</th>
-                  <th>夏普比率</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                  <td>{{ fof.nav_date_latest if fof.nav_date_latest is not none else "" }} </td>
-                  <td>{{ fof.nav_acc_latest | round(3,'floor') if fof.nav_acc_latest is not none else " "}}</td>
-
-                  <td>
-                  {% if acc | length > 0 %}
-                  {% if acc|length >= 2 %}
-                  {{ (acc[-1]['nav'] | float - acc[-2]['nav'] | float) | round(4,'floor')}}
-                  {% else %}
-                  {{ acc[0]['nav'] }}
-                  {% endif %}
-                  {% else %}
-                  {{ "" }}
-                  {% endif %}
-                  </td>
-
-                  <td>
-                  {% if acc | length > 0 %}
-                  {{ acc[-1]['pct'] }}%
-                  {% else %}
-                  {{ "" }}
-                  {% endif %}
-                  </td>
-
-                  <td>
-                    {% if fof.annual_return is not none %}
-                    {{ fof.annual_return | round(3,'floor') }}
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if fof.nav_acc_mdd is not none %}
-                    {{ (fof.nav_acc_mdd*100) |round(2,'floor') }}%
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if fof.sharpe is not none %}
-                    {{ fof.sharpe |round(3,'floor') }}
-                    {% endif %}
-                  </td>
-                </tr>
-                </tbody>
-              </table> -->
-              <table class="table table-bordered center-all" id="tab7" width="100%">
-              </table>
+              <div id="content6" class="x_content">
+              </div>
 
               </div>
             </div>
+              <div id="t3chart" style="height:500px;padding:10px;"></div>
+              <div id="t4chart" style="height:500px;padding:10px;"></div>
               <div id="t6chart" style="height:500px;padding:10px;"></div>
               <div id="t6cchart" style="height:500px;padding:10px;"></div>
               <div id="t7chart" style="height:500px;padding:10px;"></div>
@@ -627,6 +560,7 @@
   var scale_obj = {{ scale_obj | tojson }};
   var year_periods = {{ year_periods | tojson }};
   var risk = {{ risk | tojson }};
+  var drawback = {{ drawback | tojson }};
 
   function  t2charts(wind_code,displayType) {
    var obj = {"wind_code":wind_code,'disPlayType':displayType};
@@ -1509,37 +1443,188 @@ t1chart.setOption(option);
 
 
 $("#profile-tab6").click(function(){
-  // table6
-  var html='';
-  var index =0;
-  for(k in risk){
-    index++;
-    var over = index%2;
-    if(k=="截止日期"||k=="起始日期"){
-      risk[k]=moment(risk[k]).format('YYYY-MM-DD');
-    }
-    if(over==1){
-      html+=`<tr><th>${k}</th><td>${risk[k]}</td>`;
-    }
-    if(over==0){
-      html+=`<th>${k}</th><td>${risk[k]}</td></tr>`;
-    }
-    if(index==19){
-      html+=`<th></th><td></td></tr>`;
-    }
-  }
-  $('#tab6').html(html);
+  // content6
+var html="";
+html+=`
+    <div class="row">
+      <div class="animated flipInY col-lg-3 col-md-3 col-sm-3 col-xs-12">
+        <div class="tile-stats">
+          <div class="icon"><i class="fa fa-line-chart"></i>
+          </div>
+          <div class="count">${risk['最终净值']}</div>
 
-  //table7
+          <h4 style="margin-left:10px">最终净值</h4>
+          <p>最低净值: ${risk['最低净值']}</p>
+          <p>区间收益率: ${risk['区间收益率']}</p>
+          <p>起始日期: ${moment(risk['起始日期']).format('YYYY-MM-DD')} | 截止日期: ${moment(risk['截止日期']).format('YYYY-MM-DD')}</p>
+        </div>
+      </div>
+      <div class="animated flipInY col-lg-3 col-md-3 col-sm-3 col-xs-12">
+        <div class="tile-stats">
+          <div class="icon"><i class="fa fa-area-chart"></i>
+          </div>
+          <div class="count">${risk['年化收益率']}</div>
+
+          <h4 style="margin-left:10px">年化收益率</h4>
+          <p>年化波动率: ${risk['年化波动率']}</p>
+          <p>年化下行波动率: ${risk['年化下行波动率']}</p>
+          <p>最大回撤: ${risk['最大回撤']}</p>
+        </div>
+      </div>
+      <div class="animated flipInY col-lg-3 col-md-3 col-sm-3 col-xs-12">
+        <div class="tile-stats">
+          <div class="icon"><i class="fa fa-pie-chart"></i>
+          </div>
+          <div class="count">${risk['夏普率']}</div>
+
+          <h4 style="margin-left:10px">夏普率</h4>
+          <p>索提诺比率: ${risk['索提诺比率']}</p>
+          <p>卡马比率: ${risk['卡马比率']}</p>
+
+        </div>
+      </div>
+      <div class="animated flipInY col-lg-3 col-md-3 col-sm-3 col-xs-12">
+        <div class="tile-stats">
+          <div class="icon"><i class="fa fa-bar-chart"></i>
+          </div>
+
+            <p>盈亏比: ${risk['盈亏比']}</p>
+            <p>胜率: ${risk['胜率']}</p>
+            <p>最长不创新高（周）: ${risk['最长不创新高（周）']}</p>
+            <p>统计周期最大收益: ${risk['统计周期最大收益']}</p>
+            <p>统计周期最大亏损: ${risk['统计周期最大亏损']}</p>
+            <p>最大月收益: ${risk['最大月收益']}</p>
+            <p>最大月亏损: ${risk['最大月亏损']}</p>
+        </div>
+      </div>
+    </div>
+`;
+
+
+
+
+  $('#content6').html(html);
+
+  //月度收益率
   var date=Object.keys(year_periods).sort();
   var values=[];
-  var tr1='<tr><th>月份</th>';
-  var tr2='<tr><td>月度收益率</td>';
   for(var i=0;i<date.length;i++){
-    tr1+="<th>"+date[i]+"</th>";
-    tr2+="<td>"+year_periods[date[i]]+"</td>";
+    values.push(year_periods[date[i]]);
   }
-  $('#tab7').html(tr1+"</tr>"+tr2+"</tr>");
+
+  var option = {
+      title: {
+          text: '月度收益率'
+      },
+      tooltip: {
+          trigger: 'axis'
+      },
+      legend: {
+        orient: 'horizontal',
+        top: 0,
+        left: 150,
+        width : 1200,
+        padding: [0,10,10,0],
+        data: '',
+        itemGap: 10,
+        itemHeight: 10
+      },
+      grid:{
+        y2: 90,
+        top: 80
+      },
+      toolbox: {
+        show : true,
+        feature : {
+          mark : {show: true},
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: date,
+          splitLine:{
+            　　　　show:true
+          　　 }
+      },
+      yAxis: {
+          type: 'value',
+          scale:true
+      },
+      series: [
+          {
+              name:'月度收益率',
+              type:'bar',
+              stack: '总量',
+              data: values
+          }
+      ]
+
+  };
+
+  var t3chart = echarts.init(document.getElementById('t3chart'),"shine");
+  t3chart.setOption(option);
+
+  var option_sub = {
+      title: {
+          text: '回撤分析'
+      },
+      tooltip: {
+          trigger: 'axis'
+      },
+      legend: {
+        orient: 'horizontal',
+        top: 0,
+        left: 150,
+        width : 1200,
+        padding: [0,10,10,0],
+        data: '',
+        itemGap: 10,
+        itemHeight: 10
+      },
+      grid:{
+        y2: 90,
+        top: 80
+      },
+      toolbox: {
+        show : true,
+        feature : {
+          mark : {show: true},
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: Object.keys(drawback),
+          splitLine:{
+            　　　　show:true
+          　　 }
+      },
+      yAxis: {
+          type: 'value',
+          scale:true
+      },
+      series: [
+          {
+              name:'回撤分析',
+              type:'line',
+              stack: '总量',
+              data: Object.values(drawback)
+          }
+      ]
+
+  };
+
+  var t4chart = echarts.init(document.getElementById('t4chart'),"shine");
+  t4chart.setOption(option_sub);
 })
 
 
