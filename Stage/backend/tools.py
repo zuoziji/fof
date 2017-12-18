@@ -11,7 +11,7 @@ from flask_login import current_user
 from datetime import date
 import logging,json
 from config_fh import get_redis
-from fh_tools.fh_utils import return_risk_analysis
+from fh_tools.fh_utils import return_risk_analysis,drawback_analysis
 from analysis.factor_analysis import temp_load_method
 from sqlalchemy import and_
 from pandas import DataFrame
@@ -208,16 +208,18 @@ def calc_periods(wind_code):
     df = DataFrame(record_list)
     df.index = pd.to_datetime(df['nav_date'])
     df = df.drop(['nav','nav_tot','source_mark','wind_code'],axis=1)
-    risk_df = return_risk_analysis(df['nav_acc'])
+    risk_df = return_risk_analysis(df[['nav_acc']])
     result_dict = {}
     risk = { k:v['nav_acc'] for k,v in risk_df.T.to_dict().items()}
+    drawback_df = drawback_analysis((df[['nav_acc']]))
+    drawback = {k.strftime("%Y-%m-%d"):"%.4f" %v['nav_acc'] for k,v in drawback_df.T.to_dict().items()}
     result = df.resample('M', convention='end').pct_change()
     for k,v in result.T.to_dict().items():
         month = k.strftime('%Y-%m')
         if not np.isnan(v['nav_acc']):
             value = v['nav_acc'] * 100
             result_dict[month] = "%.3f" % value
-    return result_dict,risk
+    return result_dict,risk,drawback
 
 
 if __name__ == "__main__":
