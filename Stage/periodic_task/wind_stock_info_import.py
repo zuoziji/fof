@@ -28,6 +28,7 @@ def get_stock_code_set(date_fetch):
 def import_wind_stock_info(refresh=False):
 
     # 获取全市场股票代码及名称
+    logging.info("更新 wind_stock_info 开始")
     if refresh:
         date_fetch = datetime.strptime('2005-1-1', STR_FORMAT_DATE).date()
     else:
@@ -70,7 +71,7 @@ def import_wind_stock_info(refresh=False):
     with get_db_session(engine) as session:
         session.execute(sql_str, data_list)
         stock_count = session.execute('select count(*) from wind_stock_info').first()[0]
-    logging.info("%d stocks have been in wind_stock_info", stock_count)
+    logging.info("更新 wind_stock_info 完成 存量数据 %d 条", stock_count)
 
 
 if __name__ == "__main__":

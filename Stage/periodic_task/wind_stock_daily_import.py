@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np
 from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILABLE_DATE, WIND_REST_URL
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest, APIError
 from fh_tools.fh_utils import get_last, get_first
 import logging
 from sqlalchemy.types import String, Date, Float, Integer
@@ -152,6 +152,7 @@ def import_stock_daily():
     如果超过 BASE_LINE_HOUR 时间，则获取当日的数据
     :return: 
     """
+    logging.info("更新 wind_stock_daily 开始")
     w = WindRest(WIND_REST_URL)
     engine = get_db_engine()
     with get_db_session(engine) as session:
@@ -170,9 +171,10 @@ def import_stock_daily():
                           wind_code, ipo_date, delist_date in table.fetchall()}
     date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
-    logger.info('%d stocks will been import into wind_trade_date', len(stock_date_dic))
+    data_len = len(stock_date_dic)
+    logger.info('%d stocks will been import into wind_trade_date', data_len)
     try:
-        for stock_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
+        for data_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
             date_ipo, date_delist = date_pair
             # 获取 date_from
             if wind_code in stock_trade_date_latest_dic:
@@ -192,11 +194,21 @@ def import_stock_daily():
             # 获取股票量价等行情数据
             wind_indictor_str = "open,high,low,close,adjfactor,volume,amt,pct_chg,maxupordown," + \
                                 "swing,turn,free_turn,trade_status,susp_days,total_shares,free_float_shares,ev2_to_ebitda"
-            data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
+            try:
+                data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
+            except APIError as exp:
+                logger.exception("%d/%d) %s 执行异常", data_num, data_len, wind_code)
+                if exp.ret_dic.setdefault('error_code', 0) in (
+                        -40520007,  # 没有可用数据
+                        -40521009,  # 数据解码失败。检查输入参数是否正确，如：日期参数注意大小月月末及短二月
+                ):
+                    continue
+                else:
+                    break
             if data_df is None:
-                logger.warning('%d) %s has no data during %s %s', stock_num, wind_code, date_from, date_to)
+                logger.warning('%d) %s has no data during %s %s', data_num, wind_code, date_from, date_to)
                 continue
-            logger.info('%d) %d data of %s between %s and %s', stock_num, data_df.shape[0], wind_code, date_from, date_to)
+            logger.info('%d) %d data of %s between %s and %s', data_num, data_df.shape[0], wind_code, date_from, date_to)
             data_df['wind_code'] = wind_code
             data_df_list.append(data_df)
     finally:
@@ -229,7 +241,7 @@ def import_stock_daily():
                                    'ev2_to_ebitda': Float,
                                }
                                )
-            logger.info('%d data imported into wind_stock_daily', data_df_all.shape[0])
+            logging.info("更新 wind_stock_daily 结束 %d 条信息被更新", data_df_all.shape[0])
 
 
 def import_stock_daily_wch():
@@ -238,6 +250,7 @@ def import_stock_daily_wch():
     如果超过 BASE_LINE_HOUR 时间，则获取当日的数据
     :return: 
     """
+    logging.info("更新 wind_stock_daily_wch 开始")
     w = WindRest(WIND_REST_URL)
     engine = get_db_engine()
     with get_db_session(engine) as session:
@@ -307,7 +320,7 @@ def import_stock_daily_wch():
             data_df_all.reset_index(inplace=True)
             data_df_all.set_index(['wind_code', 'date'], inplace=True)
             data_df_all.to_sql('wind_stock_daily_wch', engine, if_exists='append')
-            logger.info('%d data imported into wind_stock_daily_wch', data_df_all.shape[0])
+            logging.info("更新 wind_stock_daily_wch 结束 %d 条信息被更新", data_df_all.shape[0])
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')

@@ -31,8 +31,9 @@ def import_wind_future_daily():
     data_df_list = []
     # w.start()
     rest = WindRest(WIND_REST_URL)  # 初始化服务器接口，用于下载万得数据
+    future_count = len(future_date_dic)
     try:
-        logger.info("%d future instrument will be handled", len(future_date_dic))
+        logger.info("%d future instrument will be handled", future_count)
         for n_future, (wind_code, date_pair) in enumerate(future_date_dic.items()):
             # 暂时只处理 RU 期货合约信息
             # if wind_code.find('RU') == -1:
@@ -40,7 +41,7 @@ def import_wind_future_daily():
             date_frm, date_to = date_pair
             if date_frm > date_to:
                 continue
-            logger.info('%d) get %s between %s and %s', n_future, wind_code, date_frm, date_to)
+            logger.info('%d/%d) get %s between %s and %s', n_future, future_count, wind_code, date_frm, date_to)
             # data_df_tmp = wsd_cache(w, wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
             #                         date_frm, date_to, "")
             data_df_tmp = rest.wsd(wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
