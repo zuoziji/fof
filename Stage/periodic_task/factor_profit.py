@@ -44,7 +44,7 @@ def save_factor_explore(date_start, date_end):
         stock_factor_df[factor_name_saved].to_sql('stock_facexposure', engine, if_exists='append',
                                                   index_label=['Trade_Date'])
         stock_num += 1
-        logging.info('Successful Input %s [%d / %d] stock' % (stock_name, stock_num, stock_count))
+        logging.info('[%d/%d] 导入 %s 因子数据' % (stock_num, stock_count, stock_name))
 
 
 def update_factors():
