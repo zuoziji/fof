@@ -19,8 +19,8 @@ from stress_testing.fhs_garch_fund import do_fhs_garch
 from periodic_task.fund_multi_factor_exp import do_fund_multi_factor
 from periodic_task.build_strategy_index import do_update_strategy_index
 from periodic_task.wind_fund_nav_update import update_wind_fund_nav
-from periodic_task.wind_future_daily import import_wind_future_daily
-from periodic_task.wind_future_info import import_wind_future_info
+from periodic_task.wind_future import import_wind_future_daily
+from periodic_task.wind_future import import_wind_future_info
 
 
 logger = logging.getLogger()

@@ -17,6 +17,8 @@ from sqlalchemy.types import String, Date, Float, Integer
 logger = logging.getLogger()
 DATE_BASE = datetime.strptime('1998-01-01', STR_FORMAT_DATE).date()
 ONE_DAY = timedelta(days=1)
+# 标示每天几点以后下载当日行情数据
+BASE_LINE_HOUR = 16
 w = WindRest(WIND_REST_URL)
 
 
@@ -161,7 +163,7 @@ def import_pub_fund_daily():
         wind_code_date_dic = {wind_code: (setup_date, maturity_date if maturity_date is None or maturity_date > UN_AVAILABLE_DATE else None)
                           for
                           wind_code, setup_date, maturity_date in table.fetchall()}
-    today_t_1 = date.today() - ONE_DAY
+    date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
     wind_code_date_count = len(wind_code_date_dic)
     logger.info('%d pub fund will been import into wind_pub_fund_daily', wind_code_date_count)
@@ -190,9 +192,9 @@ def import_pub_fund_daily():
             date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
             # 获取 date_to
             if maturity_date is None:
-                date_to = today_t_1
+                date_to = date_ending
             else:
-                date_to = min([maturity_date, today_t_1])
+                date_to = min([maturity_date, date_ending])
             date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
             if date_from is None or date_to is None or date_from > date_to:
                 continue
