@@ -1524,10 +1524,7 @@ html+=`
         top: 0,
         left: 150,
         width : 1200,
-        padding: [0,10,10,0],
-        data: '',
-        itemGap: 10,
-        itemHeight: 10
+        padding: [0,10,10,0]
       },
       grid:{
         y2: 90,
@@ -1545,27 +1542,22 @@ html+=`
       },
       xAxis: {
           type: 'category',
-          boundaryGap: false,
           data: date,
-          splitLine:{
-            　　　　show:true
-          　　 }
+          position: "bottom",
+          offset: 1
       },
       yAxis: {
-          type: 'value',
-          scale:true
+          show: true
       },
       series: [
           {
               name:'月度收益率',
               type:'bar',
-              stack: '总量',
               data: values
           }
       ]
 
   };
-
   var t3chart = echarts.init(document.getElementById('t3chart'),"shine");
   t3chart.setOption(option);
 
