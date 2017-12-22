@@ -206,9 +206,9 @@ def import_stock_daily():
                 else:
                     break
             if data_df is None:
-                logger.warning('%d) %s has no data during %s %s', data_num, wind_code, date_from, date_to)
+                logger.warning('%d/%d) %s has no data during %s %s', data_num, data_len, wind_code, date_from, date_to)
                 continue
-            logger.info('%d) %d data of %s between %s and %s', data_num, data_df.shape[0], wind_code, date_from, date_to)
+            logger.info('%d/%d) %d data of %s between %s and %s', data_num, data_len, data_df.shape[0], wind_code, date_from, date_to)
             data_df['wind_code'] = wind_code
             data_df_list.append(data_df)
     finally:
@@ -326,7 +326,7 @@ def import_stock_daily_wch():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 更新每日股票数据
-    # import_stock_daily()
+    import_stock_daily()
     import_stock_daily_wch()
     # 添加某列信息
     # fill_history()
