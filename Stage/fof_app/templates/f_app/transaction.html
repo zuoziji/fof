@@ -1,7 +1,20 @@
 {% extends "main.html" %}
 {% block css %}
-<link href="../../static/vendors/select2/dist/css/select2.css" rel="stylesheet">
-<link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" />
+<!-- <link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" /> -->
+<style>
+table.dataTable tbody tr.selected {
+    background-color: #f5f5f5;
+}
+table .desc:hover{
+    background: rgba(0,0,0,0.5) !important;
+    color:#fff;
+    position: absolute;
+    white-space: pre-line!important;
+    padding: 5px!important;
+    border-radius: 3px;
+    z-index: 9;
+}
+</style>
 {% endblock %}
 {% block manager %}
 {% endblock %}
@@ -14,13 +27,13 @@
         <h2>批次管理</h2>
         <div class="clearfix"></div>
       </div>
-
       <div class="x_content">
        <table class="table table-bordered center-all " id="invest_tab" width="100%" >
         <thead>
           <tr>
+            <th><input type="checkbox" class="checkall"></th>
             <th>批次代码</th>
-            <th>FOF基金代码</th>
+            <th>FOF基金名称</th>
             <th>基金名称</th>
             <th>操作类型</th>
             <th>资金交收日期</th>
@@ -30,7 +43,6 @@
             <th>份额</th>
             <th>金额</th>
             <th>事项说明</th>
-            <th></th>
           </tr>
         </thead>
       </table>
@@ -259,19 +271,14 @@
 
 
 {% block script %}
-<script src="../../static/js/vue.js"></script>
-<script src="../../static/js/vue-resource@1.3.4.js"></script>
-<script src="../../static/vendors/pnotify/dist/pnotify.js"></script>
-<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
-<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
+<!-- <script src="../../static/jquery-datatables-checkboxes-1.2.9/js/dataTables.checkboxes.min.js"></script> -->
 <script>
 
-
-    $('#invest_tab').DataTable({
-     "info":false,
+    var table=$('#invest_tab').DataTable({
+        "info":false,
         "paging": true,
         "displayLength": 20,
-            "language": {
+        "language": {
             "lengthMenu": "每页 _MENU_ 条记录",
             "zeroRecords": "没有找到记录",
             "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
@@ -284,12 +291,19 @@
                 "next": "下一页"
             }
         },
-     serverSide: true,
-     processing: true, 
- "sAjaxSource": "{{ url_for('f_app.get_transaction') }}",
-      columns: [
-          { data: 'wind_code_s' },
-          { data: 'fof_name'},
+        serverSide: true,
+        processing: true, 
+        "sAjaxSource": "{{ url_for('f_app.get_transaction') }}",
+        "columnDefs": [{"orderable":false,"targets":[0]}],
+        order:[[1,"desc"]],
+        columns: [
+          {data:null,
+              "render": function(obj) {
+                  return '<input type="checkbox" id="'+obj.id+'"/>';
+              }
+          },
+          {data:'wind_code_s' },
+          {data:'fof_name',width:'200px'},
           {data:'sec_name_s'},
           {data:'operating_type'},
           {data:'accounting_date'},
@@ -298,21 +312,89 @@
           {data:"confirm_benchmark"},
           {data:"share"},
           {data:"amount"},
-          {data:"description"},
           {data:null,
-              "render": function(data, type, row) {
-                  var uid = data.wind_code_s;
-                  return '<a href=/f_app/batch_details/'+uid+'><button type="button" class="btn btn-info btn-xs">详细信息</button></a>';
-              }
+            render:function(obj){
+                if(obj.description){
+                    return `<div class="desc" style="padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;">${obj.description||''}</div>`;
+                }else{
+                    return '';
+                }
+            }
           }
       ],
         "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
         "t" +
         "<'row'<'col-xs-6'i><'col-xs-6'p>>",
         "initComplete": function () {
-            $("#mytool").append('<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#crud"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加基金要素</span></button>');
+            $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#crud"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加基金要素</span></button><button type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
         }
 });
+
+
+        //给行绑定选中事件
+        $('#invest_tab tbody').on( 'click', 'tr', function () {
+            if ($(this).hasClass('selected')||$(this).find("input:checked").length) {
+                $(this).removeClass('selected');
+                $(this).find('input').prop('checked', false);
+                $('.checkall').prop('checked', false);
+            } else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+                $(this).find('input').prop('checked', true);
+                if($('#invest_tab tbody').find("input:checked").length==15){
+                    $('.checkall').prop('checked', true);
+                }
+            }
+        });
+
+         //all selected
+        $('.checkall').on('click', function () {
+            if ($(".checkall:checked").length) {
+                $(this).attr('checked', true);
+                $("tbody input").each(function(){
+                    $(this).prop('checked', true);
+                })
+            } else {
+                $(this).attr('checked', false);
+                $("tbody input").each(function(){
+                    $(this).prop('checked', false);
+                })
+            }
+        });
+         // single selected
+        $('tbody').on('click','input',function () {
+            if ($(this).attr('checked')) {
+                $(this).attr('checked', true);
+                if($('#invest_tab tbody').find("input:checked").length==15){
+                    $('.checkall').prop('checked', true);
+                }
+            } else {
+                $(this).attr('checked', false);
+                $('.checkall').prop('checked', false);
+            }
+        });
+
+        //del 
+        $(".x_panel").on('click','.btn.del',function(){
+            var checked=[];
+            $("tbody input:checked").each(function(){
+                checked.push($(this).attr("id"));
+            })
+
+            $.ajax({
+                url: '/f_app/del_transaction',
+                type:'POST',
+                traditional:true,
+                data: {
+                    data: JSON.stringify(checked)
+                },
+                success: function(resp) {
+                    if(resp.status==="ok"){
+                        table.ajax.reload();
+                    }
+                }
+            });
+        })
 
  </script>
 
