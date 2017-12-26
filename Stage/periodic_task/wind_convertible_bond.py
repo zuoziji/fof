@@ -113,6 +113,7 @@ def import_cb_daily():
     导入可转债日线数据
     :return: 
     """
+    logging.info("更新 wind_convertible_bond_daily 开始")
     w = WindRest(WIND_REST_URL)
     engine = get_db_engine()
     with get_db_session(engine) as session:
@@ -193,7 +194,7 @@ def import_cb_daily():
             data_df_all.reset_index(inplace=True)
             data_df_all.set_index(['wind_code', 'trade_date'], inplace=True)
             data_df_all.to_sql('wind_convertible_bond_daily', engine, if_exists='append')
-            logger.info('%d data imported into wind_convertible_bond_daily', data_df_all.shape[0])
+            logging.info("更新 wind_convertible_bond_daily 结束 %d 条信息被更新", data_df_all.shape[0])
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')

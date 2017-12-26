@@ -44,10 +44,11 @@ def save_factor_explore(date_start, date_end):
         stock_factor_df[factor_name_saved].to_sql('stock_facexposure', engine, if_exists='append',
                                                   index_label=['Trade_Date'])
         stock_num += 1
-        logging.info('Successful Input %s [%d / %d] stock' % (stock_name, stock_num, stock_count))
+        logging.info('[%d/%d] 导入 %s 因子数据' % (stock_num, stock_count, stock_name))
 
 
 def update_factors():
+    logging.info("更新 stock_facexposure 开始")
     rest = WindRest(WIND_REST_URL)
     sql_str = 'SELECT max(Trade_Date) as trade_date_latest FROM stock_facexposure'
     with get_db_session() as session:
@@ -58,6 +59,7 @@ def update_factors():
 
     if datetime.strptime(date_start_str, STR_FORMAT_DATE) <= datetime.strptime(date_end_str, STR_FORMAT_DATE):
         save_factor_explore(date_start_str, date_end_str)
+    logging.info("更新 stock_facexposure 结束")
 
 if __name__ == '__main__':
     # Factor_Profit.cal_FactorProfit('2016-01-02', '2016-05-04')

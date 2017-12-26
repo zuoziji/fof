@@ -9,7 +9,7 @@ import math
 import pandas as pd
 import numpy as np
 from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILABLE_DATE, WIND_REST_URL
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest, APIError
 from fh_tools.fh_utils import get_last, get_first
 import logging
 from sqlalchemy.types import String, Date, Float, Integer
@@ -17,6 +17,8 @@ from sqlalchemy.types import String, Date, Float, Integer
 logger = logging.getLogger()
 DATE_BASE = datetime.strptime('1998-01-01', STR_FORMAT_DATE).date()
 ONE_DAY = timedelta(days=1)
+# 标示每天几点以后下载当日行情数据
+BASE_LINE_HOUR = 16
 w = WindRest(WIND_REST_URL)
 
 
@@ -143,6 +145,7 @@ def import_pub_fund_daily():
     导入公募基金日线数据
     :return: 
     """
+    logging.info("更新 wind_pub_fund_daily 开始")
     w = WindRest(WIND_REST_URL)
     engine = get_db_engine()
     with get_db_session(engine) as session:
@@ -157,12 +160,13 @@ def import_pub_fund_daily():
         trade_date_sorted_list.sort()
         # 获取每只股票上市日期、退市日期
         table = session.execute('SELECT wind_code, setup_date, maturity_date FROM wind_pub_fund_info')
-        stock_date_dic = {wind_code: (setup_date, maturity_date if maturity_date is None or maturity_date > UN_AVAILABLE_DATE else None)
+        wind_code_date_dic = {wind_code: (setup_date, maturity_date if maturity_date is None or maturity_date > UN_AVAILABLE_DATE else None)
                           for
                           wind_code, setup_date, maturity_date in table.fetchall()}
-    today_t_1 = date.today() - ONE_DAY
+    date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
-    logger.info('%d stocks will been import into wind_trade_date_wch', len(stock_date_dic))
+    wind_code_date_count = len(wind_code_date_dic)
+    logger.info('%d pub fund will been import into wind_pub_fund_daily', wind_code_date_count)
     # 获取股票量价等行情数据
     field_col_name_dic = {
         'NAV_date': 'NAV_date',
@@ -173,11 +177,11 @@ def import_pub_fund_daily():
     upper_col_2_name_dic = {name.upper(): val for name, val in field_col_name_dic.items()}
     try:
         data_tot = 0
-        for data_num, (wind_code, (setup_date, maturity_date)) in enumerate(stock_date_dic.items()):
+        for data_num, (wind_code, (setup_date, maturity_date)) in enumerate(wind_code_date_dic.items()):
             # 初次加载阶段全量载入，以后 ipo_date为空的情况，直接warning跳过
             if setup_date is None:
                 # date_ipo = DATE_BASE
-                logging.warning("%d) %s 缺少 ipo date", data_num, wind_code)
+                logging.warning("%d/%d) %s 缺少 ipo date", data_num, wind_code_date_count, wind_code)
                 continue
             # 获取 date_from
             if wind_code in trade_date_latest_dic:
@@ -188,19 +192,30 @@ def import_pub_fund_daily():
             date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
             # 获取 date_to
             if maturity_date is None:
-                date_to = today_t_1
+                date_to = date_ending
             else:
-                date_to = min([maturity_date, today_t_1])
+                date_to = min([maturity_date, date_ending])
             date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
             if date_from is None or date_to is None or date_from > date_to:
                 continue
-            data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "unit=1;Days=Weekdays")
+            try:
+                data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "unit=1;Days=Weekdays")
+            except APIError as exp:
+                logger.exception("%d/%d) %s 执行异常", data_num, wind_code_date_count, wind_code)
+                if exp.ret_dic.setdefault('error_code', 0) in (
+                        -40520007,  # 没有可用数据
+                        -40521009,  # 数据解码失败。检查输入参数是否正确，如：日期参数注意大小月月末及短二月
+                ):
+                    continue
+                else:
+                    break
+
             if data_df is None:
-                logger.warning('%d) %s has no ohlc data during %s %s', data_num, wind_code, date_from, date_to)
+                logger.warning('%d/%d) %s has no ohlc data during %s %s', data_num, wind_code_date_count, wind_code, date_from, date_to)
                 continue
             data_df = data_df.drop_duplicates().dropna()
             data_df.rename(columns=upper_col_2_name_dic, inplace=True)
-            logger.info('%d) %d data of %s between %s and %s', data_num, data_df.shape[0], wind_code, date_from,
+            logger.info('%d/%d) %d data of %s between %s and %s', data_num, wind_code_date_count, data_df.shape[0], wind_code, date_from,
                         date_to)
             data_df['wind_code'] = wind_code
             data_tot += data_df.shape[0]
@@ -213,10 +228,11 @@ def import_pub_fund_daily():
         # 导入数据库
         if len(data_df_list) > 0:
             import_df_list_2_db(data_df_list)
+            logging.info("更新 wind_pub_fund_daily 结束 %d 条信息被更新", len(data_df_list))
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
 
-    import_pub_fund_info()
-    # import_pub_fund_daily()
+    # import_pub_fund_info(first_time=True)
+    import_pub_fund_daily()

@@ -18,6 +18,7 @@ def import_stock_quertarly():
     插入股票日线数据到最近一个工作日-1
     :return: 
     """
+    logging.info("更新 wind_stock_quertarly 开始")
     # 标示每天几点以后下载当日行情数据
     BASE_LINE_HOUR = 16
 
@@ -97,7 +98,7 @@ def import_stock_quertarly():
             data_df_all.reset_index(inplace=True)
             data_df_all.set_index(['wind_code', 'trade_date'], inplace=True)
             data_df_all.to_sql('wind_stock_quertarly', engine, if_exists='append')
-            logger.info('%d data imported into wind_stock_quertarly', data_df_all.shape[0])
+            logging.info("更新 wind_stock_quertarly 结束 %d 条信息被更新", data_df_all.shape[0])
 
 
 if __name__ == '__main__':

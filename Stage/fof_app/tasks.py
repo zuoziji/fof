@@ -4,8 +4,6 @@
 :mail: bjdhuang@cn.ibm.com.
 :license: Apache 2.0, see LICENSE for more details.
 """
-# from backend.job_worker import do_task, fund_group, stress_testing_group, stock_group, index_group, future_daily_group, \
-#     future_info_weekly_group
 from .extensions import mail
 from stress_testing import copula_fof, fhs_garch_fund
 from celery import signals
@@ -28,8 +26,8 @@ from stress_testing.fhs_garch_fund import do_fhs_garch
 from periodic_task.fund_multi_factor_exp import do_fund_multi_factor
 from periodic_task.build_strategy_index import do_update_strategy_index
 from periodic_task.wind_fund_nav_update import update_wind_fund_nav
-from periodic_task.wind_future_daily import import_wind_future_daily
-from periodic_task.wind_future_info import import_wind_future_info
+from periodic_task.wind_future import import_wind_future_daily
+from periodic_task.wind_future import import_wind_future_info
 from periodic_task.wind_pub_fund import import_pub_fund_info, import_pub_fund_daily
 
 
@@ -172,4 +170,5 @@ def log(message):
     pass
 
 if __name__ == '__main__':
-    do_task(stress_testing_group)
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
+    do_task(stock_group)

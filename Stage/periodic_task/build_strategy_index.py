@@ -1007,28 +1007,32 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
 
 
 if __name__ == '__main__':
+    import os
     def calc_rr(data_s: pd.Series):
         tmp_s = data_s.dropna()
         rr = tmp_s[-1] / tmp_s[0] - 1
         return rr
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    date_from_str, date_to_str = '2016-12-1', '2017-12-1'
+    date_from_str, date_to_str = '2015-12-1', '2017-12-1'
     stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
+    folder_path = get_cache_file_path("%s_%s" % (date_from_str, date_to_str))
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
     for stg, stg_idx_info_dic in stg_idx_quantile_dic.items():
         date_idx_quantile_df = stg_idx_info_dic["date_idx_quantile_df"]
         date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
 
-        file_path = get_cache_file_path('%s_每周idx_分位图.csv' % stg)
+        file_path = get_cache_file_path(r'%s_%s\%s_每周idx_分位图.csv' % (date_from_str, date_to_str, stg))
         date_idx_quantile_df.to_csv(file_path)
         logger.info(file_path)
-        file_path = get_cache_file_path('%s_每周idx_按机构.csv' % stg)
+        file_path = get_cache_file_path('%s_%s\%s_每周idx_按机构.csv' % (date_from_str, date_to_str, stg))
         date_mgr_idx_df.to_csv(file_path)
         logger.info(file_path)
-    file_path = get_cache_file_path('策略绩效统计_按机构.csv')
+    file_path = get_cache_file_path('%s_%s\策略绩效统计_按机构.csv' % (date_from_str, date_to_str))
     stat_df.to_csv(file_path)
     logger.info(file_path)
-    file_path = get_cache_file_path('各策略指数走势_按机构.csv')
+    file_path = get_cache_file_path('%s_%s\各策略指数走势_按机构.csv' % (date_from_str, date_to_str))
     stg_idx_mid_df.to_csv(file_path)
     logger.info(file_path)
 

@@ -9,6 +9,7 @@ import numpy as np
 from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILABLE_DATE, WIND_REST_URL
 from fh_tools.windy_utils_rest import WindRest
 import logging
+logger = logging.getLogger()
 
 
 def import_trade_date():
@@ -25,14 +26,23 @@ def import_trade_date():
             if trade_date_max is not None:
                 trade_date_start = (trade_date_max + timedelta(days=1)).strftime(STR_FORMAT_DATE)
         except Exception as exp:
-            logging.exception("交易日获取异常")
+            logger.exception("交易日获取异常")
         if trade_date_start is None:
             trade_date_start = '1990-01-01'
 
     end_date_str = (date.today() + timedelta(days=310)).strftime(STR_FORMAT_DATE)
-    date_df = w.tdays(trade_date_start, end_date_str)
-    if date_df is not None:
-        print(date_df.shape)
-        date_df = date_df.set_index('date').rename(columns={'date': 'trade_date'})
-        date_df.to_sql('wind_trade_date', engine, if_exists='append')
-        logging.info('%d trade date has been imported', date_df.shape[0])
+    trade_date_list = w.tdays(trade_date_start, end_date_str)
+    if trade_date_list is None:
+        logger.warning("没有查询到交易日期")
+    date_count = len(trade_date_list)
+    if date_count > 0:
+        logger.info("%d 条交易日数据将被导入", date_count)
+        with get_db_session() as session:
+            session.execute("insert into wind_trade_date(trade_date) VALUE (:trade_date)",
+                            params=[{'trade_date': trade_date} for trade_date in trade_date_list])
+        logger.info('%d 条交易日数据导入完成', date_count)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
+    import_trade_date()
