@@ -92,6 +92,16 @@ class DevConfig(Config):
 
 
 
+class TestingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'mysql://mg:Abcd1234@10.0.3.66/fof_ams_dev'
+    CACHE_DB = '127.0.0.1'
+    CSRF_ENABLED = False
+    WTF_CSRF_ENABLED = False
+    TESTING = True
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+
 
 
 
