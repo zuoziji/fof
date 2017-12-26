@@ -4,7 +4,7 @@ sys.path.append('..')
 from  fof_app import create_app
 from fof_app.models import db
 import os
-
+import json
 
 class BasicsTestCase(unittest.TestCase):
     def setUp(self):
@@ -13,7 +13,6 @@ class BasicsTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         self.client = self.app.test_client(use_cookies=True)
-
     def tearDown(self):
         db.session.remove()
         self.app_context.pop()
@@ -23,6 +22,7 @@ class BasicsTestCase(unittest.TestCase):
             email=email,
             password=password
         ), follow_redirects=True)
+    @unittest.skip("skip")
     def test_login(self):
         rv = self.login("kuangmsn@163.com","123")
         self.assertTrue("基金" in rv.get_data(as_text=True))
@@ -41,6 +41,10 @@ class BasicsTestCase(unittest.TestCase):
         rv = self.client.get('/f_app/get_transaction')
         self.assertTrue(rv)
 
-
+    def test_del_transaction(self):
+        self.login("kuangmsn@163.com","123")
+        rv = self.client.post('/f_app/del_transaction')
+        status = rv.data.decode('utf8')
+        self.assertEqual("ok",json.loads(status)['status'])
 if __name__ == "__main__":
     unittest.main()
