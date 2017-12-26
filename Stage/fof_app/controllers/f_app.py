@@ -2049,6 +2049,7 @@ def get_transaction():
     :by hdhuang
     :return:
     """
+    logger.info("{} use this method".format(current_user.username))
     columns = ['id','wind_code_s','operating_type','accounting_date','request_date',
                  'confirm_date','confirm_benchmark','share','amount','description','sec_name_s','fof_name']
     index_column = "wind_code_s"
@@ -2059,6 +2060,14 @@ def get_transaction():
             if v is not None and isinstance(v,datetime.date):
                 i[k] = v.strftime('%Y-%m-%d')
     return json.dumps(result)
+
+
+@f_app_blueprint.route('/del_transaction',methods=['POST'])
+@login_required
+def del_transaction():
+    if request.method == 'POST':
+        return jsonify(status="ok")
+
 
 
 def allowed_file(filename):

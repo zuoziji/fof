@@ -24,6 +24,8 @@ class Config():
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_ADMIN = 'kuangmsn@163.com'
     SOCKETIO_MESSAGE_QUEUE = 'redis://localhost:6379/6'
+    CELERY_ENABLE_UTC = True
+    CELERY_TIMEZONE = "Asia/Shanghai"
     C_FORCE_ROOT = True
     DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
