@@ -634,6 +634,24 @@ class FUND_NAV_CALC(db.Model):
 
 
 
+class FUND_TRANSACTION(db.Model):
+    __tablename__ = "fund_transaction"
+    id = db.Column(db.INTEGER,primary_key=True)
+    fof_name =  db.Column(db.String(100),nullable=False)
+    sec_name_s =  db.Column(db.String(100),nullable=False)
+    wind_code_s = db.Column(db.String(45),nullable=False)
+    operating_type = db.Column(db.String(45),nullable=False)
+    accounting_date = db.Column(db.Date,nullable=False)
+    request_date = db.Column(db.Date)
+    confirm_date = db.Column(db.Date,nullable=False)
+    confirm_benchmark = db.Column(MyReal)
+    share = db.Column(MyReal)
+    amount = db.Column(MyReal)
+    description = db.Column(MyReal)
+
+    def __str__(self):
+        return  self.wind_code_s
+
 
 def query_invest(rank):
     invest = Invest_corp.query.filter_by(review_status=rank).all()

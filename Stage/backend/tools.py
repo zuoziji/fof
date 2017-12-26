@@ -208,7 +208,7 @@ def calc_periods(wind_code):
     df = DataFrame(record_list)
     df.index = pd.to_datetime(df['nav_date'])
     df = df.drop(['nav','nav_tot','source_mark','wind_code'],axis=1)
-    risk_df = return_risk_analysis(df[['nav_acc']])
+    risk_df = return_risk_analysis(df[['nav_acc']],freq=None)
     result_dict = {}
     risk = { k:v['nav_acc'] for k,v in risk_df.T.to_dict().items()}
     drawback_df = drawback_analysis((df[['nav_acc']]))
