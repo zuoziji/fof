@@ -167,7 +167,7 @@ def send_email(to, subject, template, **kwargs):
 
 @celery.task(name='test_log', base=MyTask)
 def log(message):
-    pass
+    print("testing log 123")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')

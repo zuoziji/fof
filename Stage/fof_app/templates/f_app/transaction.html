@@ -379,15 +379,15 @@ table .desc:hover{
             var checked=[];
             $("tbody input:checked").each(function(){
                 checked.push($(this).attr("id"));
-            })
+            });
 
             $.ajax({
                 url: '/f_app/del_transaction',
                 type:'POST',
-                traditional:true,
-                data: {
-                    data: JSON.stringify(checked)
-                },
+                //traditional:true,
+                contentType: 'application/json',
+                dataType:'json',
+                data:JSON.stringify({"result":checked}),
                 success: function(resp) {
                     if(resp.status==="ok"){
                         table.ajax.reload();
