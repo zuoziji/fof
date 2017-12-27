@@ -2041,6 +2041,7 @@ def transaction():
         return render_template("transaction.html",fof_list=fof_list)
 
 
+
 @f_app_blueprint.route('/get_transaction',methods=['POST','GET'])
 @login_required
 def get_transaction():
@@ -2068,12 +2069,21 @@ def del_transaction():
     if request.method == 'POST':
         checked = request.json['result']
         for i in checked:
-            t = FUND_TRANSACTION.query.get_or_404(int(i))
             FUND_TRANSACTION.query.filter_by(id=int(i)).delete()
             logger.info("id-->{}<---已经删除!".format(int(i)))
             db.session.commit()
         return jsonify(status="ok")
 
+
+@f_app_blueprint.route('/change_transaction/<id>',methods=['POST','GET'])
+@login_required
+def change_transaction(id):
+    if request.method == 'GET':
+        tr = FUND_TRANSACTION.query.get(id)
+        return jsonify(tr.as_dict())
+    elif request.method == 'POST':
+        data = request.json['result']
+        return "ok"
 
 
 def allowed_file(filename):
