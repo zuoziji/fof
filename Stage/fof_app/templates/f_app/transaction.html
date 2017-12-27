@@ -44,232 +44,100 @@ table .desc:hover{
             <th>事项说明</th>
           </tr>
         </thead>
-      </table>
-    </div>
+       </table>
+      </div>
+   </div>
   </div>
 </div>
-</div>
-<div>
-<div id="app">
-    <add-child></add-child>
-</div>
 
-<script type="text/x-template" id="v-select">
-    <div style="position:relative;">
-        <select class="form-control select2 select2-hidden-accessible" id="fof_child" required="" tabindex="-1" aria-hidden="true">
-            <option v-text="fund.val"  name="name" ></option>
-        </select>
-        <span class="select2 select2-container select2-container--default  " :class="[flag.state?open:close]" dir="ltr">
-            <span class="selection" style="width:100%">
-                <span style="min-height: 34px;" @click="toggle" aria-owns="select2-fof_child-results" class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="true" tabindex="0" aria-labelledby="select2-fof_child-container">
-                    <span class="select2-selection__rendered" id="select2-fof_child-container">
-                        <span class="select2-selection__placeholder" v-text="fund.val"></span>
-                    </span>
-                    <span class="select2-selection__arrow" role="presentation">
-                        <b role="presentation"></b>
-                    </span>
-                </span>
-            </span>
-            <span class="dropdown-wrapper" aria-hidden="true"></span>
-        </span>
-        <span class="select2-container select2-container--default" style="position: absolute;top:34px;" v-show="flag.state" @click.stop :class="[flag.state?open:close]">
-            <span class="select2-dropdown select2-dropdown--below" dir="ltr">
-                <span class="select2-search select2-search--dropdown">
-                    <input class="select2-search__field" type="search" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="textbox" @keyup="getOptions(search)" v-model="search">
-                </span>
-                <span class="select2-results">
-                    <ul class="select2-results__options" role="tree" id="select2-fof_child-results" aria-expanded="true" aria-hidden="false">
-                        <li class="select2-results__option item" role="treeitem" aria-selected="false" v-for="(item,index) in searchItems" @click="selectOption(index)" :class="{'select2-results__option--highlighted':index==0}">
-                            <div class="select2-result-repository clearfix">
-                                <div class="select2-result-repository__meta">
-                                    <div class="select2-result-repository__title" v-text="item.sec_name"></div>
-                                    <div class="select2-result-repository__statistics">
-                                        <div class="select2-result-repository__stargazers">
-                                            <i class="fa fa-star"></i><span v-text="item.wind_code" style="display:inline!important;"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==0">searching...</li>
-                        <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==1&&!warn">至少输入一个字符</li>
-                        <li role="treeitem" aria-live="assertive" class="select2-results__option select2-results__message" v-show="state==2&&searchItems.length==0&&!warn">未找到结果</li>
-                    </ul>
-                </span>
-            </span>
-        </span>
-    </div>
-</script>
-<script type="text/x-template" id="add-child">
-      <div class="modal fade" id="crud">
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" @click="closeModal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
-                        <h4 class="modal-title">添加一个新的批次</h4>
+                        <h4 class="modal-title" id="myModalLabel" data-tag>编辑</h4>
                     </div>
-                    <div class="modal-body">
-                        <div class="error"></div>
-                        <form class="form-horizontal" id="crud-form">
+                    <div class="modal-body"> 
+                        <form id="form" class="form-horizontal form-label-left" method="POST" action="{{ url_for('f_app.change_transaction',id='')}}">
                             <div class="form-group">
-                                <label class="col-md-3 control-label">基金名称</label>
-                                <div class="col-md-8">
-                                    <v-select v-on:select="selectVal2" :warn="warn2" :url="url2" :flag="flag3" :fund="fund2"></v-select>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="wind_code_s">批次代码</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s" disabled="disabled">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-md-3 control-label" for="m_code">基金代码</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="wind_code" name="wind_code" class="form-control input-md" v-model="code2" readonly>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fof_name">FOF基金名称</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name" disabled="disabled">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-md-3 control-label" for="m_name">批次名称</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="sec_name_s" name="sec_name_s" class="form-control input-md" />
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="sec_name_s">基金名称</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" class="form-control col-md-7 col-xs-12" value="" name="sec_name_s" id="sec_name_s" disabled="disabled">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-md-3 control-label" for="m_code1">批次代码</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="wind_code_s" name="wind_code_s"  class="form-control input-md" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label" for="date_start">开始时间</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="date_start" name="date_start" type="date" class="form-control input-md"/>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label" for="m_warn_line">预警线</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="warning_line" name="warning_line" type="number" class="form-control input-md" step=0.0001 min="0" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label" for="m_wind_line">清盘线</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="winding_line" name="winding_line" type="number" class="form-control input-md" step=0.0001 min="0"/>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label" for="day_count_4_calc_fee">管理费计算基础天数</label>
-                                <div class="col-md-8 input-append ">
-                                    <select class="form-control input-md" id="day_count_4_calc_fee">
-                                        <option value="365">365</option>
-                                        <option value="366">366</option>
-
+                                <label class="col-md-3 control-label" for="operating_type">操作类型</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <select class="form-control" name="operating_type" id="operating_type">
+                                        <option>申购</option> 
+                                        <option>赎回</option> 
+                                        <option>返费</option> 
+                                        <option>份额强减</option> 
+                                        <option>份额分红在投资</option> 
                                     </select>
                                 </div>
                             </div>
-                            <div class="row" style="padding-left:0;">
-                                <div class="form-group col-md-6" style="padding-left:0;">
-                                    <label class="col-md-6 control-label" for="manage_fee_rate" style="padding-left:0;padding-right:0;">管理费率</label>
-                                    <div class="col-md-6 input-append " style="padding-left:20px;">
-                                        <input id="manage_fee_rate" name="manage_fee_rate" type="number" class="form-control input-md" step=0.001 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
-                                    </div>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label class="col-sm-4 control-label" for="manage_fee_calc_mode">计算基准</label>
-                                    <div class="col-md-6 input-append">
-                                        <select class="form-control input-md col-md-9" name="manage_fee_calc_mode" id="manage_fee_calc_mode">
-                                            <option value="0">份额</option>
-                                            <option value="1">市值</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="padding-left:0;">
-                                <div class="form-group col-md-6" style="padding-left:0;">
-                                    <label class="col-md-6 control-label" for="custodian_fee_rate" style="padding-left:0;padding-right:0;">托管费率</label>
-                                    <div class="col-md-6 input-append " style="padding-left:20px;">
-                                        <input id="custodian_fee_rate" name="custodian_fee_rate" type="number" class="form-control input-md" step=0.001 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
-                                    </div>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label class="col-sm-4 control-label" for="custodian_fee_calc_mode">计算基准</label>
-                                    <div class="col-md-6 input-append">
-                                        <select class="form-control input-md col-md-9" name="custodian_fee_calc_mode" id="custodian_fee_calc_mode">
-                                            <option value="0">份额</option>
-                                            <option value="1">市值</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="padding-left:0;">
-                                <div class="form-group col-md-6" style="padding-left:0;">
-                                    <label class="col-md-6 control-label" for="admin_fee_rate" style="padding-left:0;padding-right:0;">行政管理费率</label>
-                                    <div class="col-md-6 input-append " style="padding-left:20px;">
-                                        <input id="admin_fee_rate" name="admin_fee_rate" type="number" class="form-control input-md" step=0.001 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
-                                    </div>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label class="col-sm-4 control-label" for="admin_fee_calc_mode">计算基准</label>
-                                    <div class="col-md-6 input-append">
-                                        <select class="form-control input-md col-md-9" name="admin_fee_calc_mode" id="admin_fee_calc_mode">
-                                            <option value="0">份额</option>
-                                            <option value="1">市值</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="padding-left:0;">
-                                <div class="form-group col-md-6" style="padding-left:0;">
-                                    <label class="col-md-6 control-label" for="storage_fee_rate" style="padding-left:0;padding-right:0;">客户专项资金保管费率</label>
-                                    <div class="col-md-6 input-append " style="padding-left:20px;">
-                                        <input id="storage_fee_rate" name="storage_fee_rate" type="number" class="form-control input-md" step=0.001 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
-                                    </div>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label class="col-sm-4 control-label" for="storage_fee_calc_mode">计算基准</label>
-                                    <div class="col-md-6 input-append">
-                                        <select class="form-control input-md col-md-9" name="storage_fee_calc_mode" id="storage_fee_calc_mode">
-                                            <option value="0">份额</option>
-                                            <option value="1">市值</option>
-                                        </select>
-                                    </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="accounting_date">资金交收日期</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="date" class="form-control col-md-7 col-xs-12" id="accounting_date" value="" name="accounting_date" data-date-format="YYYY-MM-DD"/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-md-3 control-label" for="subscribe_fee_rate">认购/申购费率</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="subscribe_fee_rate" name="subscribe_fee_rate" type="number" class="form-control input-md" step=0.001 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="request_date">申请日期</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="date" class="form-control" id="request_date" value="" name="request_date" data-date-format="YYYY-MM-DD">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-md-3 control-label" for="redemption_fee_rate">赎回费率</label>
-                                <div class="col-md-8 input-append ">
-                                    <input id="redemption_fee_rate" name="redemption_fee_rate" type="number" class="form-control input-md" step=0.001 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">%</span>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="confirm_date">确认日期</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="date" class="form-control" id="confirm_date" value="" name="confirm_date" data-date-format="YYYY-MM-DD">
                                 </div>
                             </div>
-                             <div class="form-group">
-                                    <label class="col-md-3 control-label" for="invest_amount">初始确认金额</label>
-                                    <div class="col-md-8 input-append ">
-                                        <input id="invest_amount" name="invest_amount" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">元</span>
-                                    </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">份额</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" class="form-control" id="share" value="" name="share">
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 control-label" for="share_confirmed">初始确认份额</label>
-                                    <div class="col-md-8 input-append ">
-                                        <input id="share_confirmed" name="share_confirmed" type="number" class="form-control input-md" step=0.01 min="0"/><span class="fa  form-control-feedback right" aria-hidden="true">份</span>
-                                    </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="amount">金额</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <input type="text" class="form-control" id="amount" value="" name="amount">
                                 </div>
-
-                        </form>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="description">事项说明</label>
+                                <div class="col-md-8 col-sm-8 col-xs-12">
+                                    <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description" value="" name="description"></textarea>
+                                </div>
+                            </div>
+                        </form>           
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success" id="add_new_order"  @click="sendBatch">确认</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal" @click="closeModal">取消</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="close">关闭</button>
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
                     </div>
                 </div>
             </div>
-      </div>
-</script>
+        </div>
 {% endblock %}
 
 
 {% block script %}
+<script src="../../static/vendors/moment/moment.js"></script>
 <script>
 
     var rows_selected = [];
@@ -346,7 +214,7 @@ table .desc:hover{
         "t" +
         "<'row'<'col-xs-6'i><'col-xs-6'p>>",
         "initComplete": function () {
-            $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#crud"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加基金要素</span></button><button type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
+            $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#crud"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加基金要素</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
         }
     });
 
@@ -356,7 +224,6 @@ table .desc:hover{
        var $chkbox_all        = $('tbody input[type="checkbox"]', $table);
        var $chkbox_checked    = $('tbody input[type="checkbox"]:checked', $table);
        var chkbox_select_all  = $('thead input[name="select_all"]', $table).get(0);
-       console.log()
 
        // If none of the checkboxes are checked
        if($chkbox_checked.length === 0){
@@ -442,6 +309,15 @@ table .desc:hover{
 //delete checked
     $(".x_panel").on('click','.btn.del',function(){
         var checked=[];
+        if(rows_selected.length==0){     
+            new PNotify({
+                title: '请至少选择一个批次',
+                text:  '',
+                type: 'warn',
+                styling: 'bootstrap3'
+            });
+            return;
+        }
         $.each(rows_selected, function(index, rowId){
             checked.push(rowId);
         });
@@ -466,6 +342,50 @@ table .desc:hover{
             }
         });
    });
+
+
+        //edit 
+    $(".x_panel").on('click','.edit',function(){
+        var checked=[];
+        if(rows_selected.length==0){     
+            new PNotify({
+                title: '请至少选择一个批次',
+                text:  '',
+                type: 'warn',
+                styling: 'bootstrap3'
+            });
+            return;
+        }
+        $.ajax({
+            url: '/f_app/change_transaction/'+rows_selected[0],
+            type:'GET',
+            contentType: 'application/json',
+            success: function(resp) {
+                if(resp){
+                    $("#accounting_date").val(moment(resp.accounting_date).format('YYYY-MM-DD'));
+                    $("#amount").val(resp.amount);
+                    $("#confirm_benchmark").val(resp.confirm_benchmark);
+                    $("#confirm_date").val(moment(resp.confirm_date).format('YYYY-MM-DD'));
+                    $("#description").val(resp.description);
+                    $("#fof_name").val(resp.fof_name);
+                    $("#operating_type").val(resp.operating_type);
+                    $("#request_date").val(moment(resp.request_date).format('YYYY-MM-DD'));
+                    $("#sec_name_s").val(resp.sec_name_s);
+                    $("#share").val(resp.share);
+                    $("#wind_code_s").val(resp.wind_code_s);
+                    $("#myModal").modal("show");
+                    $("form").attr("action",$("form").attr("action")+resp.id);
+                }
+            }
+        });
+
+    })
+    //submit form
+    $("#save").on("click",function(){
+        $("#form").submit();
+        $("#myModal").modal("hide");
+    })
+
  </script>
 
 {% endblock %}
