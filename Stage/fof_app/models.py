@@ -652,6 +652,8 @@ class FUND_TRANSACTION(db.Model):
     def __str__(self):
         return  self.wind_code_s
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 def query_invest(rank):
     invest = Invest_corp.query.filter_by(review_status=rank).all()
