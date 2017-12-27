@@ -87,7 +87,6 @@ class Transaction():
         :return:
         """
         for _,v in df_dict.items():
-            print(v)
             record = FUND_TRANSACTION(**v)
             db.session.add(record)
             db.session.commit()
@@ -102,3 +101,4 @@ if __name__ == "__main__":
         x = Transaction(file)
         data =x.formatFile()
         x.importDate(data)
+        db.session.remove()
