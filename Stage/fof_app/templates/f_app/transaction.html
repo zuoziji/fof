@@ -1,17 +1,16 @@
 {% extends "main.html" %}
 {% block css %}
-<!-- <link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" /> -->
 <style>
 table.dataTable tbody tr.selected {
     background-color: #f5f5f5;
 }
 table .desc:hover{
-    background: rgba(0,0,0,0.5) !important;
+    background: rgba(0,0,0,0.8) !important;
     color:#fff;
     position: absolute;
     white-space: pre-line!important;
     padding: 5px!important;
-    border-radius: 3px;
+    border-radius: 2px;
     z-index: 9;
 }
 </style>
@@ -28,10 +27,10 @@ table .desc:hover{
         <div class="clearfix"></div>
       </div>
       <div class="x_content">
-       <table class="table table-bordered center-all " id="invest_tab" width="100%" >
+       <table class="table table-bordered center-all display" id="invest_tab" width="100%" >
         <thead>
           <tr>
-            <th><input type="checkbox" class="checkall"></th>
+            <th><input type="checkbox" name="select_all"></th>
             <th>批次代码</th>
             <th>FOF基金名称</th>
             <th>基金名称</th>
@@ -39,7 +38,7 @@ table .desc:hover{
             <th>资金交收日期</th>
             <th>申请日期</th>
             <th>确认日期</th>
-            <th>确认基准净值</th>
+            <th>确认基准净值</th> 
             <th>份额</th>
             <th>金额</th>
             <th>事项说明</th>
@@ -271,9 +270,9 @@ table .desc:hover{
 
 
 {% block script %}
-<!-- <script src="../../static/jquery-datatables-checkboxes-1.2.9/js/dataTables.checkboxes.min.js"></script> -->
 <script>
 
+    var rows_selected = [];
     var table=$('#invest_tab').DataTable({
         "info":false,
         "paging": true,
@@ -294,14 +293,35 @@ table .desc:hover{
         serverSide: true,
         processing: true, 
         "sAjaxSource": "{{ url_for('f_app.get_transaction') }}",
-        "columnDefs": [{"orderable":false,"targets":[0]}],
+        'columnDefs': [{
+             'targets': 0,
+             'searchable': false,
+             'orderable': false,
+             'render': function (data, type, full, meta){
+                 return '<input type="checkbox">';
+             },
+            'checkboxes': {
+               'selectRow': true
+            }
+        }],
+        'rowCallback': function(row, data, dataIndex){
+             // Get row ID
+             var rowId = data.id;
+             // If row ID is in the list of selected row IDs
+             if($.inArray(rowId, rows_selected) !== -1){
+                $(row).find('input[type="checkbox"]').prop('checked', true);
+                $(row).addClass('selected');
+             }
+        },
+        'select': {
+            'style': 'multi'
+        },
         order:[[1,"desc"]],
         columns: [
-          {data:null,
-              "render": function(obj) {
-                  return '<input type="checkbox" id="'+obj.id+'"/>';
-              }
-          },
+          {data:'id',
+            'render': function (data, type, full, meta){
+                 return '<input type="checkbox" value="'+data+'">';
+             }},
           {data:'wind_code_s' },
           {data:'fof_name',width:'200px'},
           {data:'sec_name_s'},
@@ -328,74 +348,124 @@ table .desc:hover{
         "initComplete": function () {
             $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#crud"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加基金要素</span></button><button type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
         }
-});
+    });
 
 
-        //给行绑定选中事件
-        $('#invest_tab tbody').on( 'click', 'tr', function () {
-            if ($(this).hasClass('selected')||$(this).find("input:checked").length) {
-                $(this).removeClass('selected');
-                $(this).find('input').prop('checked', false);
-                $('.checkall').prop('checked', false);
-            } else {
-                table.$('tr.selected').removeClass('selected');
-                $(this).addClass('selected');
-                $(this).find('input').prop('checked', true);
-                if($('#invest_tab tbody').find("input:checked").length==15){
-                    $('.checkall').prop('checked', true);
+    function updateDataTableSelectAllCtrl(table){
+       var $table             = table.table().node();
+       var $chkbox_all        = $('tbody input[type="checkbox"]', $table);
+       var $chkbox_checked    = $('tbody input[type="checkbox"]:checked', $table);
+       var chkbox_select_all  = $('thead input[name="select_all"]', $table).get(0);
+       console.log()
+
+       // If none of the checkboxes are checked
+       if($chkbox_checked.length === 0){
+          chkbox_select_all.checked = false;
+          if('indeterminate' in chkbox_select_all){
+             chkbox_select_all.indeterminate = false;
+          }
+
+       // If all of the checkboxes are checked
+       } else if ($chkbox_checked.length === $chkbox_all.length){
+          chkbox_select_all.checked = true;
+          if('indeterminate' in chkbox_select_all){
+             chkbox_select_all.indeterminate = false;
+          }
+
+       // If some of the checkboxes are checked
+       } else {
+          chkbox_select_all.checked = true;
+          if('indeterminate' in chkbox_select_all){
+             chkbox_select_all.indeterminate = true;
+          }
+       }
+    }
+
+
+   $('#invest_tab tbody').on('click', 'input[type="checkbox"]', function(e){
+      var $row = $(this).closest('tr');
+
+      // Get row data
+      var data = table.row($row).data();
+
+      // Get row ID
+      var rowId = data.id;
+
+      // Determine whether row ID is in the list of selected row IDs
+      var index = $.inArray(rowId, rows_selected);
+
+      // If checkbox is checked and row ID is not in list of selected row IDs
+      if(this.checked && index === -1){
+         rows_selected.push(rowId);
+
+      // Otherwise, if checkbox is not checked and row ID is in list of selected row IDs
+      } else if (!this.checked && index !== -1){
+         rows_selected.splice(index, 1);
+      }
+
+      if(this.checked){
+         $row.addClass('selected');
+      } else {
+         $row.removeClass('selected');
+      }
+
+      // Update state of "Select all" control
+      updateDataTableSelectAllCtrl(table);
+
+      // Prevent click event from propagating to parent
+      e.stopPropagation();
+   });
+
+   // Handle click on table cells with checkboxes
+   $('#invest_tab').on('click', 'tbody td, thead th:first-child', function(e){
+      $(this).parent().find('input[type="checkbox"]').trigger('click');
+   });
+
+   // Handle click on "Select all" control
+   $('thead input[name="select_all"]', table.table().container()).on('click', function(e){
+      if(this.checked){
+         $('#invest_tab tbody input[type="checkbox"]:not(:checked)').trigger('click');
+      } else {
+         $('#invest_tab tbody input[type="checkbox"]:checked').trigger('click');
+      }
+
+      // Prevent click event from propagating to parent
+      e.stopPropagation();
+   });
+
+   // Handle table draw event
+   table.on('draw', function(){
+      // Update state of "Select all" control
+      updateDataTableSelectAllCtrl(table);
+   });
+
+//delete checked
+    $(".x_panel").on('click','.btn.del',function(){
+        var checked=[];
+        $.each(rows_selected, function(index, rowId){
+            checked.push(rowId);
+        });
+
+        $.ajax({
+            url: '/f_app/del_transaction',
+            type:'POST',
+            contentType: 'application/json',
+            dataType:'json',
+            data:JSON.stringify({"result":checked}),
+            success: function(resp) {
+                if(resp.status==="ok"){
+                    new PNotify({
+                        title: '删除成功',
+                        text:  '',
+                        type: 'warn',
+                        styling: 'bootstrap3'
+                    });
+                    rows_selected=[];
+                    table.ajax.reload(null,false);
                 }
             }
         });
-
-         //all selected
-        $('.checkall').on('click', function () {
-            if ($(".checkall:checked").length) {
-                $(this).attr('checked', true);
-                $("tbody input").each(function(){
-                    $(this).prop('checked', true);
-                })
-            } else {
-                $(this).attr('checked', false);
-                $("tbody input").each(function(){
-                    $(this).prop('checked', false);
-                })
-            }
-        });
-         // single selected
-        $('tbody').on('click','input',function () {
-            if ($(this).attr('checked')) {
-                $(this).attr('checked', true);
-                if($('#invest_tab tbody').find("input:checked").length==15){
-                    $('.checkall').prop('checked', true);
-                }
-            } else {
-                $(this).attr('checked', false);
-                $('.checkall').prop('checked', false);
-            }
-        });
-
-        //del 
-        $(".x_panel").on('click','.btn.del',function(){
-            var checked=[];
-            $("tbody input:checked").each(function(){
-                checked.push($(this).attr("id"));
-            });
-
-            $.ajax({
-                url: '/f_app/del_transaction',
-                type:'POST',
-                //traditional:true,
-                contentType: 'application/json',
-                dataType:'json',
-                data:JSON.stringify({"result":checked}),
-                success: function(resp) {
-                    if(resp.status==="ok"){
-                        table.ajax.reload();
-                    }
-                }
-            });
-        })
-
+   });
  </script>
 
 {% endblock %}
