@@ -635,6 +635,7 @@ class FUND_NAV_CALC(db.Model):
 
 
 class FUND_TRANSACTION(db.Model):
+
     __tablename__ = "fund_transaction"
     id = db.Column(db.INTEGER,primary_key=True)
     fof_name =  db.Column(db.String(100),nullable=False)
@@ -654,6 +655,8 @@ class FUND_TRANSACTION(db.Model):
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
 
 def query_invest(rank):
     invest = Invest_corp.query.filter_by(review_status=rank).all()

@@ -5,6 +5,7 @@ import logging
 from fof_app.models import db, FUND_TRANSACTION, FUND_ESSENTIAL, FOF_FUND_PCT, FoFModel
 import os
 from sqlalchemy import and_
+from string import Template
 
 logger = logging.getLogger()
 
@@ -51,6 +52,13 @@ class Transaction(object):
         for i, d in df_dict.items():
             fund = FUND_ESSENTIAL.query.filter(and_(FUND_ESSENTIAL.wind_code_s == d['wind_code_s'],
                                                     FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
+            exists = db.session.query(
+                FUND_TRANSACTION.id).filter(and_(FUND_TRANSACTION.wind_code_s == d['wind_code_s'],
+                                                 FUND_TRANSACTION.operating_type == d['operating_type'],
+                                                 FUND_TRANSACTION.request_date == d['request_date'],
+                                                 FUND_TRANSACTION.confirm_date == d['confirm_date'])).scalar()
+            if exists:
+                errors.append("第{}行重复的记录".format(i+1))
             if fund is None:
                 errors.append("请检查第{}行基金要素代码{}".format(i + 1, d['wind_code_s']))
             if d['fof_name'] is None:
@@ -79,7 +87,7 @@ class Transaction(object):
                 if d['operating_type'] in ["赎回", "返费", "现金分红"] and int(d['amount']) < 0:
                     errors.append("请检查第{}行{}份额{}有误".format(i + 1, d['operating_type'], d['amount']))
             else:
-                errors.append("请检查第{}行确 jiner不能为空".format(i + 1))
+                errors.append("金额和份额不能为空")
         return errors
 
     def importDate(self, df_dict):
