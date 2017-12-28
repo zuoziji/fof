@@ -85,7 +85,10 @@ table .desc:hover{
                                 <option>赎回</option> 
                                 <option>返费</option> 
                                 <option>份额强减</option> 
-                                <option>份额分红在投资</option> 
+                                <option>份额强增</option> 
+                                <option>现金分红</option> 
+                                <option>分红再投资</option>
+                                <option>提取业绩报酬</option> 
                             </select>
                         </div>
                     </div>
@@ -105,6 +108,12 @@ table .desc:hover{
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="confirm_date">确认日期</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
                             <input type="date" class="form-control" id="confirm_date" value="" name="confirm_date" data-date-format="YYYY-MM-DD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">确认基准净值</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="confirm_benchmark" value="" name="confirm_benchmark">
                         </div>
                     </div>
                     <div class="form-group">
@@ -139,10 +148,10 @@ table .desc:hover{
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="myModalLabel" data-tag>增加一个交易记录</h4>
+                <h4 class="modal-title" id="addModalLabel" data-tag>增加一个交易记录</h4>
             </div>
             <div class="modal-body">
-                <form id="form" class="form-horizontal form-label-left">
+                <form id="form_add" class="form-horizontal form-label-left">
                     <div class="col-md-11" style="padding-bottom: 20px;">
                     </div> 
 
@@ -184,7 +193,10 @@ table .desc:hover{
                                 <option>赎回</option> 
                                 <option>返费</option> 
                                 <option>份额强减</option> 
-                                <option>份额分红在投资</option> 
+                                <option>份额强增</option> 
+                                <option>现金分红</option> 
+                                <option>分红再投资</option>
+                                <option>提取业绩报酬</option> 
                             </select>
                         </div>
                     </div>
@@ -204,6 +216,12 @@ table .desc:hover{
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="confirm_date">确认日期</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
                             <input type="date" class="form-control" id="confirm_date_add" value="" name="confirm_date" data-date-format="YYYY-MM-DD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">确认基准净值</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="confirm_benchmark_add" value="" name="confirm_benchmark">
                         </div>
                     </div>
                     <div class="form-group">
@@ -501,7 +519,7 @@ table .desc:hover{
                 share:$("#share").val()
             }),
             success: function(resp) {
-                if(resp.status == "ok"){
+                if(resp){
                     table.ajax.reload(null,false);
                 }
             }
@@ -519,7 +537,6 @@ table .desc:hover{
 
     //submit add form
     $("#save_add").on("click",function(){
-        console.log($('#sec_name_s_add').val());
         $.ajax({
             url: '/f_app/add_transaction',
             type:'POST',
@@ -540,17 +557,27 @@ table .desc:hover{
             }),
             success: function(resp) {
                 if(resp.status == "ok"){
-                    console.log(resp);
                     table.ajax.reload(null,false);
+                    $("#form_add")[0].reset();
+                    $(".filter-option.pull-left").html('请选择基金');
                     $("#addModal").modal("hide");
                 }else{
-                    console.log(resp.error)
+                    new PNotify({
+                        title: resp.error,
+                        text:  '',
+                        type: 'error',
+                        styling: 'bootstrap3'
+                    });
                 }
+
             }
         });
-       // $("#addModal").modal("hide");
     })
-
+    $("#close_add").on("click",function(){
+        $("#form_add")[0].reset();
+        $(".filter-option.pull-left").html('请选择基金');
+    })
+    $('#addModal').modal({backdrop: 'static'});
  </script>
 
 {% endblock %}
