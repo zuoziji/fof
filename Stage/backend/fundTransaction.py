@@ -53,15 +53,8 @@ class Transaction(object):
                                                     FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
             if fund is None:
                 errors.append("请检查第{}行基金要素代码{}".format(i + 1, d['wind_code_s']))
-            if d['fof_name'] is not None:
-                fund = FOF_FUND_PCT.query.filter_by(wind_code_s=d['wind_code_s']).first()
-                if fund is not None:
-                    sec_name = db.session.query(FoFModel.sec_name).filter(
-                                    FoFModel.wind_code == fund.wind_code_p).first()
-                    if d['fof_name'] != sec_name:
-                        errors.append("请检查第{}行FOF基金名称{}".format(i + 1, d['fof_name']))
-                else:
-                    errors.append("请检查第{}行FOF基金名称{}".format(i + 1, d['fof_name']))
+            if d['fof_name'] is None:
+                errors.append("请检查第{}行FOF基金名称{}".format(i + 1, d['fof_name']))
             if d['sec_name_s'] is None:
                 errors.append("请检查第{}行FOF基金名称{}".format(i + 1, d['sec_name_s']))
             if d['operating_type'] is not None:
@@ -76,16 +69,14 @@ class Transaction(object):
                 errors.append("请检查第{}行基金净值为空".format(i + 1))
             if d['confirm_date'] is None:
                 errors.append("请检查第{}行确日期不能为空".format(i + 1))
-            if d['amount'] is None:
-                errors.append("请检查第{}行确 fenr不能为空".format(i + 1))
             if d['share'] and d['amount'] is not None:
-                if d['operating_type'] in self.positive_type and d['share'] < 0:
+                if d['operating_type'] in self.positive_type and int(d['share']) < 0:
                     errors.append("请检查第{}行{}份额{}有误".format(i + 1, d['operating_type'], d['share']))
-                if d['operating_type'] in self.negative_type and d['share'] > 0:
+                if d['operating_type'] in self.negative_type and int(d['share']) > 0:
                     errors.append("请检查第{}行{}份额{}有误".format(i + 1, d['operating_type'], d['share']))
-                if d['operating_type'] == "申购" and d['amount'] > 0:
+                if d['operating_type'] == "申购" and int(d['amount']) > 0:
                     errors.append("请检查第{}行{}份额{}有误".format(i + 1, d['operating_type'], d['amount']))
-                if d['operating_type'] in ["赎回", "返费", "现金分红"] and d['amount'] < 0:
+                if d['operating_type'] in ["赎回", "返费", "现金分红"] and int(d['amount']) < 0:
                     errors.append("请检查第{}行{}份额{}有误".format(i + 1, d['operating_type'], d['amount']))
             else:
                 errors.append("请检查第{}行确 jiner不能为空".format(i + 1))

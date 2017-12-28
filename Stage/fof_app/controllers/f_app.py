@@ -2106,8 +2106,8 @@ def add_transaction():
         data = {0: {k: (None if len(v) == 0 else v) for k, v in data.items()}}
         trClass = Transaction()
         error = trClass.checkdfrole(data)
-        if len(error) < 0:
-            tr = FUND_TRANSACTION(**data)
+        if len(error) == 0:
+            tr = FUND_TRANSACTION(**data[0])
             db.session.add(tr)
             db.session.commit()
             return jsonify(status="ok")
