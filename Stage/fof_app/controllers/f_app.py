@@ -5,7 +5,12 @@
 :license: Apache 2.0, see LICENSE for more details.
 
 """
-import datetime, json, logging, math, os, time
+import datetime
+import json
+import logging
+import math
+import os
+import time
 from os import path
 from urllib.parse import quote
 import numpy as np
@@ -34,6 +39,7 @@ from backend.fund_nav_calc import calc_fof_nav
 from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
+from backend.fundTransaction import Transaction
 
 logger = logging.getLogger()
 
@@ -2091,17 +2097,23 @@ def change_transaction(uid):
         return jsonify(status="ok")
 
 
-@f_app_blueprint.route('/add_transaction',methods=['GET','POST'])
+@f_app_blueprint.route('/add_transaction', methods=['GET', 'POST'])
 @login_required
 def add_transaction():
     if request.method == 'POST':
         data = request.json
         print(data)
-        data = {k: (None if len(v) == 0 else v) for k, v in data.items()}
-        tr = FUND_TRANSACTION(**data)
-        db.session.add(tr)
-        db.session.commit()
-        return jsonify(status="ok")
+        data = {0: {k: (None if len(v) == 0 else v) for k, v in data.items()}}
+        trClass = Transaction()
+        error = trClass.checkdfrole(data)
+        if len(error) < 0:
+            tr = FUND_TRANSACTION(**data)
+            db.session.add(tr)
+            db.session.commit()
+            return jsonify(status="ok")
+        else:
+            return jsonify(status="error", error=error)
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

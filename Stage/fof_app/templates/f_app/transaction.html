@@ -147,9 +147,9 @@ table .desc:hover{
                     </div> 
 
                     <div class="form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="accounting_date">基金名称</label>
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="sec_name_s">基金名称</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <select class="selectpicker" Standard title="请选择基金" name="sec_name_s" id="#sec_name_s_add">
+                            <select class="selectpicker" Standard title="请选择基金" name="sec_name_s" id="sec_name_s_add">
                                <optgroup label="请选择基金">
                                </optgroup>
 
@@ -215,7 +215,7 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="amount">金额</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control" id="amount_add" value="" name="amount">
+                            <input type="number" class="form-control" id="amount_add" value="" name="amount">
                         </div>
                     </div>
                     <div class="form-group">
@@ -519,6 +519,7 @@ table .desc:hover{
 
     //submit add form
     $("#save_add").on("click",function(){
+        console.log($('#sec_name_s_add').val());
         $.ajax({
             url: '/f_app/add_transaction',
             type:'POST',
@@ -542,10 +543,12 @@ table .desc:hover{
                     console.log(resp);
                     table.ajax.reload(null,false);
                     $("#addModal").modal("hide");
+                }else{
+                    console.log(resp.error)
                 }
             }
         });
-        $("#addModal").modal("hide");
+       // $("#addModal").modal("hide");
     })
 
  </script>
