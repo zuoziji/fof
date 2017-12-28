@@ -83,9 +83,9 @@ class Transaction(object):
                 if d['operating_type'] in self.negative_type and int(d['share']) > 0:
                     errors.append("请检查第{}行 {} 份额 {} 有误".format(i + 1, d['operating_type'], d['share']))
                 if d['operating_type'] == "申购" and int(d['amount']) > 0:
-                    errors.append("请检查第{}行 {}份额 {} 有误".format(i + 1, d['operating_type'], d['amount']))
+                    errors.append("请检查第{}行 {} 金额 {} 有误".format(i + 1, d['operating_type'], d['amount']))
                 if d['operating_type'] in ["赎回", "返费", "现金分红"] and int(d['amount']) < 0:
-                    errors.append("请检查第{}行 {} 份额 {} 有误".format(i + 1, d['operating_type'], d['amount']))
+                    errors.append("请检查第{}行 {} 金额 {} 有误".format(i + 1, d['operating_type'], d['amount']))
             else:
                 errors.append("金额和份额不能为空")
         return errors
