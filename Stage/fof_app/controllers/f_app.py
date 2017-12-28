@@ -2102,7 +2102,6 @@ def change_transaction(uid):
 def add_transaction():
     if request.method == 'POST':
         data = request.json
-        print(data)
         data = {0: {k: (None if len(v) == 0 else v) for k, v in data.items()}}
         trClass = Transaction()
         error = trClass.checkdfrole(data)

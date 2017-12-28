@@ -60,11 +60,11 @@ class Transaction(object):
             if exists:
                 errors.append("第{}行重复的记录".format(i+1))
             if fund is None:
-                errors.append("请检查第{}行基金要素代码{}".format(i + 1, d['wind_code_s']))
+                errors.append("请检查第{}行基金要素代码不能为空".format(i + 1))
             if d['fof_name'] is None:
-                errors.append("请检查第{}行FOF基金名称{}".format(i + 1, d['fof_name']))
+                errors.append("请检查第{}行FOF基金名称不能为空".format(i + 1))
             if d['sec_name_s'] is None:
-                errors.append("请检查第{}行FOF基金名称{}".format(i + 1, d['sec_name_s']))
+                errors.append("请检查第{}行FOF基金名称不能为空".format(i + 1))
             if d['operating_type'] is not None:
                 if d['operating_type'] not in self.operating_type:
                     errors.append("请检查第{}行操作类型{}".format(i + 1, d['operating_type']))
