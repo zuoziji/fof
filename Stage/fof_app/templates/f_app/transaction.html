@@ -522,7 +522,7 @@ table .desc:hover{
     //submit add form
     $("#save_add").on("click",function(){
         $.ajax({
-            url: '/f_app/add_transaction/',
+            url: '/f_app/add_transaction',
             type:'POST',
             contentType: 'application/json',
             dataType:'json',
