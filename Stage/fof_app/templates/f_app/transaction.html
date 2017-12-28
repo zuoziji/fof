@@ -501,7 +501,7 @@ table .desc:hover{
                 share:$("#share").val()
             }),
             success: function(resp) {
-                if(resp){
+                if(resp.status == "ok"){
                     table.ajax.reload(null,false);
                 }
             }
@@ -538,8 +538,10 @@ table .desc:hover{
                 wind_code_s:$("#wind_code_s_add").val()
             }),
             success: function(resp) {
-                if(resp){
+                if(resp.status == "ok"){
+                    console.log(resp);
                     table.ajax.reload(null,false);
+                    $("#addModal").modal("hide");
                 }
             }
         });
