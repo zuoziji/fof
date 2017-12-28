@@ -62,19 +62,19 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="wind_code_s">批次代码</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s" disabled="disabled">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s" readonly="readonly">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fof_name">FOF基金名称</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name" disabled="disabled">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name" readonly="readonly">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="sec_name_s">基金名称</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="sec_name_s" id="sec_name_s" disabled="disabled">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="sec_name_s" id="sec_name_s" readonly="readonly">
                         </div>
                     </div>
                     <div class="form-group">
@@ -139,7 +139,7 @@ table .desc:hover{
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="myModalLabel" data-tag>增加一个基金交易记录</h4>
+                <h4 class="modal-title" id="myModalLabel" data-tag>增加一个交易记录</h4>
             </div>
             <div class="modal-body">
                 <form id="form" class="form-horizontal form-label-left">
@@ -167,13 +167,13 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="wind_code_s">批次代码</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s_add" disabled="disabled">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s_add" readonly="readonly">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fof_name">FOF基金名称</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name_add" disabled="disabled">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name_add" readonly="readonly">
                         </div>
                     </div>     
                     <div class="form-group">
@@ -316,7 +316,7 @@ table .desc:hover{
         "t" +
         "<'row'<'col-xs-6'i><'col-xs-6'p>>",
         "initComplete": function () {
-            $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addModal"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加基金要素</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
+            $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addModal"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
         }
     });
 
@@ -413,7 +413,7 @@ table .desc:hover{
         var checked=[];
         if(rows_selected.length==0){     
             new PNotify({
-                title: '请至少选择一个批次',
+                title: '请至少选择一个交易记录',
                 text:  '',
                 type: 'warn',
                 styling: 'bootstrap3'
@@ -451,7 +451,7 @@ table .desc:hover{
         var checked=[];
         if(rows_selected.length!==1){     
             new PNotify({
-                title: '请选择一个批次',
+                title: '请选择一个交易记录',
                 text:  '',
                 type: 'warn',
                 styling: 'bootstrap3'
@@ -512,7 +512,6 @@ table .desc:hover{
     $('.selectpicker').on('change',function (e) {
         var selectParent= $(this).find("option:selected").parents().attr("label");
         var selectItem= $(this).find("option:selected").attr("code");
-        var selectItemText= $(this).find("option:selected").text();
         $("#wind_code_s_add").val(selectItem);
         $("#fof_name_add").val(selectParent);
     })
@@ -544,7 +543,7 @@ table .desc:hover{
                 }
             }
         });
-        $("#myModal").modal("hide");
+        $("#addModal").modal("hide");
     })
 
  </script>
