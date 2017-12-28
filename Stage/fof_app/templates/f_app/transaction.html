@@ -362,14 +362,14 @@ table .desc:hover{
             contentType: 'application/json',
             success: function(resp) {
                 if(resp){
-                    $("#accounting_date").val(moment(resp.accounting_date).format('YYYY-MM-DD'));
+                    $("#accounting_date").val(moment(resp.accounting_date,'ddd, DD MMM YYYY HH:mm:ss ZZ').format('YYYY-MM-DD'));
                     $("#amount").val(resp.amount);
                     $("#confirm_benchmark").val(resp.confirm_benchmark);
-                    $("#confirm_date").val(moment(resp.confirm_date).format('YYYY-MM-DD'));
+                    $("#confirm_date").val(moment(resp.confirm_date,'ddd, DD MMM YYYY HH:mm:ss ZZ').format('YYYY-MM-DD'));
                     $("#description").val(resp.description);
                     $("#fof_name").val(resp.fof_name);
                     $("#operating_type").val(resp.operating_type);
-                    $("#request_date").val(moment(resp.request_date).format('YYYY-MM-DD'));
+                    $("#request_date").val(moment(resp.request_date,'ddd, DD MMM YYYY HH:mm:ss ZZ').format('YYYY-MM-DD'));
                     $("#sec_name_s").val(resp.sec_name_s);
                     $("#share").val(resp.share);
                     $("#wind_code_s").val(resp.wind_code_s);
