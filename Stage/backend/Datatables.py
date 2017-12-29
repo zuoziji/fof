@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
 
-from config_fh import get_db_engine
-connection = get_db_engine().raw_connection()
-cursor = connection.cursor()
+from config_fh import get_db_session
 
+
+import logging
+
+logger = logging.getLogger()
 
 class DataTablesServer(object):
     def __init__(self, request, columns, index, table):
+
+        with get_db_session() as session:
+            self.dbh = session
         self.columns = columns
         self.index = index
         self.table = table
         self.request_values = request.values
-        self.dbh = cursor
         self.resultData = None
         self.cadinalityFiltered = 0
         self.cadinality = 0
         self.run_queries()
+
 
     def output_result(self):
         output = {}
@@ -29,28 +34,28 @@ class DataTablesServer(object):
                 aaData_row[self.columns[i]] = row[i]
             aaData_rows.append(aaData_row)
         output['aaData'] = aaData_rows
-
         return output
 
     def run_queries(self):
         dataCursor = self.dbh
-        dataCursor.execute("""
+        result = dataCursor.execute("""
             SELECT SQL_CALC_FOUND_ROWS %(columns)s
             FROM   %(table)s %(where)s %(order)s %(limit)s""" % dict(
             columns=', '.join(self.columns), table=self.table, where=self.filtering(), order=self.ordering(),
             limit=self.paging()
         ))
-        self.resultData = dataCursor.fetchall()
-
+        logger.info("query table  --------> {}".format(self.table))
+        self.resultData = result.fetchall()
+        logger.info("find records size--------> {}".format(len(self.resultData)))
         cadinalityFilteredCursor = self.dbh
-        cadinalityFilteredCursor.execute("""
+        candinaResult = cadinalityFilteredCursor.execute("""
             SELECT FOUND_ROWS()
         """)
-        self.cadinalityFiltered = cadinalityFilteredCursor.fetchone()[0]
+        self.cadinalityFiltered = candinaResult.fetchone()[0]
 
         cadinalityCursor = self.dbh
-        cadinalityCursor.execute("""SELECT COUNT(%s) FROM %s""" % (self.index, self.table))
-        self.cardinality = cadinalityCursor.fetchone()[0]
+        cadinaCurso = cadinalityCursor.execute("""SELECT COUNT(%s) FROM %s""" % (self.index, self.table))
+        self.cardinality = cadinaCurso.fetchone()[0]
 
     def filtering(self):
         if (self.request_values.has_key('sSearch')) and (self.request_values['sSearch'] != ""):
@@ -82,3 +87,4 @@ class DataTablesServer(object):
         if (self.request_values['iDisplayStart'] != "") and (self.request_values['iDisplayLength'] != -1):
             limit = "LIMIT %s, %s" % (self.request_values['iDisplayStart'], self.request_values['iDisplayLength'])
         return limit
+

@@ -24,6 +24,8 @@ class Config():
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_ADMIN = 'kuangmsn@163.com'
     SOCKETIO_MESSAGE_QUEUE = 'redis://localhost:6379/6'
+    CELERY_ENABLE_UTC = True
+    CELERY_TIMEZONE = "Asia/Shanghai"
     C_FORCE_ROOT = True
     DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -91,6 +93,16 @@ class DevConfig(Config):
 
 
 
+
+class TestingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'mysql://mg:Abcd1234@10.0.3.66/fof_ams_dev'
+    CACHE_DB = '127.0.0.1'
+    CSRF_ENABLED = False
+    WTF_CSRF_ENABLED = False
+    TESTING = True
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
 
 
 

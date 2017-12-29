@@ -1,0 +1,588 @@
+{% extends "main.html" %}
+{% block css %}
+    <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
+<style>
+table.dataTable tbody tr.selected {
+    background-color: #f5f5f5;
+}
+table .desc:hover{
+    background: rgba(0,0,0,0.8) !important;
+    color:#fff;
+    position: absolute;
+    white-space: pre-line!important;
+    padding: 5px!important;
+    border-radius: 2px;
+    z-index: 9;
+}
+</style>
+{% endblock %}
+{% block manager %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-12 col-xs-12">
+    <div class="x_panel">
+      <div class="x_title">
+        <h2>基金交易管理</h2>
+        <div class="clearfix"></div>
+      </div>
+      <div class="x_content">
+       <table class="table table-bordered center-all display" id="invest_tab" width="100%" >
+        <thead>
+          <tr>
+            <th><input type="checkbox" name="select_all"></th>
+            <th>批次代码</th>
+            <th>FOF基金名称</th>
+            <th>基金名称</th>
+            <th>操作类型</th>
+            <th>资金交收日期</th>
+            <th>申请日期</th>
+            <th>确认日期</th>
+            <th>确认基准净值</th> 
+            <th>份额</th>
+            <th>金额</th>
+            <th>事项说明</th>
+          </tr>
+        </thead>
+       </table>
+      </div>
+   </div>
+  </div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel" data-tag>编辑</h4>
+            </div>
+            <div class="modal-body"> 
+                <form id="form" class="form-horizontal form-label-left">
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="wind_code_s">批次代码</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fof_name">FOF基金名称</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="sec_name_s">基金名称</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="sec_name_s" id="sec_name_s" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3 control-label" for="operating_type">操作类型</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <select class="form-control" name="operating_type" id="operating_type">
+                                <option>申购</option> 
+                                <option>赎回</option> 
+                                <option>返费</option> 
+                                <option>份额强减</option> 
+                                <option>份额强增</option> 
+                                <option>现金分红</option> 
+                                <option>分红再投资</option>
+                                <option>提取业绩报酬</option> 
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="accounting_date">资金交收日期</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="date" class="form-control col-md-7 col-xs-12" id="accounting_date" value="" name="accounting_date" data-date-format="YYYY-MM-DD"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="request_date">申请日期</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="date" class="form-control" id="request_date" value="" name="request_date" data-date-format="YYYY-MM-DD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="confirm_date">确认日期</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="date" class="form-control" id="confirm_date" value="" name="confirm_date" data-date-format="YYYY-MM-DD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">确认基准净值</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="confirm_benchmark" value="" name="confirm_benchmark">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">份额</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="share" value="" name="share">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="amount">金额</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="amount" value="" name="amount">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="description">事项说明</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description" value="" name="description"></textarea>
+                        </div>
+                    </div>
+                </form>           
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="close">关闭</button>
+                <button type="button" class="btn btn-primary" id="save">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="addModalLabel" data-tag>增加一个交易记录</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form_add" class="form-horizontal form-label-left">
+                    <div class="col-md-11" style="padding-bottom: 20px;">
+                    </div> 
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="sec_name_s">基金名称</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <select class="selectpicker" Standard title="请选择基金" name="sec_name_s" id="sec_name_s_add">
+                               <optgroup label="请选择基金">
+                               </optgroup>
+
+                                {% for i in fof_list %}
+                                    <optgroup label="{{ i.primary }}">
+                                        {% for x in i.child %}
+                                            <option value="{{ x.name }}" code={{ x.code }}>{{ x.name }}</option>
+                                          {% endfor %}
+                                  </optgroup>
+                                    {% endfor %}
+                            </select>
+                        </div>
+                    </div>     
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="wind_code_s">批次代码</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="wind_code_s" id="wind_code_s_add" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fof_name">FOF基金名称</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control col-md-7 col-xs-12" value="" name="fof_name" id="fof_name_add" readonly="readonly">
+                        </div>
+                    </div>     
+                    <div class="form-group">
+                        <label class="col-md-3 control-label" for="operating_type">操作类型</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <select class="form-control" name="operating_type" id="operating_type_add">
+                                <option>申购</option> 
+                                <option>赎回</option> 
+                                <option>返费</option> 
+                                <option>份额强减</option> 
+                                <option>份额强增</option> 
+                                <option>现金分红</option> 
+                                <option>分红再投资</option>
+                                <option>提取业绩报酬</option> 
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="accounting_date">资金交收日期</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="date" class="form-control col-md-7 col-xs-12" id="accounting_date_add" value="" name="accounting_date" data-date-format="YYYY-MM-DD"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="request_date">申请日期</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="date" class="form-control" id="request_date_add" value="" name="request_date" data-date-format="YYYY-MM-DD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="confirm_date">确认日期</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="date" class="form-control" id="confirm_date_add" value="" name="confirm_date" data-date-format="YYYY-MM-DD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">确认基准净值</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="confirm_benchmark_add" value="" name="confirm_benchmark">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">份额</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" id="share_add" value="" name="share">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="amount">金额</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <input type="number" class="form-control" id="amount_add" value="" name="amount">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="description">事项说明</label>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description_add" value="" name="description"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="close_add">关闭</button>
+                <button type="button" class="btn btn-primary" id="save_add">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block script %}
+<script src="../../static/vendors/moment/moment.js"></script>
+<script src="../../static/vendors/bootstrap-select/js/bootstrap-select.js"></script>
+<script src="../../static/vendors/bootstrap-select/js/i18n/defaults-zh_CN.js"></script>
+<script>
+
+    var rows_selected = [];
+    var table=$('#invest_tab').DataTable({
+        "info":false,
+        "paging": true,
+        "displayLength": 20,
+        "language": {
+            "lengthMenu": "每页 _MENU_ 条记录",
+            "zeroRecords": "没有找到记录",
+            "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+            "infoEmpty": "无记录",
+            "search": "搜索：",
+            "infoFiltered": "(从 _MAX_ 条记录过滤)",
+            "processing":"正在处理;....",
+            "paginate": {
+                "previous": "上一页",
+                "next": "下一页"
+            }
+        },
+        serverSide: true,
+        processing: true, 
+        "sAjaxSource": "{{ url_for('f_app.get_transaction') }}",
+        'columnDefs': [{
+             'targets': 0,
+             'searchable': false,
+             'orderable': false,
+             'render': function (data, type, full, meta){
+                 return '<input type="checkbox">';
+             },
+            'checkboxes': {
+               'selectRow': true
+            }
+        }],
+        'rowCallback': function(row, data, dataIndex){
+             // Get row ID
+             var rowId = data.id;
+             // If row ID is in the list of selected row IDs
+             if($.inArray(rowId, rows_selected) !== -1){
+                $(row).find('input[type="checkbox"]').prop('checked', true);
+                $(row).addClass('selected');
+             }
+        },
+        'select': {
+            'style': 'multi'
+        },
+        order:[[1,"desc"]],
+        columns: [
+          {data:'id',
+            'render': function (data, type, full, meta){
+                 return '<input type="checkbox" value="'+data+'">';
+             }},
+          {data:'wind_code_s' },
+          {data:'fof_name',width:'200px'},
+          {data:'sec_name_s'},
+          {data:'operating_type'},
+          {data:'accounting_date'},
+          {data:'request_date'},
+          {data:"confirm_date"},
+          {data:"confirm_benchmark"},
+          {data:"share"},
+          {data:"amount"},
+          {data:null,
+            render:function(obj){
+                if(obj.description){
+                    return `<div class="desc" style="padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;">${obj.description||''}</div>`;
+                }else{
+                    return '';
+                }
+            }
+          }
+      ],
+        "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
+        "t" +
+        "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+        "initComplete": function () {
+            $("#mytool").append(`<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addModal"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
+        }
+    });
+
+
+    function updateDataTableSelectAllCtrl(table){
+       var $table             = table.table().node();
+       var $chkbox_all        = $('tbody input[type="checkbox"]', $table);
+       var $chkbox_checked    = $('tbody input[type="checkbox"]:checked', $table);
+       var chkbox_select_all  = $('thead input[name="select_all"]', $table).get(0);
+
+       // If none of the checkboxes are checked
+       if($chkbox_checked.length === 0){
+          chkbox_select_all.checked = false;
+          if('indeterminate' in chkbox_select_all){
+             chkbox_select_all.indeterminate = false;
+          }
+
+       // If all of the checkboxes are checked
+       } else if ($chkbox_checked.length === $chkbox_all.length){
+          chkbox_select_all.checked = true;
+          if('indeterminate' in chkbox_select_all){
+             chkbox_select_all.indeterminate = false;
+          }
+
+       // If some of the checkboxes are checked
+       } else {
+          chkbox_select_all.checked = true;
+          if('indeterminate' in chkbox_select_all){
+             chkbox_select_all.indeterminate = true;
+          }
+       }
+    }
+
+
+   $('#invest_tab tbody').on('click', 'input[type="checkbox"]', function(e){
+      var $row = $(this).closest('tr');
+
+      // Get row data
+      var data = table.row($row).data();
+
+      // Get row ID
+      var rowId = data.id;
+
+      // Determine whether row ID is in the list of selected row IDs
+      var index = $.inArray(rowId, rows_selected);
+
+      // If checkbox is checked and row ID is not in list of selected row IDs
+      if(this.checked && index === -1){
+         rows_selected.push(rowId);
+
+      // Otherwise, if checkbox is not checked and row ID is in list of selected row IDs
+      } else if (!this.checked && index !== -1){
+         rows_selected.splice(index, 1);
+      }
+
+      if(this.checked){
+         $row.addClass('selected');
+      } else {
+         $row.removeClass('selected');
+      }
+
+      // Update state of "Select all" control
+      updateDataTableSelectAllCtrl(table);
+
+      // Prevent click event from propagating to parent
+      e.stopPropagation();
+   });
+
+   // Handle click on table cells with checkboxes
+   $('#invest_tab').on('click', 'tbody td, thead th:first-child', function(e){
+      $(this).parent().find('input[type="checkbox"]').trigger('click');
+   });
+
+   // Handle click on "Select all" control
+   $('thead input[name="select_all"]', table.table().container()).on('click', function(e){
+      if(this.checked){
+         $('#invest_tab tbody input[type="checkbox"]:not(:checked)').trigger('click');
+      } else {
+         $('#invest_tab tbody input[type="checkbox"]:checked').trigger('click');
+      }
+
+      // Prevent click event from propagating to parent
+      e.stopPropagation();
+   });
+
+   // Handle table draw event
+   table.on('draw', function(){
+      // Update state of "Select all" control
+      updateDataTableSelectAllCtrl(table);
+   });
+
+//delete checked
+    $(".x_panel").on('click','.btn.del',function(){
+        var checked=[];
+        if(rows_selected.length==0){     
+            new PNotify({
+                title: '请至少选择一个交易记录',
+                text:  '',
+                type: 'warn',
+                styling: 'bootstrap3'
+            });
+            return;
+        }
+        $.each(rows_selected, function(index, rowId){
+            checked.push(rowId);
+        });
+
+        $.ajax({
+            url: '/f_app/del_transaction',
+            type:'POST',
+            contentType: 'application/json',
+            dataType:'json',
+            data:JSON.stringify({"result":checked}),
+            success: function(resp) {
+                if(resp.status==="ok"){
+                    new PNotify({
+                        title: '删除成功',
+                        text:  '',
+                        type: 'warn',
+                        styling: 'bootstrap3'
+                    });
+                    rows_selected=[];
+                    table.ajax.reload(null,false);
+                }
+            }
+        });
+   });
+
+    var id;
+        //edit 
+    $(".x_panel").on('click','.edit',function(){
+        var checked=[];
+        if(rows_selected.length!==1){     
+            new PNotify({
+                title: '请选择一个交易记录',
+                text:  '',
+                type: 'warn',
+                styling: 'bootstrap3'
+            });
+            return;
+        }
+        $.ajax({
+            url: '/f_app/change_transaction/'+rows_selected[0],
+            type:'GET',
+            contentType: 'application/json',
+            success: function(resp) {
+                if(resp){
+                    $("#accounting_date").val(moment(resp.accounting_date,'ddd, DD MMM YYYY HH:mm:ss ZZ').format('YYYY-MM-DD'));
+                    $("#amount").val(resp.amount);
+                    $("#confirm_benchmark").val(resp.confirm_benchmark);
+                    $("#confirm_date").val(moment(resp.confirm_date,'ddd, DD MMM YYYY HH:mm:ss ZZ').format('YYYY-MM-DD'));
+                    $("#description").val(resp.description);
+                    $("#fof_name").val(resp.fof_name);
+                    $("#operating_type").val(resp.operating_type);
+                    $("#request_date").val(moment(resp.request_date,'ddd, DD MMM YYYY HH:mm:ss ZZ').format('YYYY-MM-DD'));
+                    $("#sec_name_s").val(resp.sec_name_s);
+                    $("#share").val(resp.share);
+                    $("#wind_code_s").val(resp.wind_code_s);
+                    $("#myModal").modal("show");
+                    $("form").attr("action",$("form").attr("action")+resp.id);
+                    id=resp.id;
+                }
+            }
+        });
+
+    })
+    //submit edit form
+    $("#save").on("click",function(){
+        $.ajax({
+            url: '/f_app/change_transaction/'+id,
+            type:'POST',
+            contentType: 'application/json',
+            dataType:'json',
+            data:JSON.stringify({
+                accounting_date:$("#accounting_date").val(),
+                amount:$("#amount").val(),
+                confirm_benchmark:$("#confirm_benchmark").val(),
+                confirm_date:$("#confirm_date").val(),
+                description:$("#description").val(),
+                operating_type:$("#operating_type").val(),
+                request_date:$("#request_date").val(),
+                share:$("#share").val()
+            }),
+            success: function(resp) {
+                if(resp){
+                    table.ajax.reload(null,false);
+                }
+            }
+        });
+        $("#myModal").modal("hide");
+    })
+
+    $('.selectpicker').on('change',function (e) {
+        var selectParent= $(this).find("option:selected").parents().attr("label");
+        var selectItem= $(this).find("option:selected").attr("code");
+        $("#wind_code_s_add").val(selectItem);
+        $("#fof_name_add").val(selectParent);
+    })
+
+
+    //submit add form
+    $("#save_add").on("click",function(){
+        $.ajax({
+            url: '/f_app/add_transaction',
+            type:'POST',
+            contentType: 'application/json',
+            dataType:'json',
+            data:JSON.stringify({                
+                accounting_date:$("#accounting_date_add").val(),
+                amount:$("#amount_add").val(),
+                confirm_benchmark:$("#confirm_benchmark_add").val(),
+                confirm_date:$("#confirm_date_add").val(),
+                description:$("#description_add").val(),
+                fof_name:$("#fof_name_add").val(),
+                operating_type:$("#operating_type_add").val(),
+                request_date:$("#request_date_add").val(),
+                sec_name_s:$("#sec_name_s_add").val(),
+                share:$("#share_add").val(),
+                wind_code_s:$("#wind_code_s_add").val()
+            }),
+            success: function(resp) {
+                if(resp.status == "ok"){
+                    table.ajax.reload(null,false);
+                    $("#form_add")[0].reset();
+                    $(".filter-option.pull-left").html('请选择基金');
+                    $("#addModal").modal("hide");
+                }else{
+                    var text='';
+                    $(resp.error).each(function(index,val){
+                        text+=`<p>${val}</p>`;
+                    })
+                    new PNotify({
+                        title: '',
+                        text:  '<div style="padding-left:20px;">'+text+'</div>',
+                        type: 'error',
+                        styling: 'bootstrap3'
+                    });
+                }
+
+            }
+        });
+    })
+    $("#close_add").on("click",function(){
+        $("#form_add")[0].reset();
+        $(".filter-option.pull-left").html('请选择基金');
+    })
+    $('#addModal').modal({backdrop: 'static', keyboard: true,show: false});
+ </script>
+
+{% endblock %}
+

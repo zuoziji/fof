@@ -2,22 +2,6 @@
 {% block css %}
     <link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">
     <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
-    <style>
-        .bootstrap-select{
-            width: 500px!important;
-        }
-        #mytool.col-xs-4{
-            padding-top: 5px;
-        }
-        .dropdown-header {
-            color: #5A738E;
-            padding: 5px 20px;
-            font-weight: 700;
-        }
-        .dropdown-menu li a.opt {
-            padding-left: 4em!important;
-        }
-    </style>
 {% endblock %}
 {% block manager %}
 {% endblock %}
@@ -30,7 +14,7 @@
                 <h2>净值管理&nbsp;&nbsp;<span style="font-size: 16px;color:#8698aa;"></span></h2>
                 <div class="clearfix"></div>
             </div>
-            <div class="col-md-11" style="padding-bottom: 20px;">
+            <div class="col-md-4" style="padding-bottom: 20px;">
                 <select class="selectpicker" Standard title="请选择基金">
                    <optgroup label="请选择基金">
                    </optgroup>
@@ -45,7 +29,7 @@
                         {% endfor %}
                 </select>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-1 col-md-offset-7">
                 <a class="btn btn-primary " onclick="history.go(-1)">返回</a>
             </div>
             <table id="accTable" class="table table-striped center-all ">

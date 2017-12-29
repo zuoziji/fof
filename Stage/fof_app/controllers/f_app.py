@@ -5,12 +5,18 @@
 :license: Apache 2.0, see LICENSE for more details.
 
 """
-import datetime, json, logging, math, os, time
+import datetime
+import json
+import logging
+import math
+import os
+import time
 from os import path
 from urllib.parse import quote
 import numpy as np
+from builtins import len
 from flask import render_template, Blueprint, redirect, url_for, abort, request, current_app, \
-    jsonify, send_file, make_response, session,flash
+    jsonify, send_file, make_response, session, flash
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from pandas import DataFrame
@@ -19,11 +25,11 @@ from analysis.portfolio_optim_fund import calc_portfolio_optim_fund as c4
 from analysis.portfolio_optim_strategy import calc_portfolio_optim_fund
 from backend import upload_file, data_handler, fund_nav_import_csv
 from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, \
-    get_stress_data, get_stg,child_charts,get_core_info,calc_periods
+    get_stress_data, get_stg, child_charts, get_core_info, calc_periods
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
-    Invest_corp, query_invest, Invest_corp_file,FUND_NAV_CALC,Fund_Core_Info
+    Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION
 from fof_app.tasks import run_scheme_testing
 from periodic_task.build_strategy_index import get_strategy_index_quantile
 from fof_app.extensions import permission, cache
@@ -32,8 +38,8 @@ from backend.Datatables import DataTablesServer
 from backend.fund_nav_calc import calc_fof_nav
 from config_fh import get_db_session
 from backend.market_report import gen_report
-from backend.fund_nav_import_csv import  check_fund_nav_multi,import_fund_nav_multi
-
+from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
+from backend.fundTransaction import Transaction
 
 logger = logging.getLogger()
 
@@ -124,7 +130,7 @@ def details(wind_code: str) -> object:
             fund_file = FundFile.query.filter(and_(FundFile.type_name == i, FundFile.wind_code == wind_code)).all()
             file_json.extend(fund_file)
         file_json = [{"date": i.upload_datetime.strftime("%Y-%m-%d %H:%M:%S"), "type": i.type_name, "name": i.show_name,
-                      "action":i.id} for i in file_json]
+                      "action": i.id} for i in file_json]
     else:
         logger.info("{}暂时没有找到相关文件".format(wind_code))
         file_json = None
@@ -143,7 +149,7 @@ def details(wind_code: str) -> object:
             else:
                 primary_fund = i['primary']
                 handler_fund.append(primary_fund.wind_code)
-        format_float = lambda v: "%.3f" %v if isinstance(v,float) else v
+        format_float = lambda v: "%.3f" % v if isinstance(v, float) else v
         latest_nav = {k: format_float(v) for i in last_dict.values() for k, v in i.items() if k in handler_fund}
         result = [{"name": i, "data": np.array(pct_df[i]).tolist()} for i in pct_df.columns]
         result = [i if i['name'] == '000300.SH' else {'name': code_get_name(i['name']), 'data': i['data']} for i in
@@ -182,23 +188,23 @@ def details(wind_code: str) -> object:
     nav_df, nav_date_fund_scale_df = data_handler.get_fof_fund_pct_each_nav_date(wind_code)
     nav_obj = {} if nav_df is None else nav_df.to_dict()
     scale_obj = {} if nav_date_fund_scale_df is None else nav_date_fund_scale_df.to_dict()
-    year_periods,risk,drawback = calc_periods(wind_code)
+    year_periods, risk, drawback = calc_periods(wind_code)
     return render_template('details.html', fof=fof, child=child, stg=stg, fund_file=file_json,
                            time_line=time_line, result=result, data_name=data_name, fund_rr=rr_chunk
                            , date_latest=date_latest, acc=acc, fof_list=fof_list,
                            stg_charts=stg_charts,
                            fhs_obj=fhs_obj, copula_obj=copula_obj, multi_obj=multi_obj,
-                           capital_data=capital_data,core_info=core_info,nav_obj=nav_obj,
-                           scale_obj=scale_obj,year_periods=year_periods,risk=risk,drawback=drawback)
-                           
+                           capital_data=capital_data, core_info=core_info, nav_obj=nav_obj,
+                           scale_obj=scale_obj, year_periods=year_periods, risk=risk, drawback=drawback)
 
-@f_app_blueprint.route('/get_child_charts',methods=['POST','GETS'])
+
+@f_app_blueprint.route('/get_child_charts', methods=['POST', 'GETS'])
 def get_child_charts():
     if request.method == 'POST':
         wind_code = request.json['wind_code']
         display_type = request.json['disPlayType']
-        result = child_charts(wind_code,display_type)
-        return jsonify(status='ok',data=result)
+        result = child_charts(wind_code, display_type)
+        return jsonify(status='ok', data=result)
 
 
 @f_app_blueprint.route('/download_main_charts')
@@ -210,7 +216,7 @@ def download_main_charts():
     ret_dic = data_handler.get_fof_nav_between(wind_code, full_year.strftime("%Y-%m-%d"),
                                                datetime.date.today().strftime('%Y-%m-%d'))
     df = ret_dic['fund_df']
-    file_name = wind_code+"净值数据"+".csv"
+    file_name = wind_code + "净值数据" + ".csv"
     df.to_csv()
     corp_path = current_app.config['CORP_FOLDER']
     corp_file_path = path.join(corp_path, file_name)
@@ -224,6 +230,8 @@ def download_main_charts():
         )
     os.remove(corp_file_path)
     return response
+
+
 @f_app_blueprint.route('/edit_summary/<string:wind_code>', methods=['POST', 'GET'])
 @login_required
 @permission
@@ -238,17 +246,17 @@ def edit_summary(wind_code: str) -> object:
     if request.method == 'GET':
         fof = check_code_order(wind_code)
         fof_list = cache.get(str(current_user.id))
-        return render_template('edit_summary.html',fof_list=fof_list,fof=fof.to_json())
+        return render_template('edit_summary.html', fof_list=fof_list, fof=fof.to_json())
     elif request.method == 'POST':
         data = request.form.to_dict()
         fund = FoFModel.query.filter_by(wind_code=data['wind_code']).first()
-        for k,v in data.items():
+        for k, v in data.items():
             if len(v) == 0:
                 v = None
-            setattr(fund,k,v)
+            setattr(fund, k, v)
         db.session.commit()
-        flash(category="success",message="修改成功")
-        return redirect(url_for("f_app.edit_summary",wind_code=wind_code))
+        flash(category="success", message="修改成功")
+        return redirect(url_for("f_app.edit_summary", wind_code=wind_code))
 
 
 @f_app_blueprint.route('/add_child/<string:wind_code>', methods=['POST', 'GET'])
@@ -298,7 +306,7 @@ def add_child(wind_code: str) -> object:
                                  invest_scale=i[1])
             db.session.add(child)
             db.session.commit()
-            logger.info("wind_code_p {} wind_code_s {} invest_scale {}".format(wind_code,i[0],i[1]))
+            logger.info("wind_code_p {} wind_code_s {} invest_scale {}".format(wind_code, i[0], i[1]))
         logger.info("用户{}更新持仓记录成功".format(current_user.username))
         fof_list = get_all_fof()
         logger.info("更新缓存用户{}可访问基金列表".format(current_user.username))
@@ -340,14 +348,15 @@ def get_fof_mapping() -> object:
     """
     q = request.args.get('q')
     logger.info("关键字-----{}".format(q))
-    fof_mapping  = FUND_ESSENTIAL.query.whoosh_search(q, like=True).all()
+    fof_mapping = FUND_ESSENTIAL.query.whoosh_search(q, like=True).all()
     fof_model = FoFModel.query.whoosh_search(q, like=True).all()
-    if len(fof_mapping) ==  0:
+    if len(fof_mapping) == 0:
         logger.warning("没有查询到关键字{}".format(q))
         return jsonify(status='error')
     else:
 
-        data = [{"wind_code": i.wind_code_s, "sec_name": i.sec_name_s,"index":index} for index,i in enumerate(fof_mapping)]
+        data = [{"wind_code": i.wind_code_s, "sec_name": i.sec_name_s, "index": index} for index, i in
+                enumerate(fof_mapping)]
         # else:
         #     mapping_data = []
         # if len(fof_model) >  0:
@@ -355,7 +364,7 @@ def get_fof_mapping() -> object:
         # else:
         #     fund_data = []
         # data = [{"wind_code": i['wind_code'], "id": index, "sec_name": i['sec_name']} for index, i in enumerate(fund_data + mapping_data)]
-        return jsonify(status='ok',items=data)
+        return jsonify(status='ok', items=data)
 
 
 @f_app_blueprint.route('/get_fof')
@@ -507,7 +516,8 @@ def upload(wind_code: str) -> object:
         if file and allowed_file(file.filename):
             result = upload_file.uploadfile(name=old_name, type=mime_type, size='*')
             content = file.read()
-            fof_file = FundFile(wind_code=wind_code,show_name=old_name,type_name=file_type,upload_datetime=datetime.datetime.now(),file_content=content)
+            fof_file = FundFile(wind_code=wind_code, show_name=old_name, type_name=file_type,
+                                upload_datetime=datetime.datetime.now(), file_content=content)
             db.session.add(fof_file)
             db.session.commit()
             return json.dumps({"files": [result.get_file()]})
@@ -519,8 +529,6 @@ def upload(wind_code: str) -> object:
             file_saved = upload_file.uploadfile(name=f, size=size)
             file_display.append(file_saved.get_file())
         return json.dumps({"files": file_display})
-
-
 
 
 @f_app_blueprint.route('/read_file/')
@@ -538,8 +546,8 @@ def download_file():
     fund_file = FundFile.query.get(fid)
     file_name = fund_file.show_name
     fund_path = current_app.config['UPLOADS']
-    fund_file_path = path.join(fund_path,file_name)
-    with open(fund_file_path,'wb') as f:
+    fund_file_path = path.join(fund_path, file_name)
+    with open(fund_file_path, 'wb') as f:
         f.write(fund_file.file_content)
     response = make_response(send_file(fund_file_path, as_attachment=True, attachment_filename=file_name))
     basename = os.path.basename(file_name)
@@ -563,10 +571,10 @@ def del_file():
     """
     fid = request.json['fid']
     fund_file = FundFile.query.get(fid)
-    logger.warning("用户{}删除文件ID {} 文件名　{}".format(current_user.username,fid,fund_file.show_name))
+    logger.warning("用户{}删除文件ID {} 文件名　{}".format(current_user.username, fid, fund_file.show_name))
     db.session.delete(fund_file)
     db.session.commit()
-    logger.warning("用户{}删除文件ID {}　成功".format(current_user.username,fid))
+    logger.warning("用户{}删除文件ID {}　成功".format(current_user.username, fid))
     return json.dumps({"status": "ok"})
 
 
@@ -586,9 +594,8 @@ def maintain_acc():
             else:
                 fund = FoFModel.query.filter_by(wind_code=batch.wind_code).first()
             fund_list.add(fund)
-    fund_list = [ i.to_json() for i in fund_list]
-    return render_template('maintain_acc.html',fof_list=fof_list,fund_list=fund_list,primary_list=primary_list)
-
+    fund_list = [i.to_json() for i in fund_list]
+    return render_template('maintain_acc.html', fof_list=fof_list, fund_list=fund_list, primary_list=primary_list)
 
 
 @f_app_blueprint.route("/show_acc/<string:wind_code>", methods=['POST', 'GET'])
@@ -628,7 +635,7 @@ def del_acc():
     del_nav_str = "call proc_delete_fund_nav_by_wind_code(:wind_code, :nav_date)"
     with get_db_session(get_db_engine()) as session:
         logger.info("开始执行存储过程")
-        session.execute(del_nav_str, {'wind_code': wind_code,'nav_date':nav_date})
+        session.execute(del_nav_str, {'wind_code': wind_code, 'nav_date': nav_date})
     fof_list = get_all_fof()
     cache.set(key=str(current_user.id), value=fof_list)
     logger.info("用户{}基金列表缓存已更新".format(current_user.username))
@@ -658,7 +665,9 @@ def add_acc():
         with get_db_session(get_db_engine()) as session:
             logger.info("开始执行存储过程")
             session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
-            session.execute(replace_nav_str,{'wind_code':request.json['wind_code'],'nav_date':request.json['nav_date'],'force_update': True})
+            session.execute(replace_nav_str,
+                            {'wind_code': request.json['wind_code'], 'nav_date': request.json['nav_date'],
+                             'force_update': True})
             fof_list = get_all_fof()
             cache.set(key=str(current_user.id), value=fof_list)
             logger.info("用户{}基金列表缓存已更新".format(current_user.username))
@@ -680,9 +689,6 @@ def add_acc():
             session.execute(replace_nav_str, {'wind_code': request.json['wind_code'],
                                               'nav_date': request.json['nav_date'], 'force_update': True})
         return jsonify(acc="edit")
-
-
-
 
 
 @f_app_blueprint.route('/change_acc', methods=['POST', 'GET'])
@@ -761,13 +767,12 @@ def upload_acc(wind_code):
         return json.dumps({"files": [{"message": "净值已更新"}]})
 
 
-@f_app_blueprint.route('/asset_details/<string:wind_code>',methods=['GET','POST'])
+@f_app_blueprint.route('/asset_details/<string:wind_code>', methods=['GET', 'POST'])
 @login_required
 def asset_details(wind_code):
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
-        return render_template('asset_details.html', fof_list=fof_list,wind_code=wind_code)
-
+        return render_template('asset_details.html', fof_list=fof_list, wind_code=wind_code)
 
 
 @f_app_blueprint.route("/show_batch_asset/<string:wind_code>", methods=['POST', 'GET'])
@@ -783,7 +788,6 @@ def show_batch_asset(wind_code):
     asset_list = [{"child": [x for x in i['child']]}
                   for i in fof_list if wind_code == i['primary'].wind_code]
 
-
     if len(asset_list) > 0:
         batch_data = []
         for i in asset_list:
@@ -794,12 +798,12 @@ def show_batch_asset(wind_code):
                     batch_dict['name'] = c['name']
                     batch_dict['nav_date'] = batch_dict['nav_date'].strftime('%Y-%m-%d')
                     batch_data.append(batch_dict)
-        return jsonify(status='ok',data=batch_data)
+        return jsonify(status='ok', data=batch_data)
     else:
         return jsonify(status='error')
 
 
-@f_app_blueprint.route('/show_primary_asset/<string:wind_code>',methods=['GET','POST'])
+@f_app_blueprint.route('/show_primary_asset/<string:wind_code>', methods=['GET', 'POST'])
 def show_primary_asset(wind_code):
     '''
     查询母基金的全部资产,使用马老师的存储过程返回一个日期
@@ -811,18 +815,20 @@ def show_primary_asset(wind_code):
         sql_return = session.execute(next_nav_date_str, {'wind_code': wind_code})
         tag_date = sql_return.first()[0]
         if tag_date is not None:
-            next_date_nav = calc_fof_nav(wind_code,tag_date)
+            next_date_nav = calc_fof_nav(wind_code, tag_date)
             next_date_nav['db'] = False
             primary_fund = FUND_NAV_CALC.query.filter_by(wind_code=wind_code).all()
-            primary_fund = [dict(i.as_dict(),**{"db":True}) for i in primary_fund]
+            primary_fund = [dict(i.as_dict(), **{"db": True}) for i in primary_fund]
             primary_fund.append(next_date_nav)
-            primary_fund = list(map(lambda x:{k:v if k !='nav_date' else v.strftime('%Y-%m-%d') for k,v in x.items()},primary_fund))
-            return jsonify(status='ok',data=primary_fund)
+            primary_fund = list(
+                map(lambda x: {k: v if k != 'nav_date' else v.strftime('%Y-%m-%d') for k, v in x.items()},
+                    primary_fund))
+            return jsonify(status='ok', data=primary_fund)
         else:
             return jsonify(status='error')
 
 
-@f_app_blueprint.route('/confirm_asset/<string:wind_code>',methods=['GET','POST'])
+@f_app_blueprint.route('/confirm_asset/<string:wind_code>', methods=['GET', 'POST'])
 def confirm_asset(wind_code):
     """
     资产表确认按钮提交的数据,获取前端提交的数据中的日期,首先在fund info表中查询基金代码和成立时间 True 新基金;
@@ -835,7 +841,7 @@ def confirm_asset(wind_code):
         if post_data['check']:
             return jsonify(status='ok')
         else:
-            del post_data['db'],post_data['check']
+            del post_data['db'], post_data['check']
             post_data['wind_code'] = wind_code
             new_calc_record = FUND_NAV_CALC(**post_data)
 
@@ -846,7 +852,7 @@ def confirm_asset(wind_code):
                                   nav_acc=post_data['nav'], source_mark=3)
             db.session.add(new_calc_record)
             db.session.add(acc_record)
-            #return jsonify(status='ok')
+            # return jsonify(status='ok')
             try:
                 db.session.commit()
                 sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
@@ -855,7 +861,8 @@ def confirm_asset(wind_code):
                     logger.info("开始执行存储过程")
                     session.execute(sql_str, {'wind_code': post_data['wind_code'], 'force_update': True})
                     session.execute(replace_nav_str,
-                                    {'wind_code': post_data['wind_code'], 'nav_date': post_data['nav_date'],'force_update':False})
+                                    {'wind_code': post_data['wind_code'], 'nav_date': post_data['nav_date'],
+                                     'force_update': False})
                     fof_list = get_all_fof()
                     cache.set(key=str(current_user.id), value=fof_list)
                     logger.info("用户{}基金列表缓存已更新".format(current_user.username))
@@ -863,7 +870,6 @@ def confirm_asset(wind_code):
             except exc.IntegrityError:
                 logger.error("这条记录的净值日期已经存在{} {}".format(post_data['wind_code'], post_data['nav_date']))
                 return jsonify(status='error')
-
 
 
 @f_app_blueprint.route('/calendar/<string:wind_code>', methods=['GET', 'POST'])
@@ -1162,7 +1168,7 @@ def add():
     sorted(strategy_list, key=lambda x: len(x))
     chunk_list = [i for i in chunks(strategy_list, 4)]
     not_exist = list(set(strategy_list) - set(exist_name))
-    return render_template('append.html', chunk_list=chunk_list, not_exist=not_exist,fof_list=fof_list)
+    return render_template('append.html', chunk_list=chunk_list, not_exist=not_exist, fof_list=fof_list)
 
 
 @f_app_blueprint.route('/tab2', methods=['POST'])
@@ -1436,7 +1442,6 @@ def del_scheme():
         return jsonify(status='ok')
 
 
-
 @f_app_blueprint.route('/data_show', methods=['GET', 'POST'])
 def data_show():
     fof_list = get_all_fof()
@@ -1527,7 +1532,7 @@ def process(uid):
         file = request.files['file']
         file_name = file.filename
         f_content = file.read()
-        upload_date =  request.form['date']
+        upload_date = request.form['date']
         file_record = Invest_corp_file(mgrcomp_id=uid, file_type='report', upload_user_id=current_user.id,
                                        upload_datetime=upload_date,
                                        file_name=file_name, file_content=f_content, comments=comments)
@@ -1535,9 +1540,6 @@ def process(uid):
         db.session.commit()
         file.close()
         return redirect(url_for('f_app.corp', uid=uid))
-
-
-
 
 
 @f_app_blueprint.route('/corp_upload_file/<uid>', methods=['GET', 'POST'])
@@ -1587,26 +1589,26 @@ def corp(uid):
     fof_list = get_all_fof()
     corp = Invest_corp.query.get(uid)
     fof = FoFModel.query.filter_by(mgrcomp_id=uid).all()
-    all_files = Invest_corp_file.query.filter(Invest_corp_file.mgrcomp_id==uid).all()
+    all_files = Invest_corp_file.query.filter(Invest_corp_file.mgrcomp_id == uid).all()
     if current_user.is_report:
         all_files = Invest_corp_file.query.filter(and_(Invest_corp_file.mgrcomp_id == uid,
-                                                  Invest_corp_file.upload_user_id == current_user.id)).all()
+                                                       Invest_corp_file.upload_user_id == current_user.id)).all()
     report = []
     files = []
     for i in all_files:
         f = {}
         f['file_name'] = i.file_name
         f['user'] = UserModel.query.get(i.upload_user_id)
-        f["upload_time"] =  i.upload_datetime.strftime('%Y-%m-%d')
-        f["fid"] =  i.file_id
+        f["upload_time"] = i.upload_datetime.strftime('%Y-%m-%d')
+        f["fid"] = i.file_id
         if i.file_type == "report":
-            f["comments"] =  i.comments
+            f["comments"] = i.comments
             report.append(f)
         else:
             f['file_type'] = i.file_type
             files.append(f)
     if len(fof) > 0:
-        fof = [{"name": i.sec_name, "alias": i.alias, "wind_code": i.wind_code,"rank":i.rank} for i in fof]
+        fof = [{"name": i.sec_name, "alias": i.alias, "wind_code": i.wind_code, "rank": i.rank} for i in fof]
     else:
         fof = None
     return render_template("corp.html", fof_list=fof_list, corp=corp, fof=fof, report=report, files=files)
@@ -1691,6 +1693,7 @@ def change_corp_rank():
         db.session.commit()
         return jsonify(status='ok')
 
+
 @f_app_blueprint.route('/select_corp_rank', methods=['POST', 'GET'])
 @login_required
 def select_corp_rank():
@@ -1706,6 +1709,7 @@ def select_corp_rank():
         fund.rank = choose
         db.session.commit()
         return jsonify(status='ok')
+
 
 @f_app_blueprint.route('/add_corp', methods=['GET', 'POST'])
 @login_required
@@ -1732,7 +1736,6 @@ def add_corp():
         return redirect(url_for('f_app.invest_corp'))
 
 
-
 @f_app_blueprint.route('/fund_manage')
 @login_required
 def fund_manage():
@@ -1748,7 +1751,7 @@ def fund_manage():
     archive_invest = FoFModel.query.filter_by(rank=2).all()
     all_data = {"core": len(core_invest), 'all': {"data": fund, 'length': len(fund)}, "observe": len(observe_invest),
                 "archive": len(archive_invest)}
-    return render_template("f_app/fund_manage.html", fof_list=fof_list,all_data=all_data)
+    return render_template("f_app/fund_manage.html", fof_list=fof_list, all_data=all_data)
 
 
 @f_app_blueprint.route('/get_fund')
@@ -1772,15 +1775,16 @@ def get_fund():
             i['rank'] = 0
     return json.dumps(result)
 
-@f_app_blueprint.route('/view_fund/<wind_code>',methods=['POST','GET'])
+
+@f_app_blueprint.route('/view_fund/<wind_code>', methods=['POST', 'GET'])
 @login_required
 def view_fund(wind_code):
     fund = FoFModel.query.filter_by(wind_code=wind_code).first()
     if fund is not None:
-        return render_template("view_fund.html",fund=fund.to_json())
+        return render_template("view_fund.html", fund=fund.to_json())
 
 
-@f_app_blueprint.route('/new_fund',methods=['POST','GET'])
+@f_app_blueprint.route('/new_fund', methods=['POST', 'GET'])
 @login_required
 def new_fund():
     if request.method == "GET":
@@ -1789,14 +1793,14 @@ def new_fund():
         wind_code_regexp = r'FHC-N.{4}$'
         last_code = db.session.query(FoFModel).filter(FoFModel.wind_code.op('regexp')(wind_code_regexp)).all()[-1]
         new_code = new_format.format(int(last_code.wind_code[5:]) + 1)
-        return render_template('new_fund.html', fof_list=fof_list,new_code=new_code)
+        return render_template('new_fund.html', fof_list=fof_list, new_code=new_code)
     elif request.method == "POST":
         data = request.form.to_dict()
-        data = { k:v for k,v in data.items() if len(v) > 0}
+        data = {k: v for k, v in data.items() if len(v) > 0}
         new_fund = FoFModel(**data)
         db.session.add(new_fund)
         db.session.commit()
-        flash(message="添加成功",category="success")
+        flash(message="添加成功", category="success")
         return redirect(url_for("f_app.fund_manage"))
 
 
@@ -1895,26 +1899,26 @@ def batch_details(wind_code_s):
     fof_list = cache.get(str(current_user.id))
     batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code_s).first()
     data = batch.to_json()
-    return render_template('batch_details.html',batch=data,fof_list=fof_list)
+    return render_template('batch_details.html', batch=data, fof_list=fof_list)
 
-@f_app_blueprint.route('/edit_batch/<wind_code_s>',methods=['GET','POST'])
+
+@f_app_blueprint.route('/edit_batch/<wind_code_s>', methods=['GET', 'POST'])
 @login_required
 def edit_batch(wind_code_s):
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
         batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code_s).first()
         data = batch.to_json()
-        return render_template('edit_batch.html',fof_list=fof_list,batch=data)
+        return render_template('edit_batch.html', fof_list=fof_list, batch=data)
     elif request.method == 'POST':
         data = request.form.to_dict()
         batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code_s).first()
-        for k,v in data.items():
+        for k, v in data.items():
             if k == 'date_end' and len(v) == 0:
                 v = None
-            setattr(batch,k,v)
+            setattr(batch, k, v)
         db.session.commit()
-        return redirect(url_for('f_app.batch_details',wind_code_s=wind_code_s))
-
+        return redirect(url_for('f_app.batch_details', wind_code_s=wind_code_s))
 
 
 @f_app_blueprint.route('/test')
@@ -1930,24 +1934,23 @@ def test():
                 fund = FoFModel.query.filter_by(wind_code=batch.wind_code).first()
             if fund not in fund_list:
                 fund_list.append(fund)
-    return render_template('test.html',fof_list=fof_list,fund_list=fund_list)
+    return render_template('test.html', fof_list=fof_list, fund_list=fund_list)
 
 
-
-@f_app_blueprint.route('/market_report',methods=['GET','POST'])
+@f_app_blueprint.route('/market_report', methods=['GET', 'POST'])
 @login_required
 @permission
 def market_report():
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
-        return render_template('market_report.html',fof_list=fof_list)
+        return render_template('market_report.html', fof_list=fof_list)
     if request.method == 'POST':
         date_range = request.json
         try:
-            file_name,data = gen_report(date_range['start'],date_range['end'])
+            file_name, data = gen_report(date_range['start'], date_range['end'])
             charts_dict = data['charts_dict']
             charts = {}
-            for k,v in charts_dict.items():
+            for k, v in charts_dict.items():
                 charts[k] = v['date_idx_quantile_df'].T.to_json()
             table_df = data['table_df']
             return_data = {}
@@ -1956,15 +1959,15 @@ def market_report():
             text = []
             for i in data['text_dict']:
                 text_dict = {}
-                for k,v in i.items():
-                    if isinstance(v,np.int64):
+                for k, v in i.items():
+                    if isinstance(v, np.int64):
                         text_dict[k] = int(v)
                     else:
                         text_dict[k] = v
                 text.append(text_dict)
             return_data['text'] = text
             return_data['file_name'] = file_name
-            return jsonify(status='ok',data=return_data)
+            return jsonify(status='ok', data=return_data)
         except ZeroDivisionError:
             return jsonify(status='error')
 
@@ -1987,13 +1990,13 @@ def download_report():
     return response
 
 
-@f_app_blueprint.route('/core_info/<wind_code>',methods=['POST','GET'])
+@f_app_blueprint.route('/core_info/<wind_code>', methods=['POST', 'GET'])
 @login_required
 def core_info(wind_code):
     if request.method == 'GET':
         fof = get_core_info(wind_code)
         core_info = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
-        return  render_template('core_info.html',core_info=core_info,fof=fof)
+        return render_template('core_info.html', core_info=core_info, fof=fof)
     if request.method == 'POST':
         data = request.form.to_dict()
         code = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
@@ -2008,12 +2011,12 @@ def core_info(wind_code):
         return redirect(url_for("f_app.details", wind_code=wind_code))
 
 
-@f_app_blueprint.route('/import_nav',methods=['GET','POST'])
+@f_app_blueprint.route('/import_nav', methods=['GET', 'POST'])
 @login_required
 def import_nav():
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
-        return render_template("import_nav.html",fof_list=fof_list)
+        return render_template("import_nav.html", fof_list=fof_list)
 
     if request.method == "POST":
         file = request.files['file']
@@ -2021,17 +2024,95 @@ def import_nav():
             file_path = os.path.join(current_app.config['ACC_FOLDER'], file.filename)
             file.save(file_path)
             data_dict, error_list = check_fund_nav_multi(file_path)
-            return render_template("acc_file_result.html",data_dict=data_dict,error_list=error_list,file_path=file_path)
+            return render_template("acc_file_result.html", data_dict=data_dict, error_list=error_list,
+                                   file_path=file_path)
 
-@f_app_blueprint.route('/confirm_acc',methods=['POST','GET'])
+
+@f_app_blueprint.route('/confirm_acc', methods=['POST', 'GET'])
 @login_required
 def confirm_acc():
     if request.method == 'POST':
         file_path = request.form['file_path']
         import_fund_nav_multi(file_path=file_path)
-        flash("上传成功",category="success")
+        flash("上传成功", category="success")
         os.remove(file_path)
         return redirect(url_for("f_app.home"))
+
+
+@f_app_blueprint.route('/transaction', methods=['POST', 'GET'])
+@login_required
+def transaction():
+    if request.method == 'GET':
+        fof_list = cache.get(str(current_user.id))
+        return render_template("transaction.html", fof_list=fof_list)
+
+
+@f_app_blueprint.route('/get_transaction', methods=['POST', 'GET'])
+@login_required
+def get_transaction():
+    """
+    :param 数据中每个列的名称,要和Datatables中列一致
+    :by hdhuang
+    :return:
+    """
+    logger.info("{} use this method".format(current_user.username))
+    columns = ['id', 'wind_code_s', 'operating_type', 'accounting_date', 'request_date',
+               'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description', 'sec_name_s', 'fof_name']
+    index_column = "id"
+    table = "fund_transaction"
+    result = DataTablesServer(request, columns=columns, table=table, index=index_column).output_result()
+    for i in result['aaData']:
+        for k, v in i.items():
+            if v is not None and isinstance(v, datetime.date):
+                i[k] = v.strftime('%Y-%m-%d')
+    return json.dumps(result)
+
+
+@f_app_blueprint.route('/del_transaction', methods=['POST'])
+@login_required
+def del_transaction():
+    if request.method == 'POST':
+        checked = request.json['result']
+        for i in checked:
+            FUND_TRANSACTION.query.filter_by(id=int(i)).delete()
+            logger.info("id-->{}<---已经删除!".format(int(i)))
+            db.session.commit()
+        return jsonify(status="ok")
+
+
+@f_app_blueprint.route('/change_transaction/<uid>', methods=['POST', 'GET'])
+@login_required
+def change_transaction(uid):
+    if request.method == 'GET':
+        tr = FUND_TRANSACTION.query.get(uid)
+        return jsonify(tr.as_dict())
+    elif request.method == 'POST':
+        data = request.json
+        tr = FUND_TRANSACTION.query.get(uid)
+        for k, v in data.items():
+            if len(v) == 0:
+                v = None
+            setattr(tr, k, v)
+        db.session.commit()
+        return jsonify(status="ok")
+
+
+@f_app_blueprint.route('/add_transaction', methods=['GET', 'POST'])
+@login_required
+def add_transaction():
+    if request.method == 'POST':
+        data = request.json
+        data = {0: {k: (None if len(v) == 0 else v) for k, v in data.items()}}
+        trClass = Transaction()
+        error = trClass.checkdfrole(data)
+        if len(error) == 0:
+            tr = FUND_TRANSACTION(**data[0])
+            db.session.add(tr)
+            db.session.commit()
+            return jsonify(status="ok")
+        else:
+            return jsonify(status="error", error=error)
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
