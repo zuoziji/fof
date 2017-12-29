@@ -613,6 +613,7 @@ table .desc:hover{
                 }),
                 success: function(resp) {
                     if(resp){
+                        console.log(resp.error)
                         table.ajax.reload(null,false);
                     }
                 }

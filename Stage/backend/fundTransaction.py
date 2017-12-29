@@ -42,52 +42,45 @@ class Transaction(object):
         df_dict = df.T.to_dict()
         return df_dict
 
-    def checkdfrole(self, df_dict):
+    def checkdfrole(self, d):
         """
         各种蛋疼的条件，简直要吐了!!!!
         :param df_dict:
         :return:
         """
         errors = []
-        for i, d in df_dict.items():
-            fund = FUND_ESSENTIAL.query.filter(and_(FUND_ESSENTIAL.wind_code_s == d['wind_code_s'],
-                                                    FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
-            exists = db.session.query(
-                FUND_TRANSACTION.id).filter(and_(FUND_TRANSACTION.wind_code_s == d['wind_code_s'],
-                                                 FUND_TRANSACTION.operating_type == d['operating_type'],
-                                                 FUND_TRANSACTION.request_date == d['request_date'],
-                                                 FUND_TRANSACTION.confirm_date == d['confirm_date'])).scalar()
-            if exists:
-                errors.append("第{}行重复的记录".format(i+1))
-            if fund is None:
-                errors.append("请检查第{}行基金要素代码不能为空".format(i + 1))
-            if d['fof_name'] is None:
-                errors.append("请检查第{}行FOF基金名称不能为空".format(i + 1))
-            if d['sec_name_s'] is None:
-                errors.append("请检查第{}行FOF基金名称不能为空".format(i + 1))
-            if d['operating_type'] is not None:
-                if d['operating_type'] not in self.operating_type:
-                    errors.append("请检查第{}行操作类型{}".format(i + 1, d['operating_type']))
-            else:
-                errors.append("请检查第{}行操作类型不能为空".format(i + 1))
-            if d['operating_type'] in ["申购", "赎回"]:
-                if d['request_date'] is None:
-                    errors.append("请检查第{}行申请日期不能为空".format(i + 1))
-            if d['operating_type'] == "赎回" and d['confirm_benchmark'] is None:
-                errors.append("请检查第{}行基金净值为空".format(i + 1))
-            if d['confirm_date'] is None:
-                errors.append("请检查第{}行确日期不能为空".format(i + 1))
-            if d['share'] and d['amount'] is not None:
-                if d['operating_type'] in self.positive_type and int(d['share']) < 0:
-                    errors.append("请检查第{}行 {} 份额 {} 有误".format(i + 1, d['operating_type'], d['share']))
-                if d['operating_type'] in self.negative_type and int(d['share']) > 0:
-                    errors.append("请检查第{}行 {} 份额 {} 有误".format(i + 1, d['operating_type'], d['share']))
-                if d['operating_type'] == "申购" and int(d['amount']) > 0:
-                    errors.append("请检查第{}行 {} 金额 {} 有误".format(i + 1, d['operating_type'], d['amount']))
-                if d['operating_type'] in ["赎回", "返费", "现金分红"] and int(d['amount']) < 0:
-                    errors.append("请检查第{}行 {} 金额 {} 有误".format(i + 1, d['operating_type'], d['amount']))
-            else:
-                errors.append("金额和份额不能为空")
+
+        fund = FUND_ESSENTIAL.query.filter(and_(FUND_ESSENTIAL.wind_code_s == d['wind_code_s'],
+                                                FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
+        exists = db.session.query(
+            FUND_TRANSACTION.id).filter(and_(FUND_TRANSACTION.wind_code_s == d['wind_code_s'],
+                                             FUND_TRANSACTION.operating_type == d['operating_type'],
+                                             FUND_TRANSACTION.request_date == d['request_date'],
+                                             FUND_TRANSACTION.confirm_date == d['confirm_date'])).scalar()
+        if exists:
+            errors.append("重复的记录")
+        if fund is None:
+            errors.append("基金要素代码不能为空")
+        if d['fof_name'] is None:
+            errors.append("FOF基金名称不能为空")
+        if d['sec_name_s'] is None:
+            errors.append("FOF基金名称不能为空")
+        if d['operating_type'] is not None:
+            if d['operating_type'] not in self.operating_type:
+                errors.append("操作类型{}有误".format(d['operating_type']))
+        else:
+            errors.append("操作类型不能为空")
+        if d['operating_type'] in ["申购", "赎回"]:
+            if d['request_date'] is None:
+                errors.append("申购或赎回　申请日期不能为空")
+        if d['operating_type'] == "赎回" and d['confirm_benchmark'] is None:
+            errors.append("赎回基金净值不能为空")
+        if d['confirm_date'] is None:
+            errors.append("确认日期不能为空")
+        if d['share'] is None:
+            errors.append("份额不能为空")
+        if d['amount'] is None:
+            errors.append("金额不能为空")
         return errors
 
     def importDate(self, df_dict):
