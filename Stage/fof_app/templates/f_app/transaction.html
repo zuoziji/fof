@@ -612,13 +612,23 @@ table .desc:hover{
                     wind_code_s:$("#wind_code_s").val()
                 }),
                 success: function(resp) {
-                    if(resp){
-                        console.log(resp.error)
+                    if(resp.status == "ok"){
                         table.ajax.reload(null,false);
+                        $("#myModal").modal("hide");
+                    }else{
+                        var text='';
+                        $(resp.error).each(function(index,val){
+                            text+=`<p>${val}</p>`;
+                        })
+                        new PNotify({
+                            title: '',
+                            text:  '<div style="padding-left:20px;">'+text+'</div>',
+                            type: 'error',
+                            styling: 'bootstrap3'
+                        });
                     }
                 }
             });
-            $("#myModal").modal("hide");
         }
     })
 
