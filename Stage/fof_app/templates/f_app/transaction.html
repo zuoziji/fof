@@ -476,20 +476,6 @@ table .desc:hover{
             validating: 'glyphicon glyphicon-refresh',
             framework: 'bootstrap'
         }, fields: {
-            request_date: {
-                validators: {
-                    notEmpty: {
-                        message: '申请日期不能为空'
-                    }
-                }
-            },
-            confirm_date: {
-                validators: {
-                    notEmpty: {
-                        message: '确认日期不能为空'
-                    }
-                }
-            },
             confirm_benchmark: {
                 validators: {
                     integer: {
@@ -530,20 +516,6 @@ table .desc:hover{
                 validators: {
                     notEmpty: {
                         message: '基金名称不能为空'
-                    }
-                }
-            },
-            request_date: {
-                validators: {
-                    notEmpty: {
-                        message: '申请日期不能为空'
-                    }
-                }
-            },
-            confirm_date: {
-                validators: {
-                    notEmpty: {
-                        message: '确认日期不能为空'
                     }
                 }
             },
@@ -701,6 +673,7 @@ table .desc:hover{
         }
     })
     $("#close_add").on("click",function(){
+        $("#form_add").data("bootstrapValidator").resetForm();
         $("#form_add")[0].reset();
         $(".filter-option.pull-left").html('请选择基金');
     })
