@@ -49,7 +49,7 @@ class Transaction(object):
         :return:
         """
         errors = []
-
+        print(d)
         fund = FUND_ESSENTIAL.query.filter(and_(FUND_ESSENTIAL.wind_code_s == d['wind_code_s'],
                                                 FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
         exists = db.session.query(
@@ -82,6 +82,18 @@ class Transaction(object):
         if d['amount'] is None:
             errors.append("金额不能为空")
         return errors
+
+    def formatData(self, d):
+        """
+
+        :param d: dict
+        :return: dict
+        """
+        if d['operating_type'] in self.negative_type:
+            d['share'] = float(d['share']) * -1
+        if d['operating_type'] == "申购":
+            d['amount'] = float(d['amount']) * -1
+        return d
 
     def importDate(self, df_dict):
         """
