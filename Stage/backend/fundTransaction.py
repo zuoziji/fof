@@ -42,25 +42,25 @@ class Transaction(object):
         df_dict = df.T.to_dict()
         return df_dict
 
-    def checkdfrole(self, d):
+    def checkdfrole(self, d, add=True):
         """
         各种蛋疼的条件，简直要吐了!!!!
         :param df_dict:
         :return:
         """
         errors = []
-        print(d)
-        fund = FUND_ESSENTIAL.query.filter(and_(FUND_ESSENTIAL.wind_code_s == d['wind_code_s'],
-                                                FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
-        exists = db.session.query(
-            FUND_TRANSACTION.id).filter(and_(FUND_TRANSACTION.wind_code_s == d['wind_code_s'],
-                                             FUND_TRANSACTION.operating_type == d['operating_type'],
-                                             FUND_TRANSACTION.request_date == d['request_date'],
-                                             FUND_TRANSACTION.confirm_date == d['confirm_date'])).scalar()
-        if exists:
-            errors.append("重复的记录")
-        if fund is None:
-            errors.append("基金要素代码不能为空")
+        if add:
+            fund = FUND_ESSENTIAL.query.filter(and_(FUND_ESSENTIAL.wind_code_s == d['wind_code_s'],
+                                                    FUND_ESSENTIAL.sec_name_s == d['sec_name_s'])).first()
+            exists = db.session.query(
+                FUND_TRANSACTION.id).filter(and_(FUND_TRANSACTION.wind_code_s == d['wind_code_s'],
+                                                 FUND_TRANSACTION.operating_type == d['operating_type'],
+                                                 FUND_TRANSACTION.request_date == d['request_date'],
+                                                 FUND_TRANSACTION.confirm_date == d['confirm_date'])).scalar()
+            if exists:
+                errors.append("重复的记录")
+            if fund is None:
+                errors.append("基金要素代码不能为空")
         if d['fof_name'] is None:
             errors.append("FOF基金名称不能为空")
         if d['sec_name_s'] is None:

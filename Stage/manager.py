@@ -4,38 +4,41 @@
 :mail: bjdhuang@cn.ibm.com.
 :license: Apache 2.0, see LICENSE for more details.
 """
-#/usr/bin/python3.5
+# /usr/bin/python3.5
 
 import os
 from flask_script import Manager, Server as _Server, Option
-from flask_migrate import Migrate,MigrateCommand
-from fof_app import create_app,SocketIo
+from flask_migrate import Migrate, MigrateCommand
+from fof_app import create_app, SocketIo
 from fof_app import models
 from logging import getLogger
+
 logger = getLogger()
 from gevent import monkey
+
 monkey.patch_all()
 from config_fh import get_redis
 
-
 import os
+
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
+
     COV = coverage.coverage(branch=True, include='fof_app/*')
     COV.start()
 
-
-
-env = os.environ.get('APP_ENV','dev')
-app = create_app('fof_app.config.%sConfig' %env.capitalize())
+env = os.environ.get('APP_ENV', 'dev')
+app = create_app('fof_app.config.%sConfig' % env.capitalize())
 manager = Manager(app)
-migrate = Migrate(app,models.db)
+migrate = Migrate(app, models.db)
 
-manager.add_command("db",MigrateCommand)
+manager.add_command("db", MigrateCommand)
+
 
 class Server(_Server):
     help = description = 'Runs the Socket.IO web server'
+
     def get_options(self):
         options = (
             Option('-h', '--host',
@@ -81,7 +84,7 @@ class Server(_Server):
                 use_debugger = True
         if use_reloader is None:
             use_reloader = app.debug
-            r = get_redis(host='127.0.0.1',db=3)
+            r = get_redis(host='127.0.0.1', db=3)
             r.flushdb()
             logger.info("用户fof缓存已清空")
         SocketIo.run(app,
@@ -90,6 +93,7 @@ class Server(_Server):
                      debug=use_debugger,
                      use_reloader=use_reloader,
                      **self.server_options)
+
 
 manager.add_command("runserver", Server())
 
@@ -104,6 +108,7 @@ def make_shell_context():
                 Role=models.RoleModel,
                 core=models.Fund_Core_Info,
                 nav=models.FUND_NAV)
+
 
 @manager.command
 def test(coverage=False):
@@ -125,7 +130,6 @@ def test(coverage=False):
         COV.html_report(directory=covdir)
         print('HTML version: file://%s/index.html' % covdir)
         COV.erase()
-
 
 
 if __name__ == '__main__':
