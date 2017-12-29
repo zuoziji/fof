@@ -488,7 +488,7 @@ table .desc:hover{
         var bv = $('#form').data('bootstrapValidator');
         var url = '';
         bv.validate();
-        url=type=='add'?'/f_app/change_transaction':'/f_app/change_transaction/'+id;
+        url=type=='add'?'/f_app/add_transaction':'/f_app/change_transaction/'+id;
         if(bv.isValid()){
             $.ajax({
                 url: url,
