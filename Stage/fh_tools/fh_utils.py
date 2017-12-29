@@ -16,6 +16,7 @@ from collections import OrderedDict
 import logging
 import warnings
 from functools import reduce
+import xlrd
 
 STR_FORMAT_DATE = '%Y-%m-%d'
 PATTERN_DATE_FORMAT_RESTRICT = re.compile(r"\d{4}(\D)*\d{2}(\D)*\d{2}")
@@ -31,12 +32,12 @@ def date_2_str(dt):
 
 
 def str_2_bytes(input_str):
-        """
-        用于将 str 类型转换为 bytes 类型
-        :param input_str: 
-        :return: 
-        """
-        return input_str.encode(encoding='GBK')
+    """
+    用于将 str 类型转换为 bytes 类型
+    :param input_str: 
+    :return: 
+    """
+    return input_str.encode(encoding='GBK')
 
 
 def bytes_2_str(bytes_str):
@@ -46,6 +47,19 @@ def bytes_2_str(bytes_str):
     :return: 
     """
     return str(bytes_str, encoding='GBK')
+
+
+def timedelta_2_str(td):
+    """
+    用于将 pd.Timedelta 类型转换为 str 类型
+    :param td: 
+    :return: 
+    """
+    if isinstance(td, pd.Timedelta):
+        ret = str(td).split()[-1]
+    else:
+        ret = td
+    return ret
 
 
 def pattern_data_format(data_str):
@@ -454,23 +468,60 @@ def drawback_analysis(data_df, keep_max=False):
     :param data_df: 
     :return: 
     """
-    mdd_df = data_df.apply(lambda xx: [rr[1] for rr in reduce_list(_calc_mdd_4_drawback_analysis, xx, (xx.iloc[0], 0, keep_max))])
+    if data_df is None or data_df.shape[0] <= 1:
+        mdd_df = None
+    else:
+        mdd_df = data_df.apply(lambda xx: [rr[1] for rr in reduce_list(_calc_mdd_4_drawback_analysis, xx, (xx.iloc[0], 0, keep_max))])
     return mdd_df
+
+
+def return_risk_analysis_by_xls(file_path):
+    """
+    读xls文件，对每个sheet进行分析，并最终合并绩效分析报告
+    回撤分析分别生成文件显示
+    :param file_path: 
+    :return: 
+    """
+    file_path_no_extention, _ = os.path.splitext(file_path)
+    workbook = xlrd.open_workbook(file_path)
+    sheet_names = workbook.sheet_names()
+    sheet_df_dic = {}
+    stat_df = None
+    for sheet_name in sheet_names:
+        # if sheet_name not in col_names:
+        #     continue
+        try:
+            data_df = pd.read_excel(file_path, index_col=0, sheet_name=sheet_name)
+            if data_df is None or data_df.shape[0] == 0:
+                continue
+            stat_df_tmp = return_risk_analysis(data_df, freq=None)  # , freq='daily'
+            if stat_df is None:
+                stat_df = stat_df_tmp
+            else:
+                stat_df = stat_df.merge(stat_df_tmp, how='outer', left_index=True, right_index=True)
+
+            mdd_df = drawback_analysis(data_df)
+            sheet_df_dic[sheet_name] = mdd_df
+        except:
+            logging.exception('处理 %s 时失败', sheet_name)
+            continue
+    return stat_df, sheet_df_dic
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
-    file_path = r'd:\Works\F复华投资\L路演、访谈、评估报告\FOF 鑫隆\鑫隆稳进FOF母基金净值（截至20171103）.xlsx'
-    file_path_no_extention, _ = os.path.splitext(file_path)
-    data_df = pd.read_excel(file_path, index_col=0)
-    stat_df = return_risk_analysis(data_df, freq=None)  # , freq='daily'
-    print(stat_df)
-    stat_df.to_csv(file_path_no_extention + '绩效统计.csv')
-    mdd_df = drawback_analysis(data_df)
-    mdd_df.to_csv(file_path_no_extention + '最大回撤.csv')
+    file_path = r'd:\Downloads\工作簿13.xlsx'
+    # file_path_no_extention, _ = os.path.splitext(file_path)
+    # data_df = pd.read_excel(file_path, index_col=0)
+    # stat_df = return_risk_analysis(data_df, freq=None)  # , freq='daily'
+    # print(stat_df)
+    # stat_df.to_csv(file_path_no_extention + '绩效统计.csv')
+    # mdd_df = drawback_analysis(data_df)
+    # mdd_df.to_csv(file_path_no_extention + '最大回撤.csv')
 
-    # data_df = pd.DataFrame({'a': np.arange(1, 6),
-    #               'b': np.arange(2, 7),
-    #               'c': np.arange(3, 8),
-    #               })
-    # ret_df = DataFrame.map(data_df, lambda col_val, row_vol, data_vol: data_vol % 2 == 0 if col_val == 'a' else data_vol % 2 != 0)
-    # print(ret_df)
+    file_path_no_extention, _ = os.path.splitext(file_path)
+    stat_df, sheet_df_dic = return_risk_analysis_by_xls(file_path)
+    if stat_df is not None:
+        stat_df.to_csv('%s_绩效统计.csv' % file_path_no_extention)
+    for sheet_name, mdd_df in sheet_df_dic.items():
+        mdd_df.to_csv('%s_%s_最大回撤.csv' % (file_path_no_extention, sheet_name))
