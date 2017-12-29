@@ -270,7 +270,9 @@ def check_fund_nav_multi(file_path, ret_df=False):
         wind_code = data_dic['基金代码']
         if wind_code not in wind_code_name_dic:
             error_dic[wind_code] = "%s 不是有效的基金代码" % wind_code
-        if wind_code_name_dic[wind_code] != data_dic['基金名称']:
+        if wind_code not in wind_code_name_dic:
+            error_dic[wind_code + '_code'] = "%s %s 在基金要素表中不存在，请添加相应的基金要素信息或修改成已存在的基金要素" % (wind_code, data_dic['基金名称'])
+        elif wind_code_name_dic[wind_code] != data_dic['基金名称']:
             error_dic[wind_code + '_name'] = "%s 与 %s 不匹配" % (wind_code, data_dic['基金名称'])
         try:
             if math.isnan(data_dic['单位净值']):
