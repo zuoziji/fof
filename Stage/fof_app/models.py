@@ -654,8 +654,13 @@ class FUND_TRANSACTION(db.Model):
         return  self.wind_code_s
 
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
+        d = {}
+        for c in self.__table__.columns:
+            v = getattr(self,c.name)
+            if isinstance(v,float):
+                 v = abs(v)
+            d[c.name] = v
+        return d
 
 
 def query_invest(rank):

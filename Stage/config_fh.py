@@ -70,10 +70,10 @@ def get_db_engine(db_name='dev_db') -> object:  # fh_db dev_db
             "mysql://%(DB_USER)s:%(DB_PASSWORD)s@%(DB_IP)s:%(DB_PORT)s/%(DB_NAME)s?charset=utf8"
             % db_info_dic,  # dev_db fh_db
             echo=False, encoding="utf-8")
-        logger.debug('开始连接DB:{}'.format(db_name))
+        #logger.debug('开始连接DB:{}'.format(db_name))
     elif db_info_dic['type'] == 'sqlite':
         engine = create_engine(db_info_dic['URL'], echo=False, encoding="utf-8")
-    logger.debug("{}数据库已连接".format(db_name))
+    #logger.debug("{}数据库已连接".format(db_name))
     return engine
 
 

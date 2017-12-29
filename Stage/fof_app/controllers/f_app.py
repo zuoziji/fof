@@ -2065,6 +2065,8 @@ def get_transaction():
         for k, v in i.items():
             if v is not None and isinstance(v, datetime.date):
                 i[k] = v.strftime('%Y-%m-%d')
+            if isinstance(v, float):
+                i[k] = abs(v)
     return json.dumps(result)
 
 
@@ -2088,13 +2090,18 @@ def change_transaction(uid):
         return jsonify(tr.as_dict())
     elif request.method == 'POST':
         data = request.json
-        tr = FUND_TRANSACTION.query.get(uid)
-        for k, v in data.items():
-            if len(v) == 0:
-                v = None
-            setattr(tr, k, v)
-        db.session.commit()
-        return jsonify(status="ok")
+        data = {k: (None if len(v) == 0 else v) for k, v in data.items()}
+        trClass = Transaction()
+        error = trClass.checkdfrole(data)
+        if len(error) == 0:
+            tr = FUND_TRANSACTION.query.get(uid)
+            del data['fof_name'], data['sec_name_s'], data['wind_code_s']
+            for k, v in trClass.formatData(data).items():
+                setattr(tr, k, v)
+            db.session.commit()
+            return jsonify(status="ok")
+        else:
+            return jsonify(status="error", error=error)
 
 
 @f_app_blueprint.route('/add_transaction', methods=['GET', 'POST'])
@@ -2102,11 +2109,11 @@ def change_transaction(uid):
 def add_transaction():
     if request.method == 'POST':
         data = request.json
-        data = {0: {k: (None if len(v) == 0 else v) for k, v in data.items()}}
+        data = {k: (None if len(v) == 0 else v) for k, v in data.items()}
         trClass = Transaction()
         error = trClass.checkdfrole(data)
         if len(error) == 0:
-            tr = FUND_TRANSACTION(**data[0])
+            tr = FUND_TRANSACTION(**trClass.formatData(data))
             db.session.add(tr)
             db.session.commit()
             return jsonify(status="ok")
