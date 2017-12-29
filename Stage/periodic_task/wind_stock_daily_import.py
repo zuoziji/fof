@@ -269,10 +269,10 @@ def import_stock_daily_wch():
                           wind_code, ipo_date, delist_date in table.fetchall()}
     date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
-    data_count = len(stock_date_dic)
-    logger.info('%d stocks will been import into wind_trade_date_wch', data_count)
+    data_len = len(stock_date_dic)
+    logger.info('%d stocks will been import into wind_trade_date_wch', data_len)
     try:
-        for stock_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
+        for data_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
             date_ipo, date_delist = date_pair
             # 获取 date_from
             if wind_code in stock_trade_date_latest_dic:
@@ -289,18 +289,28 @@ def import_stock_daily_wch():
             date_to = get_last(trade_date_sorted_list, lambda x: x <= date_to)
             if date_from is None or date_to is None or date_from > date_to:
                 continue
-            logger.debug("%d/%d) 获取股票 %s %s %s 行情数据", stock_num, data_count, wind_code, date_from, date_to)
-            # 获取股票量价等行情数据
-            wind_indictor_str = "open,high,low,close"
-            ohlc_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "PriceAdj=B")
-            if ohlc_df is None:
-                logger.warning('%d/%d) %s [%s %s] 缺少开高低收（后复权）行情数据', stock_num, data_count, wind_code, date_from, date_to)
-                continue
-            wind_indictor_str = "close,volume,total_shares,free_float_shares,val_pe_deducted_ttm,pb_lf,ev2,ev2_to_ebitda"
-            other_data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
-            if other_data_df is None:
-                logger.warning('%d/%d) %s [%s %s] 缺少行情数据', stock_num, data_count, wind_code, date_from, date_to)
-                continue
+            logger.debug("%d/%d) 获取股票 %s [%s %s] 行情数据", data_num, data_len, wind_code, date_from, date_to)
+            try:
+                # 获取股票量价等行情数据
+                wind_indictor_str = "open,high,low,close"
+                ohlc_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "PriceAdj=B")
+                if ohlc_df is None:
+                    logger.warning('%d/%d) %s [%s %s] 缺少开高低收（后复权）行情数据', data_num, data_len, wind_code, date_from, date_to)
+                    continue
+                wind_indictor_str = "close,volume,total_shares,free_float_shares,val_pe_deducted_ttm,pb_lf,ev2,ev2_to_ebitda"
+                other_data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
+                if other_data_df is None:
+                    logger.warning('%d/%d) %s [%s %s] 缺少行情数据', data_num, data_len, wind_code, date_from, date_to)
+                    continue
+            except APIError as exp:
+                logger.exception("%d/%d) %s 执行异常", data_num, data_len, wind_code)
+                if exp.ret_dic.setdefault('error_code', 0) in (
+                        -40520007,  # 没有可用数据
+                        -40521009,  # 数据解码失败。检查输入参数是否正确，如：日期参数注意大小月月末及短二月
+                ):
+                    continue
+                else:
+                    break
             other_data_df.rename(columns={'CLOSE': 'CloseUnadj',
                                           'TOTAL_SHARES': 'TotalShare',
                                           'FREE_FLOAT_SHARES': 'FreeFloatShare',
@@ -310,7 +320,7 @@ def import_stock_daily_wch():
                                           'EV2_TO_EBITDA': 'EVEBITDA',
                                           }, inplace=True)
             data_df = ohlc_df.merge(other_data_df, how='outer', left_index=True, right_index=True)
-            logger.info('%d/%d) %s [%s %s] 包含 %d 条历史行情数据', stock_num, data_count, wind_code, date_from, date_to, data_df.shape[0])
+            logger.info('%d/%d) %s [%s %s] 包含 %d 条历史行情数据', data_num, data_len, wind_code, date_from, date_to, data_df.shape[0])
             data_df['wind_code'] = wind_code
             data_df_list.append(data_df)
     finally:

@@ -5,7 +5,7 @@ Created on 2017/5/2
 """
 import logging
 from datetime import datetime, date, timedelta
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest, APIError
 from sqlalchemy.types import String, Date, Float
 import re
 import pandas as pd
@@ -176,11 +176,27 @@ def import_wind_future_daily():
     logger.info("更新 wind_future_daily 开始")
     date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     # w.wsd("AG1612.SHF", "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock", "2016-11-01", "2016-12-21", "")
-    sql_str = """select fi.wind_code, ifnull(trade_date_max_1, ipo_date) date_frm, 
-    lasttrade_date
+    # sql_str = """select fi.wind_code, ifnull(trade_date_max_1, ipo_date) date_frm,
+    # lasttrade_date
+    # from wind_future_info fi left outer join
+    # (select wind_code, adddate(max(trade_date),1) trade_date_max_1 from wind_future_daily group by wind_code) wfd
+    # on fi.wind_code = wfd.wind_code"""
+    # 16 点以后 下载当天收盘数据，16点以前只下载前一天的数据
+    # 对于 date_to 距离今年超过1年的数据不再下载：发现有部分历史过于久远的数据已经无法补全，
+    # 如：AL0202.SHF AL9902.SHF CU0202.SHF
+    sql_str = """select wind_code, date_frm, if(lasttrade_date<end_date, lasttrade_date, end_date) date_to
+FROM
+(
+select fi.wind_code, ifnull(trade_date_max_1, ipo_date) date_frm, 
+    lasttrade_date,
+		if(hour(now())<16, subdate(curdate(),1), curdate()) end_date
     from wind_future_info fi left outer join
     (select wind_code, adddate(max(trade_date),1) trade_date_max_1 from wind_future_daily group by wind_code) wfd
-    on fi.wind_code = wfd.wind_code"""
+    on fi.wind_code = wfd.wind_code
+) tt
+where date_frm <= if(lasttrade_date<end_date, lasttrade_date, end_date) 
+and subdate(curdate(), 360) < if(lasttrade_date<end_date, lasttrade_date, end_date) 
+order by wind_code"""
     engine = get_db_engine()
     future_date_dic = {}
     with get_db_session(engine) as session:
@@ -197,10 +213,10 @@ def import_wind_future_daily():
     data_df_list = []
     # w.start()
     rest = WindRest(WIND_REST_URL)  # 初始化服务器接口，用于下载万得数据
-    future_count = len(future_date_dic)
+    data_len = len(future_date_dic)
     try:
-        logger.info("%d future instrument will be handled", future_count)
-        for n_future, (wind_code, (date_frm, date_to)) in enumerate(future_date_dic.items()):
+        logger.info("%d future instrument will be handled", data_len)
+        for data_num, (wind_code, (date_frm, date_to)) in enumerate(future_date_dic.items()):
             # 暂时只处理 RU 期货合约信息
             # if wind_code.find('RU') == -1:
             #     continue
@@ -208,11 +224,21 @@ def import_wind_future_daily():
                 continue
             date_frm_str = date_frm.strftime(STR_FORMAT_DATE)
             date_to_str = date_to.strftime(STR_FORMAT_DATE)
-            logger.info('%d/%d) get %s between %s and %s', n_future, future_count, wind_code, date_frm_str, date_to_str)
+            logger.info('%d/%d) get %s between %s and %s', data_num, data_len, wind_code, date_frm_str, date_to_str)
             # data_df_tmp = wsd_cache(w, wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
             #                         date_frm, date_to, "")
-            data_df_tmp = rest.wsd(wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
+            try:
+                data_df_tmp = rest.wsd(wind_code, "open,high,low,close,volume,amt,dealnum,settle,oi,st_stock",
                                    date_frm_str, date_to_str, "")
+            except APIError as exp:
+                logger.exception("%d/%d) %s 执行异常", data_num, data_len, wind_code)
+                if exp.ret_dic.setdefault('error_code', 0) in (
+                        -40520007,  # 没有可用数据
+                        -40521009,  # 数据解码失败。检查输入参数是否正确，如：日期参数注意大小月月末及短二月
+                ):
+                    continue
+                else:
+                    break
             data_df_tmp['wind_code'] = wind_code
             data_df_list.append(data_df_tmp)
             # if len(data_df_list) >= 50:

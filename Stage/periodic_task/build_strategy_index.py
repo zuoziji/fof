@@ -1014,7 +1014,7 @@ if __name__ == '__main__':
         return rr
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    date_from_str, date_to_str = '2015-12-1', '2017-12-1'
+    date_from_str, date_to_str = '2016-12-1', '2017-12-1'
     stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
     folder_path = get_cache_file_path("%s_%s" % (date_from_str, date_to_str))
     if not os.path.exists(folder_path):
@@ -1029,7 +1029,7 @@ if __name__ == '__main__':
         file_path = get_cache_file_path('%s_%s\%s_每周idx_按机构.csv' % (date_from_str, date_to_str, stg))
         date_mgr_idx_df.to_csv(file_path)
         logger.info(file_path)
-    file_path = get_cache_file_path('%s_%s\策略绩效统计_按机构.csv' % (date_from_str, date_to_str))
+    file_path = get_cache_file_path('%s_%s\策略盈亏统计_按机构.csv' % (date_from_str, date_to_str))
     stat_df.to_csv(file_path)
     logger.info(file_path)
     file_path = get_cache_file_path('%s_%s\各策略指数走势_按机构.csv' % (date_from_str, date_to_str))
