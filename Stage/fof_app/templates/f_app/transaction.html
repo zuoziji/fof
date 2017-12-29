@@ -1,6 +1,7 @@
 {% extends "main.html" %}
 {% block css %}
-    <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
+<link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
+<link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" />
 <style>
 table.dataTable tbody tr.selected {
     background-color: #f5f5f5;
@@ -13,6 +14,9 @@ table .desc:hover{
     padding: 5px!important;
     border-radius: 2px;
     z-index: 9;
+}
+.dropdown-menu span.glyphicon-ok:before{
+    content: "";
 }
 </style>
 {% endblock %}
@@ -31,7 +35,7 @@ table .desc:hover{
        <table class="table table-bordered center-all display" id="invest_tab" width="100%" >
         <thead>
           <tr>
-            <th><input type="checkbox" name="select_all"></th>
+            <th style="padding:8px 10px;"><input type="checkbox" name="select_all"></th>
             <th>批次代码</th>
             <th>FOF基金名称</th>
             <th>基金名称</th>
@@ -113,25 +117,25 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">确认基准净值</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control" id="confirm_benchmark" value="" name="confirm_benchmark">
+                            <input type="number" class="form-control" id="confirm_benchmark" value="" name="confirm_benchmark">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">份额</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control" id="share" value="" name="share">
+                            <input type="number" class="form-control" id="share" value="" name="share">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="amount">金额</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control" id="amount" value="" name="amount">
+                            <input type="number" class="form-control" id="amount" value="" name="amount">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="description">事项说明</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description" value="" name="description"></textarea>
+                            <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description" value="" name="description" placeholder="最多只能输入100个字符"></textarea>
                         </div>
                     </div>
                 </form>           
@@ -221,13 +225,13 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">确认基准净值</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control" id="confirm_benchmark_add" value="" name="confirm_benchmark">
+                            <input type="number" class="form-control" id="confirm_benchmark_add" value="" name="confirm_benchmark">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="share">份额</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="text" class="form-control" id="share_add" value="" name="share">
+                            <input type="number" class="form-control" id="share_add" value="" name="share">
                         </div>
                     </div>
                     <div class="form-group">
@@ -239,7 +243,7 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="description">事项说明</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description_add" value="" name="description"></textarea>
+                            <textarea rows=3 class="form-control col-md-7 col-xs-12" id="description_add" value="" name="description" placeholder="最多只能输入100个字符"></textarea>
                         </div>
                     </div>
                 </form>
@@ -258,6 +262,8 @@ table .desc:hover{
 <script src="../../static/vendors/moment/moment.js"></script>
 <script src="../../static/vendors/bootstrap-select/js/bootstrap-select.js"></script>
 <script src="../../static/vendors/bootstrap-select/js/i18n/defaults-zh_CN.js"></script>
+<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
+<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
 <script>
 
     var rows_selected = [];
@@ -463,13 +469,122 @@ table .desc:hover{
         });
    });
 
+    $("#form").bootstrapValidator({            //表单验证
+        feedbackIcons: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh',
+            framework: 'bootstrap'
+        }, fields: {
+            request_date: {
+                validators: {
+                    notEmpty: {
+                        message: '申请日期不能为空'
+                    }
+                }
+            },
+            confirm_date: {
+                validators: {
+                    notEmpty: {
+                        message: '确认日期不能为空'
+                    }
+                }
+            },
+            confirm_benchmark: {
+                validators: {
+                    integer: {
+                        message: '请输入一个数值类型'
+                    }
+                }
+            },
+            amount: {
+                validators: {
+                    integer: {
+                        message: '请输入一个数值类型'
+                    },
+                    notEmpty: {
+                        message: '金额不能为空'
+                    }
+                }
+            },
+            share: {
+                validators: {
+                    integer: {
+                        message: '请输入一个数值类型'
+                    },
+                    notEmpty: {
+                        message: '份额不能为空'
+                    }
+                }
+            }
+        }
+    });
+    $("#form_add").bootstrapValidator({            //表单验证
+        feedbackIcons: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh',
+            framework: 'bootstrap'
+        }, fields: {
+            sec_name_s: {
+                validators: {
+                    notEmpty: {
+                        message: '基金名称不能为空'
+                    }
+                }
+            },
+            request_date: {
+                validators: {
+                    notEmpty: {
+                        message: '申请日期不能为空'
+                    }
+                }
+            },
+            confirm_date: {
+                validators: {
+                    notEmpty: {
+                        message: '确认日期不能为空'
+                    }
+                }
+            },
+            confirm_benchmark: {
+                validators: {
+                    integer: {
+                        message: '请输入一个数值类型'
+                    }
+                }
+            },
+            amount: {
+                validators: {
+                    integer: {
+                        message: '请输入一个数值类型'
+                    },
+                    notEmpty: {
+                        message: '金额不能为空'
+                    }
+                }
+            },
+            share: {
+                validators: {
+                    integer: {
+                        message: '请输入一个数值类型'
+                    },
+                    notEmpty: {
+                        message: '份额不能为空'
+                    }
+                }
+            }
+        }
+    });
     var id;
         //edit 
     $(".x_panel").on('click','.edit',function(){
         var checked=[];
-        if(rows_selected.length!==1){     
+        var length=rows_selected.length;
+        if(length!==1){ 
+            var title =length==0?'至少选择一个交易记录':'只能选择一个交易记录';    
             new PNotify({
-                title: '请选择一个交易记录',
+                title: title,
                 text:  '',
                 type: 'warn',
                 styling: 'bootstrap3'
@@ -503,28 +618,32 @@ table .desc:hover{
     })
     //submit edit form
     $("#save").on("click",function(){
-        $.ajax({
-            url: '/f_app/change_transaction/'+id,
-            type:'POST',
-            contentType: 'application/json',
-            dataType:'json',
-            data:JSON.stringify({
-                accounting_date:$("#accounting_date").val(),
-                amount:$("#amount").val(),
-                confirm_benchmark:$("#confirm_benchmark").val(),
-                confirm_date:$("#confirm_date").val(),
-                description:$("#description").val(),
-                operating_type:$("#operating_type").val(),
-                request_date:$("#request_date").val(),
-                share:$("#share").val()
-            }),
-            success: function(resp) {
-                if(resp){
-                    table.ajax.reload(null,false);
+        var bv = $('#form').data('bootstrapValidator');
+        bv.validate();
+        if(bv.isValid()){
+            $.ajax({
+                url: '/f_app/change_transaction/'+id,
+                type:'POST',
+                contentType: 'application/json',
+                dataType:'json',
+                data:JSON.stringify({
+                    accounting_date:$("#accounting_date").val(),
+                    amount:$("#amount").val(),
+                    confirm_benchmark:$("#confirm_benchmark").val(),
+                    confirm_date:$("#confirm_date").val(),
+                    description:$("#description").val(),
+                    operating_type:$("#operating_type").val(),
+                    request_date:$("#request_date").val(),
+                    share:$("#share").val()
+                }),
+                success: function(resp) {
+                    if(resp){
+                        table.ajax.reload(null,false);
+                    }
                 }
-            }
-        });
-        $("#myModal").modal("hide");
+            });
+            $("#myModal").modal("hide");
+        }
     })
 
     $('.selectpicker').on('change',function (e) {
@@ -537,51 +656,59 @@ table .desc:hover{
 
     //submit add form
     $("#save_add").on("click",function(){
-        $.ajax({
-            url: '/f_app/add_transaction',
-            type:'POST',
-            contentType: 'application/json',
-            dataType:'json',
-            data:JSON.stringify({                
-                accounting_date:$("#accounting_date_add").val(),
-                amount:$("#amount_add").val(),
-                confirm_benchmark:$("#confirm_benchmark_add").val(),
-                confirm_date:$("#confirm_date_add").val(),
-                description:$("#description_add").val(),
-                fof_name:$("#fof_name_add").val(),
-                operating_type:$("#operating_type_add").val(),
-                request_date:$("#request_date_add").val(),
-                sec_name_s:$("#sec_name_s_add").val(),
-                share:$("#share_add").val(),
-                wind_code_s:$("#wind_code_s_add").val()
-            }),
-            success: function(resp) {
-                if(resp.status == "ok"){
-                    table.ajax.reload(null,false);
-                    $("#form_add")[0].reset();
-                    $(".filter-option.pull-left").html('请选择基金');
-                    $("#addModal").modal("hide");
-                }else{
-                    var text='';
-                    $(resp.error).each(function(index,val){
-                        text+=`<p>${val}</p>`;
-                    })
-                    new PNotify({
-                        title: '',
-                        text:  '<div style="padding-left:20px;">'+text+'</div>',
-                        type: 'error',
-                        styling: 'bootstrap3'
-                    });
-                }
+        var bv = $('#form_add').data('bootstrapValidator');
+        bv.validate();
+        if(bv.isValid()){
+            $.ajax({
+                url: '/f_app/add_transaction',
+                type:'POST',
+                contentType: 'application/json',
+                dataType:'json',
+                data:JSON.stringify({                
+                    accounting_date:$("#accounting_date_add").val(),
+                    amount:$("#amount_add").val(),
+                    confirm_benchmark:$("#confirm_benchmark_add").val(),
+                    confirm_date:$("#confirm_date_add").val(),
+                    description:$("#description_add").val(),
+                    fof_name:$("#fof_name_add").val(),
+                    operating_type:$("#operating_type_add").val(),
+                    request_date:$("#request_date_add").val(),
+                    sec_name_s:$("#sec_name_s_add").val(),
+                    share:$("#share_add").val(),
+                    wind_code_s:$("#wind_code_s_add").val()
+                }),
+                success: function(resp) {
+                    if(resp.status == "ok"){
+                        table.ajax.reload(null,false);
+                        $("#form_add")[0].reset();
+                        $(".filter-option.pull-left").html('请选择基金');
+                        $("#addModal").modal("hide");
+                    }else{
+                        var text='';
+                        $(resp.error).each(function(index,val){
+                            text+=`<p>${val}</p>`;
+                        })
+                        new PNotify({
+                            title: '',
+                            text:  '<div style="padding-left:20px;">'+text+'</div>',
+                            type: 'error',
+                            styling: 'bootstrap3'
+                        });
+                    }
 
-            }
-        });
+                }
+            });
+        }
     })
     $("#close_add").on("click",function(){
         $("#form_add")[0].reset();
         $(".filter-option.pull-left").html('请选择基金');
     })
+    $("#close").on("click",function(){
+        $("#form").data("bootstrapValidator").resetForm();
+    })
     $('#addModal').modal({backdrop: 'static', keyboard: true,show: false});
+    $('#myModal').modal({backdrop: 'static', keyboard: true,show: false});
  </script>
 
 {% endblock %}
