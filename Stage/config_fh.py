@@ -50,7 +50,7 @@ UN_AVAILABLE_DATE = datetime.strptime('1900-01-01', STR_FORMAT_DATE).date()
 
 # "http://10.0.3.84:5000/wind/"
 # "http://10.0.3.78:5000/wind/" 王宇
-WIND_REST_URL = "http://10.0.3.66:5000/wind/"  # "http://10.0.5.110:5000/wind/"
+WIND_REST_URL = "http://10.0.5.66:5000/wind/"  # "http://10.0.5.110:5000/wind/"
 logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
 
 # 配置Redis数据库地址、端口、db
