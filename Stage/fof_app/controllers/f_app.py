@@ -2092,7 +2092,7 @@ def change_transaction(uid):
         data = request.json
         data = {k: (None if len(v) == 0 else v) for k, v in data.items()}
         trClass = Transaction()
-        error = trClass.checkdfrole(data)
+        error = trClass.checkdfrole(data,add=False)
         if len(error) == 0:
             tr = FUND_TRANSACTION.query.get(uid)
             del data['fof_name'], data['sec_name_s'], data['wind_code_s']

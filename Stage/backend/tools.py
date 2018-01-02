@@ -5,19 +5,19 @@
 :license: Apache 2.0, see LICENSE for more details.
 """
 from functools import wraps
-from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db,FOF_FUND_PCT,FUND_STG_PCT,code_get_name,Fund_Core_Info,FUND_NAV
-from flask import  request, current_app,redirect,flash
+from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db, FOF_FUND_PCT, FUND_STG_PCT, code_get_name, \
+    Fund_Core_Info, FUND_NAV
+from flask import request, current_app, redirect, flash
 from flask_login import current_user
 from datetime import date
-import logging,json
+import logging, json
 from config_fh import get_redis
-from fh_tools.fh_utils import return_risk_analysis,drawback_analysis
+from fh_tools.fh_utils import return_risk_analysis, drawback_analysis
 from analysis.factor_analysis import temp_load_method
 from sqlalchemy import and_
 from pandas import DataFrame
 import pandas as pd
 import numpy as  np
-
 
 logger = logging.getLogger()
 
@@ -30,6 +30,7 @@ def fund_owner(func):
     :param wind_code:基金代码
     :return: func
     """
+
     @wraps(func)
     def _deco(wind_code: str) -> object:
         logger.info("当前用户{}基金代码{}".format(current_user.username, wind_code))
@@ -65,7 +66,9 @@ def fund_owner(func):
         else:
             flash("没有权限使用这个功能", "error")
             return redirect(request.referrer)
+
     return _deco
+
 
 def check_code_order(wind_code):
     fof = FoFModel.query.filter_by(wind_code=wind_code).first()
@@ -76,6 +79,8 @@ def check_code_order(wind_code):
         fof.wind_code = fof_mapping.wind_code_s
         db.session.remove()
     return fof
+
+
 def get_core_info(wind_code):
     core_info = Fund_Core_Info.query.filter_by(wind_code=wind_code).first()
     if core_info is None:
@@ -88,9 +93,12 @@ def get_core_info(wind_code):
             return fof
     else:
         return core_info
+
+
 def chunks(l: list, n: int):
     for i in range(0, len(l), n):
         yield l[i:i + n]
+
 
 def get_Value(dic: dict, value: str) -> str:
     if value == 'value':
@@ -99,11 +107,13 @@ def get_Value(dic: dict, value: str) -> str:
         if dic[name] == value:
             return name
 
+
 def range_years(start, end) -> tuple:
     dt = date.today()
     start = "%d-%d-%d" % (dt.year - start, dt.month, dt.day)
     end = "%d-%d-%d" % (dt.year - end, dt.month, dt.day)
     return start, end
+
 
 def get_stress_data(wind_code):
     r = get_redis()
@@ -141,7 +151,8 @@ def get_stress_data(wind_code):
         capital_data = temp_load_method()
     else:
         capital_data = None
-    return fhs_obj,copula_obj,multi_obj,capital_data
+    return fhs_obj, copula_obj, multi_obj, capital_data
+
 
 def get_stg(wind_code):
     fof = FoFModel.query.filter_by(wind_code=wind_code).first()
@@ -160,9 +171,10 @@ def get_stg(wind_code):
             and_(FUND_STG_PCT.trade_date == i, FUND_STG_PCT.wind_code == wind_code)).all()
         stg_status.append([{"name": i.stg_code, 'value': i.stg_pct} for i in status])
     stg_charts = {"date": stg_time_line, 'value': stg_status}
-    return {"stg":stg,"stg_charts":stg_charts}
+    return {"stg": stg, "stg_charts": stg_charts}
 
-def child_charts(wind_code,display_type):
+
+def child_charts(wind_code, display_type):
     query = db.session.query(FOF_FUND_PCT.date_adj.distinct().
                              label("t_date")).filter_by(wind_code_p=wind_code).order_by(FOF_FUND_PCT.date_adj)
     status_date = [row.t_date.strftime('%Y-%m-%d') for row in query.all()]
@@ -171,8 +183,8 @@ def child_charts(wind_code,display_type):
         for i in status_date:
             status = FOF_FUND_PCT.query.filter(
                 and_(FOF_FUND_PCT.wind_code_p == wind_code, FOF_FUND_PCT.date_adj == i)).all()
-            t_status.append([{"name":code_get_name(x.wind_code_s), "value": x.invest_scale} for x in status])
-        return {"date":status_date,"value":t_status}
+            t_status.append([{"name": code_get_name(x.wind_code_s), "value": x.invest_scale} for x in status])
+        return {"date": status_date, "value": t_status}
     else:
         for i in status_date:
             status = FOF_FUND_PCT.query.filter(
@@ -193,9 +205,10 @@ def child_charts(wind_code,display_type):
                 df = DataFrame(content)
                 sum_df = df.groupby(["name"]).sum()
                 sum_dict = sum_df['value'].to_dict()
-                sum_list = [{"name":code_get_name(k),'value':v} for k,v in sum_dict.items()]
+                sum_list = [{"name": code_get_name(k), 'value': v} for k, v in sum_dict.items()]
             t_status.append(sum_list)
-        return {"date":status_date,"value":t_status}
+        return {"date": status_date, "value": t_status}
+
 
 def calc_periods(wind_code):
     """
@@ -204,22 +217,25 @@ def calc_periods(wind_code):
     :return: list
     """
     all_record = FUND_NAV.query.filter_by(wind_code=wind_code).all()
-    record_list = [ i.as_dict() for i  in all_record]
-    df = DataFrame(record_list)
-    df.index = pd.to_datetime(df['nav_date'])
-    df = df.drop(['nav','nav_tot','source_mark','wind_code'],axis=1)
-    risk_df = return_risk_analysis(df[['nav_acc']],freq=None)
-    result_dict = {}
-    risk = { k:v['nav_acc'] for k,v in risk_df.T.to_dict().items()}
-    drawback_df = drawback_analysis((df[['nav_acc']]))
-    drawback = {k.strftime("%Y-%m-%d"):"%.4f" %v['nav_acc'] for k,v in drawback_df.T.to_dict().items()}
-    result = df.resample('M', convention='end').pct_change()
-    for k,v in result.T.to_dict().items():
-        month = k.strftime('%Y-%m')
-        if not np.isnan(v['nav_acc']):
-            value = v['nav_acc'] * 100
-            result_dict[month] = "%.3f" % value
-    return result_dict,risk,drawback
+    if len(all_record) > 1:
+        record_list = [i.as_dict() for i in all_record]
+        df = DataFrame(record_list)
+        df.index = pd.to_datetime(df['nav_date'])
+        df = df.drop(['nav', 'nav_tot', 'source_mark', 'wind_code'], axis=1)
+        risk_df = return_risk_analysis(df[['nav_acc']], freq=None)
+        result_dict = {}
+        risk = {k: v['nav_acc'] for k, v in risk_df.T.to_dict().items()}
+        drawback_df = drawback_analysis((df[['nav_acc']]))
+        drawback = {k.strftime("%Y-%m-%d"): "%.4f" % v['nav_acc'] for k, v in drawback_df.T.to_dict().items()}
+        result = df.resample('M', convention='end').pct_change()
+        for k, v in result.T.to_dict().items():
+            month = k.strftime('%Y-%m')
+            if not np.isnan(v['nav_acc']):
+                value = v['nav_acc'] * 100
+                result_dict[month] = "%.3f" % value
+        return result_dict, risk, drawback
+    else:
+        return None, None, None
 
 
 if __name__ == "__main__":
