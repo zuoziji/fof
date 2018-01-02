@@ -47,6 +47,8 @@ table .desc:hover{
             <th>份额</th>
             <th>金额</th>
             <th>事项说明</th>
+            <th>当前总份额</th>
+            <th>当前持仓总成本</th>
           </tr>
         </thead>
        </table>
@@ -105,7 +107,7 @@ table .desc:hover{
                                 <option>份额强增</option> 
                                 <option>现金分红</option> 
                                 <option>分红再投资</option>
-                                <option>提取业绩报酬</option> 
+                                <option>提取业绩报酬</option>
                             </select>
                         </div>
                     </div>
@@ -240,13 +242,15 @@ table .desc:hover{
                     return '';
                 }
             }
-          }
+          },
+          {data:null},
+          {data:null}
       ],
         "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
         "t" +
         "<'row'<'col-xs-6'i><'col-xs-6'p>>",
         "initComplete": function () {
-            $("#mytool").append(`<button type="button" class="add btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
+            $("#mytool").append(`<button type="button" class="add btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button><button type="button" class="btn btn-success btn-sm download"><span class="fa fa-download">导出</span></button>`);
         }
     });
 
