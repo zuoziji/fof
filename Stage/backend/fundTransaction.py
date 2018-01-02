@@ -5,7 +5,6 @@ import logging
 from fof_app.models import db, FUND_TRANSACTION, FUND_ESSENTIAL, FOF_FUND_PCT, FoFModel
 import os
 from sqlalchemy import and_
-from string import Template
 
 logger = logging.getLogger()
 

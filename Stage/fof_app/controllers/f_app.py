@@ -2057,7 +2057,8 @@ def get_transaction():
     """
     logger.info("{} use this method".format(current_user.username))
     columns = ['id', 'wind_code_s', 'operating_type', 'accounting_date', 'request_date',
-               'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description', 'sec_name_s', 'fof_name']
+               'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description',
+               'sec_name_s', 'fof_name', 'total_share', 'total_cost']
     index_column = "id"
     table = "fund_transaction"
     result = DataTablesServer(request, columns=columns, table=table, index=index_column).output_result()

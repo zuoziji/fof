@@ -218,7 +218,7 @@ table .desc:hover{
         'select': {
             'style': 'multi'
         },
-        order:[[1,"desc"]],
+        order:[[7,"asc"]],
         columns: [
           {data:'id',
             'render': function (data, type, full, meta){
@@ -243,8 +243,8 @@ table .desc:hover{
                 }
             }
           },
-          {data:null},
-          {data:null}
+          {data:"total_share"},
+          {data:"total_cost"}
       ],
         "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
         "t" +
