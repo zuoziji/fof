@@ -2121,6 +2121,11 @@ def add_transaction():
         else:
             return jsonify(status="error", error=error)
 
+@f_app_blueprint.route('/query_transaction', methods=['GET','POST'])
+@login_required
+def query_transaction():
+    data = request.json
+    return jsonify(status='ok')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

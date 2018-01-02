@@ -669,15 +669,16 @@ def receive_after_insert(mapper, connection, target):
         logger.info("---------------------record size {}------------".format(record))
         last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
                 FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.desc()).first()
-        print(last.wind_code_s,last.share,last.total_cost,last.confirm_date)
-
         target.total_share = float(target.share) + last.total_share
         target.total_cost = float(target.amount) + last.total_cost
-        # record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
-        #               FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.asc()).all()
-        # tr_record = pairwise(record_list)
-        # for i in tr_record:
-        #     print(i)
+        record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
+                      FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.asc()).all()
+        logger.info(">----------------last record {}---------<".format(len(record_list)))
+        if len(record_list) > 0:
+            print(target.total_share,target.total_cost)
+            tr_record = pairwise(record_list)
+            for i in tr_record:
+                print(i[0].confirm_date,i[1].confirm_date)
     else:
         target.total_share = target.share
         target.total_cost = target.amount
