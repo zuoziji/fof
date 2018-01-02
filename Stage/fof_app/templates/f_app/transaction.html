@@ -72,6 +72,7 @@ table .desc:hover{
 
                                 {% for i in fof_list %}
                                     <optgroup label="{{ i.primary }}">
+                                        <option value="{{ i.primary }}" code="{{ i.primary.wind_code }}">{{ i.primary }}</option>
                                         {% for x in i.child %}
                                             <option value="{{ x.name }}" code={{ x.code }}>{{ x.name }}</option>
                                           {% endfor %}
