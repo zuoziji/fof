@@ -2125,6 +2125,14 @@ def add_transaction():
 @f_app_blueprint.route('/query_transaction', methods=['GET', 'POST'])
 @login_required
 def query_transaction():
+    """
+    status
+    new     new record
+    add     add all records before
+    check   post data incomplete
+    ok      add record to all records after
+    :return:
+    """
     if request.method == "POST":
         data = request.json
         five_check = list(map(lambda x: True if x > 0 else False, [len(i) for i in data.values()]))
