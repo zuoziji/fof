@@ -5,7 +5,7 @@
 :license: Apache 2.0, see LICENSE for more details.
 """
 
-from sqlalchemy import event, and_,desc
+from sqlalchemy import event, and_
 from flask_login import AnonymousUserMixin, current_user
 from datetime import datetime
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -17,6 +17,7 @@ from sqlalchemy.types import TypeDecorator, String
 from cryptography.fernet import Fernet
 from flask_sqlalchemy import SQLAlchemy
 import itertools
+from sqlalchemy.sql import exists
 
 key = "lNXHXIz61VOA6Q1Zc1v5K-udwN1dEfHK8d8DBXA3-MQ="
 logger = logging.getLogger()
@@ -655,6 +656,7 @@ def pairwise(iterable):
     next(b, None)
     return zip(a, b)
 
+
 @event.listens_for(FUND_TRANSACTION, 'before_insert')
 def receive_after_insert(mapper, connection, target):
     """
@@ -664,29 +666,48 @@ def receive_after_insert(mapper, connection, target):
     :param target:
     :return:
     listen for the 'after_insert' event"""
-    record = FUND_TRANSACTION.query.filter_by(wind_code_s=target.wind_code_s).count()
-    if record >= 1:
-        logger.info("---------------------record size {}------------".format(record))
-        last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
-                FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.desc()).first()
-        target.total_share = float(target.share) + last.total_share
-        target.total_cost = float(target.amount) + last.total_cost
-        record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
-                      FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.asc()).all()
-        logger.info(">----------------last record {}---------<".format(len(record_list)))
-        if len(record_list) > 0:
-            print(target.total_share,target.total_cost)
-            tr_record = pairwise(record_list)
-            for i in tr_record:
-                print(i[0].confirm_date,i[1].confirm_date)
-    else:
+    record = FUND_TRANSACTION.query.filter_by(wind_code_s=target.wind_code_s).\
+             order_by(FUND_TRANSACTION.confirm_date.asc()).all()
+    if len(record) == 0:
         target.total_share = target.share
-        target.total_cost = target.amount
+        target.total_cost = target.amoun
+    else:
+        tr = db.session.query(exists().where(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                                  FUND_TRANSACTION.confirm_date > target.confirm_date))).scalar()
+        if tr:
+            record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                          FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
+                          FUND_TRANSACTION.confirm_date.asc()).all()
+            for i in record_list:
+                print(i.as_dict())
+        else:
+            last_record = record[-1]
+            target.total_share = float(target.share)+last_record.total_share
+            target.total_cost = float(target.amount)+last_record.total_cost
+
+    # if record >= 1:
+    #     logger.info("---------------------record size {}------------".format(record))
+    #     last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+    #                                               FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(
+    #         FUND_TRANSACTION.confirm_date.desc()).first()
+    #     target.total_share = float(target.share) + last.total_share
+    #     target.total_cost = float(target.amount) + last.total_cost
+    #     record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+    #                                                      FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
+    #         FUND_TRANSACTION.confirm_date.asc()).all()
+    #     logger.info(">----------------last record {}---------<".format(len(record_list)))
+    #     if len(record_list) > 0:
+    #         print(target.total_share, target.total_cost)
+    #         tr_record = pairwise(record_list)
+    #         for i in tr_record:
+    #             print(i[0].confirm_date, i[1].confirm_date)
+    # else:
+
+
 
 @event.listens_for(FUND_TRANSACTION, 'before_update')
 def receive_before_update(mapper, connection, target):
     print(target)
-
 
 
 def query_invest(rank):
