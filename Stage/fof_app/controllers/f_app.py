@@ -2055,6 +2055,7 @@ def get_transaction():
     :by hdhuang
     :return:
     """
+    print(request.args)
     logger.info("{} use this method".format(current_user.username))
     columns = ['id', 'wind_code_s', 'operating_type', 'accounting_date', 'request_date',
                'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description',
@@ -2124,8 +2125,10 @@ def add_transaction():
 @f_app_blueprint.route('/query_transaction', methods=['GET','POST'])
 @login_required
 def query_transaction():
-    data = request.json
-    return jsonify(status='ok')
+    if request.method == "POST":
+        data = request.json
+        print(data)
+        return jsonify(status='ok')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
