@@ -117,7 +117,7 @@ class MyTask(Task):
 
 @celery.task(name='daily_mid_night_task', base=MyTask)
 def daily_mid_night_task():
-    do_task(daily_mid_night_task_group)
+    do_task(daily_mid_night_task_group, break_if_exception=False)
     return {'status': 'success'}
 
 
