@@ -651,63 +651,140 @@ class FUND_TRANSACTION(db.Model):
         return d
 
 
-def pairwise(iterable):
-    a, b = itertools.tee(iterable)
-    next(b, None)
-    return zip(a, b)
-
-
-@event.listens_for(FUND_TRANSACTION, 'before_insert')
-def receive_after_insert(mapper, connection, target):
+def new_transaction(target):
     """
 
-    :param mapper:
-    :param connection:
     :param target:
     :return:
-    listen for the 'after_insert' event"""
-    record = FUND_TRANSACTION.query.filter_by(wind_code_s=target.wind_code_s).\
-             order_by(FUND_TRANSACTION.confirm_date.asc()).all()
+    """
+    record = FUND_TRANSACTION.query.filter_by(wind_code_s=target.wind_code_s). \
+        order_by(FUND_TRANSACTION.confirm_date.asc()).all()
     if len(record) == 0:
         target.total_share = target.share
-        target.total_cost = target.amoun
+        target.total_cost = target.amount * -1
+        db.session.add(target)
+        db.session.commit()
     else:
         tr = db.session.query(exists().where(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
                                                   FUND_TRANSACTION.confirm_date > target.confirm_date))).scalar()
         if tr:
             record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
-                          FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
-                          FUND_TRANSACTION.confirm_date.asc()).all()
-            for i in record_list:
-                print(i.as_dict())
+                                                        FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
+                FUND_TRANSACTION.confirm_date.asc()).all()
+            last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                                      FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(
+                FUND_TRANSACTION.confirm_date.desc()).first()
+            if last is not None:
+                tot_share, tot_cost = last.total_share, last.total_cost
+                target.total_share = 0
+                target.total_cost = 0
+                record_list.insert(0, target)
+            else:
+                tot_share = target.share
+                tot_cost = target.amount * -1
+                target.total_share = target.share
+                target.total_cost = target.amount * -1
+            db.session.add(target)
+            db.session.commit()
+            try:
+                for i in range(len(record_list)):
+                    tot_share = float(tot_share) + record_list[i].share
+                    tot_cost = tot_cost + (float(record_list[i].amount) * -1)
+                    record_list[i].total_share = tot_share
+                    record_list[i].total_cost = tot_cost
+                    db.session.commit()
+            except IndexError:
+                pass
         else:
             last_record = record[-1]
-            target.total_share = float(target.share)+last_record.total_share
-            target.total_cost = float(target.amount)+last_record.total_cost
-
-    # if record >= 1:
-    #     logger.info("---------------------record size {}------------".format(record))
-    #     last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
-    #                                               FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(
-    #         FUND_TRANSACTION.confirm_date.desc()).first()
-    #     target.total_share = float(target.share) + last.total_share
-    #     target.total_cost = float(target.amount) + last.total_cost
-    #     record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
-    #                                                      FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
-    #         FUND_TRANSACTION.confirm_date.asc()).all()
-    #     logger.info(">----------------last record {}---------<".format(len(record_list)))
-    #     if len(record_list) > 0:
-    #         print(target.total_share, target.total_cost)
-    #         tr_record = pairwise(record_list)
-    #         for i in tr_record:
-    #             print(i[0].confirm_date, i[1].confirm_date)
-    # else:
+            target.total_share = float(target.share) + last_record.total_share
+            target.total_cost = (float(target.amount) * -1) + last_record.total_cost
+            db.session.add(target)
+            db.session.commit()
 
 
+def delete_transaction(target):
+    """
+    delete transaction and update total share total cost
+    :param target: record
+    :return:
+    """
+    tr = db.session.query(exists().where(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                              FUND_TRANSACTION.confirm_date > target.confirm_date))).scalar()
+    if tr:
+        record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                                         FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
+            FUND_TRANSACTION.confirm_date.asc()).all()
+        last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                                  FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(
+            FUND_TRANSACTION.confirm_date.desc()).first()
+        if last is not None:
+            logger.info("middle")
+            tot_share, tot_cost = last.total_share, last.total_cost
+            record_list.insert(0, last)
+        else:
+            logger.info("first")
+            tot_share, tot_cost = record_list[0].share, record_list[0].amount
+            record_list[0].total_share = record_list[0].share
+            record_list[0].total_cost = record_list[0].amount * -1
+        db.session.delete(target)
+        db.session.commit()
+        record_list.pop(0)
+        try:
+            for i in range(len(record_list)):
+                tot_share = tot_share + record_list[i].share
+                tot_cost = tot_cost + (float(record_list[i].amount) * -1)
+                record_list[i].total_share = tot_share
+                record_list[i].total_cost = tot_cost
+                db.session.commit()
+        except IndexError:
+            pass
 
-@event.listens_for(FUND_TRANSACTION, 'before_update')
-def receive_before_update(mapper, connection, target):
-    print(target)
+    else:
+        db.session.delete(target)
+        db.session.commit()
+
+
+def edit_transaction(target):
+    """
+
+    :param target:
+    :return:
+    """
+    tr = db.session.query(exists().where(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                              FUND_TRANSACTION.confirm_date > target.confirm_date))).scalar()
+    if tr:
+        record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                                         FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
+            FUND_TRANSACTION.confirm_date.asc()).all()
+        last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
+                                                  FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(
+            FUND_TRANSACTION.confirm_date.desc()).first()
+        if last is not None:
+            target.total_share = last.total_share + target.share
+            target.total_cost = last.total_cost + target.amount
+            record_list.insert(0, target)
+            tot_share, tot_cost = last.total_share, last.total_cost
+        else:
+            logger.info("-------------(first)------------")
+            target.total_share = target.share
+            target.total_cost = target.amount * -1
+            tot_share, tot_cost = target.total_share, target.total_cost
+        db.session.commit()
+        try:
+            for i in range(len(record_list)):
+                tot_share = tot_share + record_list[i].share
+                tot_cost = tot_cost + (float(record_list[i].amount) * -1)
+                record_list[i].total_share = tot_share
+                record_list[i].total_cost = tot_cost
+                db.session.commit()
+        except IndexError:
+            pass
+
+    else:
+        target.total_share = float(target.share)
+        target.total_cost = (float(target.amount) * -1)
+        db.session.commit()
 
 
 def query_invest(rank):

@@ -29,7 +29,8 @@ from backend.tools import fund_owner, chunks, get_Value, range_years, check_code
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
-    Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION
+    Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION, new_transaction, \
+    delete_transaction, edit_transaction
 from fof_app.tasks import run_scheme_testing
 from periodic_task.build_strategy_index import get_strategy_index_quantile
 from fof_app.extensions import permission, cache
@@ -2077,9 +2078,9 @@ def del_transaction():
     if request.method == 'POST':
         checked = request.json['result']
         for i in checked:
-            FUND_TRANSACTION.query.filter_by(id=int(i)).delete()
+            tr = FUND_TRANSACTION.query.filter_by(id=int(i)).first()
+            delete_transaction(tr)
             logger.info("id-->{}<---已经删除!".format(int(i)))
-            db.session.commit()
         return jsonify(status="ok")
 
 
@@ -2100,6 +2101,8 @@ def change_transaction(uid):
             for k, v in trClass.formatData(data).items():
                 setattr(tr, k, v)
             db.session.commit()
+            old_tr = FUND_TRANSACTION.query.get(uid)
+            edit_transaction(old_tr)
             return jsonify(status="ok")
         else:
             return jsonify(status="error", error=error)
@@ -2115,8 +2118,7 @@ def add_transaction():
         error = trClass.checkdfrole(data)
         if len(error) == 0:
             tr = FUND_TRANSACTION(**trClass.formatData(data))
-            db.session.add(tr)
-            db.session.commit()
+            new_transaction(tr)
             return jsonify(status="ok")
         else:
             return jsonify(status="error", error=error)
