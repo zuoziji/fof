@@ -33,22 +33,23 @@ from periodic_task.wind_pub_fund import import_pub_fund_info, import_pub_fund_da
 
 logger = logging.getLogger()
 
-fund_group = OrderedDict([
-    ('fund info', {'func': update_wind_fund_info, 'params': [], }),
+daily_mid_night_task_group = OrderedDict([
     ('fund nav', {'func': update_wind_fund_nav, 'params': []}),
     ('strategy index val', {'func': do_update_strategy_index, 'params': []}),
 ])
-stock_group = OrderedDict([
+
+daily_task_group = OrderedDict([
     ('stock info', {'func': import_wind_stock_info, 'params': []}),
     ('stock daily', {'func': import_stock_daily, 'params': []}),
     ('stock daily wch', {'func': import_stock_daily_wch, 'params': []}),
     ('factor exposure', {'func': update_factors, 'params': []}),
     ('convertible bond daily', {'func': import_cb_daily, 'params': []}),
-    ('stock quertarly', {'func': import_stock_quertarly, 'params': []}),
-    ('pub fund daily', {'func': import_pub_fund_daily, 'params': []}),
-])
-index_group = OrderedDict([
+    ('futurn daily', {'func': import_wind_future_daily, 'params': []}),
     ('index daily', {'func': import_wind_index_daily, 'params': []})
+])
+
+daily_night_task_group = OrderedDict([
+    ('pub fund daily', {'func': import_pub_fund_daily, 'params': []}),
 ])
 
 stress_testing_group = OrderedDict([
@@ -57,14 +58,12 @@ stress_testing_group = OrderedDict([
     ('multi_factor', {'func': do_fund_multi_factor, 'params': []})
 ])
 
-future_daily_group = OrderedDict([
-    ('futurn daily', {'func': import_wind_future_daily, 'params': []}),
-])
-
-future_info_weekly_group = OrderedDict([
+weekly_task_group = OrderedDict([
     ('pub fund info', {'func': import_pub_fund_info, 'params': []}),
     ('futurn info', {'func': import_wind_future_info, 'params': []}),
+    ('fund info', {'func': update_wind_fund_info, 'params': [], }),
     ('convertible bond info', {'func': import_cb_info, 'params': []}),
+    ('stock quertarly', {'func': import_stock_quertarly, 'params': []}),
 ])
 
 
@@ -116,9 +115,9 @@ class MyTask(Task):
         return super(MyTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
 
-@celery.task(name='fund', base=MyTask)
-def update_fund():
-    do_task(fund_group)
+@celery.task(name='daily_mid_night_task', base=MyTask)
+def daily_mid_night_task():
+    do_task(daily_mid_night_task_group)
     return {'status': 'success'}
 
 
@@ -128,27 +127,21 @@ def stress_testing():
     return {'status': 'success'}
 
 
-@celery.task(name='index', base=MyTask)
-def update_index():
-    do_task(index_group)
+@celery.task(name='daily_task', base=MyTask)
+def daily_task():
+    do_task(daily_task_group, break_if_exception=False)
     return {'status': 'success'}
 
 
-@celery.task(name='stock', base=MyTask)
-def update_stock():
-    do_task(stock_group, break_if_exception=False)
+@celery.task(name='daily_night_task', base=MyTask)
+def daily_night_task():
+    do_task(daily_night_task_group, break_if_exception=False)
     return {'status': 'success'}
 
 
-@celery.task(name='future_info', base=MyTask)
-def update_future_info():
-    do_task(future_info_weekly_group, break_if_exception=False)
-    return {'status': 'success'}
-
-
-@celery.task(name='future_daily', base=MyTask)
-def update_future_daily():
-    do_task(future_daily_group)
+@celery.task(name='weekly_task', base=MyTask)
+def giweekly_task():
+    do_task(weekly_task_group, break_if_exception=False)
     return {'status': 'success'}
 
 
@@ -179,4 +172,4 @@ def log(message):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
-    do_task(stock_group)
+    do_task(daily_task_group)

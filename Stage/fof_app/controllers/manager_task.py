@@ -6,7 +6,7 @@ from flask_socketio import emit
 from os import path
 import json
 from celery import current_app
-from ..tasks import  stress_testing,update_index,update_fund,update_stock
+from ..tasks import stress_testing, weekly_task, daily_mid_night_task, daily_task, daily_night_task
 from datetime import datetime
 from time import time
 import kombu.five
@@ -50,13 +50,16 @@ def manual_execute():
     print(name)
     if name == 'stress_testing':
         stress_testing.apply_async()
-    elif name == "index":
-        update_index.apply_async()
-    elif name == "fund":
-        update_fund.apply_async()
-    elif name == "stock":
-        update_stock.apply_async()
+    elif name == "daily_night_task":
+        daily_night_task.apply_async()
+    elif name == "daily_mid_night_task":
+        daily_mid_night_task.apply_async()
+    elif name == "daily_task":
+        daily_task.apply_async()
+    elif name == "weekly_task":
+        weekly_task.apply_async()
     return jsonify(status='ok')
+
 
 @socketio.on('connect', namespace='/stream')
 def connect():

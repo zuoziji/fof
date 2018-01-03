@@ -8,7 +8,7 @@ from celery import Celery
 from celery.schedules import crontab
 import os
 from fof_app import create_app
-from fof_app.tasks import log,update_fund,update_index,update_stock,stress_testing,update_future_daily,update_future_info
+from fof_app.tasks import daily_mid_night_task, daily_task, daily_night_task, stress_testing, weekly_task
 from config_fh import get_redis
 from r_log import RedisHandler
 import logging
@@ -40,16 +40,16 @@ flask_app.app_context().push()
 @celery.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour=17,minute=0),
-        update_index
+        crontab(hour=20,minute=0),
+        daily_night_task
     )
     sender.add_periodic_task(
         crontab(hour=16, minute=30),
-        update_stock
+        daily_task
     )
     sender.add_periodic_task(
         crontab(hour=23, minute=0),
-        update_fund
+        daily_mid_night_task
     )
     sender.add_periodic_task(
         crontab(hour=12, minute=0,day_of_week=6),
@@ -57,12 +57,9 @@ def setup_periodic_tasks(sender, **kwargs):
     )
     sender.add_periodic_task(
         crontab(hour=19, minute=0,day_of_week=5),
-        update_future_info
+        weekly_task
     )
-    sender.add_periodic_task(
-        crontab(hour=19, minute=0),
-        update_future_daily
-    )
+
 
 celery.log.redirect_stdouts_to_logger(logger)
 
