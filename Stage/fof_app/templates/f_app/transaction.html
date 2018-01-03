@@ -500,6 +500,14 @@ table .desc:hover{
               wind_code_s:$("#wind_code_s").val()
           }),
           success: function(resp) {
+            if(resp.status==="ok"){
+              new PNotify({
+                  title: `<div style="padding-left:20px;">当前持仓成本:${resp.data.total_cost}<br/>当前持有份额:${resp.data.total_share}</div>`,
+                  text:  `当操作类型为赎回、份额强减、提取业绩报酬时，份额不能超过${resp.data.total_share}`,
+                  type: 'warn',
+                  styling: 'bootstrap3'
+              });
+            }
           }
       });
     }
