@@ -47,6 +47,8 @@ table .desc:hover{
             <th>份额</th>
             <th>金额</th>
             <th>事项说明</th>
+            <th>当前总份额</th>
+            <th>当前持仓总成本</th>
           </tr>
         </thead>
        </table>
@@ -72,6 +74,7 @@ table .desc:hover{
 
                                 {% for i in fof_list %}
                                     <optgroup label="{{ i.primary }}">
+                                        <option value="{{ i.primary }}" code="{{ i.primary.wind_code }}">{{ i.primary }}</option>
                                         {% for x in i.child %}
                                             <option value="{{ x.name }}" code={{ x.code }}>{{ x.name }}</option>
                                           {% endfor %}
@@ -104,7 +107,7 @@ table .desc:hover{
                                 <option>份额强增</option> 
                                 <option>现金分红</option> 
                                 <option>分红再投资</option>
-                                <option>提取业绩报酬</option> 
+                                <option>提取业绩报酬</option>
                             </select>
                         </div>
                     </div>
@@ -123,7 +126,7 @@ table .desc:hover{
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="confirm_date">确认日期</label>
                         <div class="col-md-8 col-sm-8 col-xs-12">
-                            <input type="date" class="form-control" id="confirm_date" value="" name="confirm_date" data-date-format="YYYY-MM-DD">
+                            <input type="date" class="form-control" id="confirm_date" value="" name="confirm_date" data-date-format="YYYY-MM-DD" disabled="disabled">
                         </div>
                     </div>
                     <div class="form-group">
@@ -202,7 +205,10 @@ table .desc:hover{
             'checkboxes': {
                'selectRow': true
             }
-        }],
+          },
+          { "orderData": 3,"targets": 5 },
+          { "orderData": 3,"targets": 6 },
+          { "orderData": [5,6],"targets": 7 }],
         'rowCallback': function(row, data, dataIndex){
              // Get row ID
              var rowId = data.id;
@@ -215,7 +221,8 @@ table .desc:hover{
         'select': {
             'style': 'multi'
         },
-        order:[[1,"desc"]],
+        ordering:true,
+        order:[[3,"asc"]],
         columns: [
           {data:'id',
             'render': function (data, type, full, meta){
@@ -239,13 +246,15 @@ table .desc:hover{
                     return '';
                 }
             }
-          }
+          },
+          {data:"total_share"},
+          {data:"total_cost"}
       ],
         "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
         "t" +
         "<'row'<'col-xs-6'i><'col-xs-6'p>>",
         "initComplete": function () {
-            $("#mytool").append(`<button type="button" class="add btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button>`);
+            $("#mytool").append(`<button type="button" class="add btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button><button type="button" class="btn btn-success btn-sm download"><span class="fa fa-download">导出</span></button>`);
         }
     });
 
@@ -458,6 +467,7 @@ table .desc:hover{
                     $("#myModalLabel").html("编辑交易记录");
                     $(".filter-option.pull-left").html(resp.sec_name_s);
                     $(".btn.dropdown-toggle").attr("disabled","disabled");
+                    $("#confirm_date").removeAttr("disabled");
                     $("#myModal").modal("show");
                 }
             }
@@ -472,16 +482,46 @@ table .desc:hover{
         $("#form")[0].reset();
         $(".filter-option.pull-left").html('请选择基金');
         $(".btn.dropdown-toggle").removeAttr("disabled");
+        $("#confirm_date").attr("disabled","disabled");
         $("#myModal").modal("show");
     })
 
+    function sendAjax(){     
+      $.ajax({
+          url: '/f_app/query_transaction',
+          type:'POST',
+          contentType: 'application/json',
+          dataType:'json',
+          data:JSON.stringify({
+              confirm_date:$("#confirm_date").val(),
+              fof_name:$("#fof_name").val(),
+              operating_type:$("#operating_type").val(),
+              sec_name_s:$("#sec_name_s").val(),
+              wind_code_s:$("#wind_code_s").val()
+          }),
+          success: function(resp) {
+          }
+      });
+    }
     //change select
     $('.selectpicker').on('change',function (e) {
         var selectParent= $(this).find("option:selected").parents().attr("label");
         var selectItem= $(this).find("option:selected").attr("code");
         $("#wind_code_s").val(selectItem);
         $("#fof_name").val(selectParent);
+        $("#confirm_date").removeAttr("disabled");
+        sendAjax();
     })
+    //change operation type || confirm_date ||  sec_name_s
+    $('#operating_type').on('change',function (e) {
+        sendAjax();
+    })
+    //change operation type 
+    $('#confirm_date').on('change',function (e) {
+        sendAjax();
+    })
+
+
 
     //submit form
     $("#save").on("click",function(){

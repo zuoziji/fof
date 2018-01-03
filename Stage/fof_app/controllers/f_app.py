@@ -2055,9 +2055,11 @@ def get_transaction():
     :by hdhuang
     :return:
     """
+    print(request.args)
     logger.info("{} use this method".format(current_user.username))
     columns = ['id', 'wind_code_s', 'operating_type', 'accounting_date', 'request_date',
-               'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description', 'sec_name_s', 'fof_name']
+               'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description',
+               'sec_name_s', 'fof_name', 'total_share', 'total_cost']
     index_column = "id"
     table = "fund_transaction"
     result = DataTablesServer(request, columns=columns, table=table, index=index_column).output_result()
@@ -2092,7 +2094,7 @@ def change_transaction(uid):
         data = request.json
         data = {k: (None if len(v) == 0 else v) for k, v in data.items()}
         trClass = Transaction()
-        error = trClass.checkdfrole(data)
+        error = trClass.checkdfrole(data,add=False)
         if len(error) == 0:
             tr = FUND_TRANSACTION.query.get(uid)
             del data['fof_name'], data['sec_name_s'], data['wind_code_s']
@@ -2120,6 +2122,13 @@ def add_transaction():
         else:
             return jsonify(status="error", error=error)
 
+@f_app_blueprint.route('/query_transaction', methods=['GET','POST'])
+@login_required
+def query_transaction():
+    if request.method == "POST":
+        data = request.json
+        print(data)
+        return jsonify(status='ok')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

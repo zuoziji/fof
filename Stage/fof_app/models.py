@@ -5,7 +5,7 @@
 :license: Apache 2.0, see LICENSE for more details.
 """
 
-from sqlalchemy import event, and_
+from sqlalchemy import event, and_,desc
 from flask_login import AnonymousUserMixin, current_user
 from datetime import datetime
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -15,13 +15,11 @@ import logging
 from .tasks import send_email
 from sqlalchemy.types import TypeDecorator, String
 from cryptography.fernet import Fernet
-from flask_sqlalchemy  import  SQLAlchemy
-
+from flask_sqlalchemy import SQLAlchemy
+import itertools
 
 key = "lNXHXIz61VOA6Q1Zc1v5K-udwN1dEfHK8d8DBXA3-MQ="
 logger = logging.getLogger()
-
-
 
 db = SQLAlchemy()
 
@@ -53,11 +51,11 @@ class EncryptedData(TypeDecorator):
     def __init__(self):
         super().__init__()
         self.cipher = Fernet(key)
+
     def process_bind_param(self, value, dialect):
         if value is not None:
-            value  = self.cipher.encrypt(bytes(value, encoding='utf-8'))
+            value = self.cipher.encrypt(bytes(value, encoding='utf-8'))
         return value
-
 
     def process_result_value(self, value, dialect):
         if value is not None:
@@ -84,11 +82,9 @@ class UserModel(db.Model):
     confirmed = db.Column(db.Boolean, default=False)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
 
-
     # def __init__(self, username, password):
     #     self.username = username
     #     self.password = self.set_password(password)
-
 
     @property
     def permissions(self):
@@ -196,19 +192,16 @@ class UserModel(db.Model):
 
     def to_json(self):
         d = {}
-        for k,v in self.__dict__.items():
-            print(k,v)
+        for k, v in self.__dict__.items():
+            print(k, v)
             if v is None:
                 d[k] = ''
             else:
                 d[k] = v
         return d
 
-
     def as_dict(self):
-        return {c.name: getattr(self, c.name," ") for c in self.__table__.columns}
-
-
+        return {c.name: getattr(self, c.name, " ") for c in self.__table__.columns}
 
 
 class Anonymous(AnonymousUserMixin):
@@ -294,30 +287,27 @@ class FoFModel(db.Model):
     fund_stg = db.relationship('FUND_STG_PCT', backref='fund_info', lazy='dynamic')
     fund_event = db.relationship('FUND_EVENT', backref='fund_info', lazy='dynamic')
     core_info = db.relationship('Fund_Core_Info', backref='fund_info', lazy='dynamic')
+
     def __repr__(self):
         return self.wind_code
 
     def __str__(self):
         return self.sec_name
 
-
     def to_json(self):
         d = {}
-        for k,v in self.__dict__.items():
+        for k, v in self.__dict__.items():
             if v is None:
                 d[k] = ''
-            elif isinstance(v,float):
+            elif isinstance(v, float):
                 if len(str(v).split('.')[1]) > 2:
                     d[k] = "{0:.3f}".format(v)
             else:
                 d[k] = v
         return d
 
-
-
     def as_dict(self):
-        return {c.name: getattr(self, c.name," ") for c in self.__table__.columns}
-
+        return {c.name: getattr(self, c.name, " ") for c in self.__table__.columns}
 
 
 class Fund_Core_Info(db.Model):
@@ -392,7 +382,7 @@ class FUND_ESSENTIAL(db.Model):
     bonus_mode = db.Column(db.VARCHAR(50))
     subscribe_threshold = db.Column(db.VARCHAR(100))
     redemption_threshold = db.Column(db.VARCHAR(100))
-    day_count_4_calc_fee = db.Column(db.Integer,default=365)
+    day_count_4_calc_fee = db.Column(db.Integer, default=365)
     manage_fee_rate = db.Column(MyReal)
     manage_fee_calc_mode = db.Column(db.Integer)
     custodian_fee_rate = db.Column(MyReal)
@@ -403,7 +393,7 @@ class FUND_ESSENTIAL(db.Model):
     storage_fee_calc_mode = db.Column(db.Integer)
     subscribe_fee_rate = db.Column(MyReal)
     redemption_fee_rate = db.Column(MyReal)
-    subscribe_fee_mode = db.Column(db.Integer,default=0)
+    subscribe_fee_mode = db.Column(db.Integer, default=0)
     incentive_raito = db.column(db.VARCHAR(400))
     incentive_mode = db.Column(db.VARCHAR(500))
     incentive_period = db.Column(db.VARCHAR(500))
@@ -412,19 +402,17 @@ class FUND_ESSENTIAL(db.Model):
     invest_amount = db.Column(MyReal)
     share_confirmed = db.Column(MyReal)
 
-
     def __repr__(self):
         return self.wind_code_s
 
     def to_json(self):
         d = {}
-        for k,v in self.__dict__.items():
+        for k, v in self.__dict__.items():
             if v is None:
                 d[k] = ''
             else:
                 d[k] = v
         return d
-
 
 
 class FUND_STG_PCT(db.Model):
@@ -451,21 +439,26 @@ class FUND_NAV(db.Model):
     def __repr__(self):
         return self.wind_code
 
-
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 @event.listens_for(FUND_NAV, 'after_insert')
 def receive_after_insert(mapper, connection, target):
-    "listen for the 'after_insert' event"
-    #fund = FoFModel.query.filter_by(wind_code=target.wind_code).first()
+    """
+
+    :param mapper:
+    :param connection:
+    :param target:
+    :return:
+    listen for the 'after_insert' event"""
+
     fund_name = check_code_order(target.wind_code)
     nav_acc = target.nav_acc
     nav_date = target.nav_date
     user = 'chun.wang@foriseinvest.com'
-    send_email(user,subject="%s净净值已更新" %fund_name,template='email/new_acc',
-               sec_name=fund_name,nav_acc=nav_acc,nav_date=nav_date)
+    send_email(user, subject="%s净净值已更新" % fund_name, template='email/new_acc',
+               sec_name=fund_name, nav_acc=nav_acc, nav_date=nav_date)
 
 
 class FUND_SEC_PCT(db.Model):
@@ -529,9 +522,6 @@ class PCT_SCHEME(db.Model):
         return "{}".format(self.wind_code)
 
 
-
-
-
 class INFO_SCHEME(db.Model):
     __tablename__ = 'scheme_info'
     scheme_id = db.Column(db.INT, primary_key=True)
@@ -562,10 +552,9 @@ class INFO_SCHEME(db.Model):
         return "{}".format(self.scheme_id)
 
 
-
 class Invest_corp(db.Model):
     __tablename__ = 'fund_mgrcomp_info'
-    mgrcomp_id = db.Column(db.Integer,primary_key=True)
+    mgrcomp_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.VARCHAR(100))
     alias = db.Column(db.VARCHAR(100))
     review_status = db.Column(db.Integer)
@@ -581,11 +570,10 @@ class Invest_corp(db.Model):
         return "{}".format(self.name)
 
 
-
 class Invest_corp_file(db.Model):
     __tablename__ = 'fund_mgrcomp_file'
-    file_id = db.Column(db.Integer,primary_key=True)
-    mgrcomp_id = db.Column(db.Integer,db.ForeignKey('fund_mgrcomp_info.mgrcomp_id'))
+    file_id = db.Column(db.Integer, primary_key=True)
+    mgrcomp_id = db.Column(db.Integer, db.ForeignKey('fund_mgrcomp_info.mgrcomp_id'))
     file_type = db.Column(db.VARCHAR(45))
     upload_user_id = db.Column(db.Integer)
     upload_datetime = db.Column(db.DateTime)
@@ -599,10 +587,10 @@ class Invest_corp_file(db.Model):
 
 class FUND_NAV_CALC(db.Model):
     __tablename__ = 'fund_nav_calc'
-    wind_code = db.Column(db.VARCHAR(20),primary_key=True)
-    nav_date = db.Column(db.DATE,primary_key=True)
+    wind_code = db.Column(db.VARCHAR(20), primary_key=True)
+    nav_date = db.Column(db.DATE, primary_key=True)
     share = db.Column(MyReal)
-    market_value  = db.Column(MyReal)
+    market_value = db.Column(MyReal)
     cash_amount = db.Column(MyReal)
     manage_fee = db.Column(MyReal)
     custodian_fee = db.Column(MyReal)
@@ -616,14 +604,13 @@ class FUND_NAV_CALC(db.Model):
     def __repr__(self):
         return "{}".format(self.wind_code)
 
-
     def to_json(self):
         d = {}
-        for k,v in self.__dict__.items():
+        for k, v in self.__dict__.items():
             print(type(v), v)
             if v is None:
                 d[k] = ''
-            elif isinstance(v,float):
+            elif isinstance(v, float):
                 print(v)
             else:
                 d[k] = v
@@ -633,47 +620,86 @@ class FUND_NAV_CALC(db.Model):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-
 class FUND_TRANSACTION(db.Model):
-
     __tablename__ = "fund_transaction"
-    id = db.Column(db.INTEGER,primary_key=True)
-    fof_name =  db.Column(db.String(100),nullable=False)
-    sec_name_s =  db.Column(db.String(100),nullable=False)
-    wind_code_s = db.Column(db.String(45),nullable=False)
-    operating_type = db.Column(db.String(45),nullable=False)
-    accounting_date = db.Column(db.Date,nullable=False)
+    id = db.Column(db.INTEGER, primary_key=True)
+    fof_name = db.Column(db.String(100), nullable=False)
+    sec_name_s = db.Column(db.String(100), nullable=False)
+    wind_code_s = db.Column(db.String(45), nullable=False)
+    operating_type = db.Column(db.String(45), nullable=False)
+    accounting_date = db.Column(db.Date, nullable=False)
     request_date = db.Column(db.Date)
-    confirm_date = db.Column(db.Date,nullable=False)
+    confirm_date = db.Column(db.Date, nullable=False)
     confirm_benchmark = db.Column(MyReal)
     share = db.Column(MyReal)
     amount = db.Column(MyReal)
-    description = db.Column(MyReal)
+    description = db.Column(db.String(100))
+    total_share = db.Column(MyReal)
+    total_cost = db.Column(MyReal)
 
     def __str__(self):
-        return  self.wind_code_s
+        return self.wind_code_s
 
     def as_dict(self):
         d = {}
         for c in self.__table__.columns:
-            v = getattr(self,c.name)
-            if isinstance(v,float):
-                 v = abs(v)
+            v = getattr(self, c.name)
+            if isinstance(v, float):
+                v = abs(v)
             d[c.name] = v
         return d
+
+
+def pairwise(iterable):
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+@event.listens_for(FUND_TRANSACTION, 'before_insert')
+def receive_after_insert(mapper, connection, target):
+    """
+
+    :param mapper:
+    :param connection:
+    :param target:
+    :return:
+    listen for the 'after_insert' event"""
+    record = FUND_TRANSACTION.query.filter_by(wind_code_s=target.wind_code_s).count()
+    if record >= 1:
+        logger.info("---------------------record size {}------------".format(record))
+        last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
+                FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.desc()).first()
+        target.total_share = float(target.share) + last.total_share
+        target.total_cost = float(target.amount) + last.total_cost
+        record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s==target.wind_code_s,
+                      FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(FUND_TRANSACTION.confirm_date.asc()).all()
+        logger.info(">----------------last record {}---------<".format(len(record_list)))
+        if len(record_list) > 0:
+            print(target.total_share,target.total_cost)
+            tr_record = pairwise(record_list)
+            for i in tr_record:
+                print(i[0].confirm_date,i[1].confirm_date)
+    else:
+        target.total_share = target.share
+        target.total_cost = target.amount
+
+@event.listens_for(FUND_TRANSACTION, 'before_update')
+def receive_before_update(mapper, connection, target):
+    print(target)
+
 
 
 def query_invest(rank):
     invest = Invest_corp.query.filter_by(review_status=rank).all()
     length = len(invest)
-    if length  > 0 :
-        invest_list  = [{"id": index, "name": i.name, "alias": i.alias, "review_status": i.review_status,
-                         'tot':i.fund_count_tot,'existing':i.fund_count_existing,"active":i.fund_count_active,"uid":i.mgrcomp_id} for index, i in
-                      enumerate(invest)]
-        return {"data":invest_list,"length":length}
+    if length > 0:
+        invest_list = [{"id": index, "name": i.name, "alias": i.alias, "review_status": i.review_status,
+                        'tot': i.fund_count_tot, 'existing': i.fund_count_existing, "active": i.fund_count_active,
+                        "uid": i.mgrcomp_id} for index, i in
+                       enumerate(invest)]
+        return {"data": invest_list, "length": length}
     else:
-        return {"length":length,"data":""}
-
+        return {"length": length, "data": ""}
 
 
 def check_code_order(wind_code):
@@ -684,7 +710,6 @@ def check_code_order(wind_code):
         return sec_name
     else:
         return fof.sec_name
-
 
 
 def code_get_name(code: str) -> object:
