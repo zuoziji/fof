@@ -69,7 +69,9 @@ future_info_weekly_group = OrderedDict([
 
 
 # noinspection PyBroadException
-def do_task(task_dict):
+def do_task(task_dict, break_if_exception=True):
+    success_task = []
+    failure_task = []
     for task_name, task in task_dict.items():
         task_func = task['func']
         params = task.setdefault('params', [])
@@ -80,10 +82,16 @@ def do_task(task_dict):
             else:
                 task_func(*params)
             logger.info('--> %s task finished:' % task_name)
-        except:
+            success_task.append(task_name)
+        except Exception as exp:
             logger.exception('--> %s task exception 该组任务终止:' % task_name)
-            break
+            failure_task.append((task_name, exp))
+            if break_if_exception:
+                break
     logger.info('all task finished')
+    logger.info('%s task success', success_task)
+    for task_name, exp in failure_task:
+        logger.error('%s task failure exception info:%s', task_name, exp)
 
 
 @signals.setup_logging.connect
@@ -128,13 +136,13 @@ def update_index():
 
 @celery.task(name='stock', base=MyTask)
 def update_stock():
-    do_task(stock_group)
+    do_task(stock_group, break_if_exception=False)
     return {'status': 'success'}
 
 
 @celery.task(name='future_info', base=MyTask)
 def update_future_info():
-    do_task(future_info_weekly_group)
+    do_task(future_info_weekly_group, break_if_exception=False)
     return {'status': 'success'}
 
 
