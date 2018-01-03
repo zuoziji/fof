@@ -89,7 +89,6 @@ class Transaction(object):
 
     def formatData(self, d):
         """
-
         :param d: dict
         :return: dict
         """

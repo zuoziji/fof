@@ -29,7 +29,8 @@ from backend.tools import fund_owner, chunks, get_Value, range_years, check_code
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
-    Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION
+    Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION, new_transaction, \
+    delete_transaction, edit_transaction
 from fof_app.tasks import run_scheme_testing
 from periodic_task.build_strategy_index import get_strategy_index_quantile
 from fof_app.extensions import permission, cache
@@ -2055,7 +2056,6 @@ def get_transaction():
     :by hdhuang
     :return:
     """
-    print(request.args)
     logger.info("{} use this method".format(current_user.username))
     columns = ['id', 'wind_code_s', 'operating_type', 'accounting_date', 'request_date',
                'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description',
@@ -2078,9 +2078,9 @@ def del_transaction():
     if request.method == 'POST':
         checked = request.json['result']
         for i in checked:
-            FUND_TRANSACTION.query.filter_by(id=int(i)).delete()
+            tr = FUND_TRANSACTION.query.filter_by(id=int(i)).first()
+            delete_transaction(tr)
             logger.info("id-->{}<---已经删除!".format(int(i)))
-            db.session.commit()
         return jsonify(status="ok")
 
 
@@ -2094,13 +2094,15 @@ def change_transaction(uid):
         data = request.json
         data = {k: (None if len(v) == 0 else v) for k, v in data.items()}
         trClass = Transaction()
-        error = trClass.checkdfrole(data,add=False)
+        error = trClass.checkdfrole(data, add=False)
         if len(error) == 0:
             tr = FUND_TRANSACTION.query.get(uid)
             del data['fof_name'], data['sec_name_s'], data['wind_code_s']
             for k, v in trClass.formatData(data).items():
                 setattr(tr, k, v)
             db.session.commit()
+            old_tr = FUND_TRANSACTION.query.get(uid)
+            edit_transaction(old_tr)
             return jsonify(status="ok")
         else:
             return jsonify(status="error", error=error)
@@ -2116,19 +2118,44 @@ def add_transaction():
         error = trClass.checkdfrole(data)
         if len(error) == 0:
             tr = FUND_TRANSACTION(**trClass.formatData(data))
-            db.session.add(tr)
-            db.session.commit()
+            new_transaction(tr)
             return jsonify(status="ok")
         else:
             return jsonify(status="error", error=error)
 
-@f_app_blueprint.route('/query_transaction', methods=['GET','POST'])
+
+@f_app_blueprint.route('/query_transaction', methods=['GET', 'POST'])
 @login_required
 def query_transaction():
+    """
+    status
+    new     new record
+    add     add all records before
+    check   post data incomplete
+    ok      add record to all records after
+    :return:
+    """
     if request.method == "POST":
         data = request.json
-        print(data)
-        return jsonify(status='ok')
+        five_check = list(map(lambda x: True if x > 0 else False, [len(i) for i in data.values()]))
+        if False not in five_check:
+            last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == data['wind_code_s'],
+                                                      FUND_TRANSACTION.confirm_date < data['confirm_date'])).order_by(
+                FUND_TRANSACTION.confirm_date.desc()).first()
+            if last:
+                return jsonify(status='ok', data={"total_share": last.total_share,
+                                                  "total_cost": last.total_cost, "confirm_data": last.confirm_date})
+            else:
+                new = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == data['wind_code_s'],
+                                                   FUND_TRANSACTION.confirm_date > data['confirm_date'])).order_by(
+                    FUND_TRANSACTION.confirm_date.desc()).all()
+                if len(new) > 0:
+                    return jsonify(status='add')
+                else:
+                    return jsonify(status='new')
+        else:
+            return jsonify(status='check')
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
