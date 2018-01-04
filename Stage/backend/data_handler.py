@@ -783,6 +783,8 @@ on base_line.wind_code_s = fi.wind_code
     select distinct wind_code_s from fof_fund_pct where wind_code_p = %s
     )"""
     data_df = pd.read_sql(sql_str, engine, params=[wind_code])
+    if data_df is None or data_df.shape[0] == 0:
+        return []
     date_wind_code_nav_acc_df = data_df.pivot(index="nav_date", columns="wind_code", values="nav_acc")
     if date_from is not None:
         date_from = try_2_date(date_from)
