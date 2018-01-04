@@ -140,7 +140,7 @@ def daily_night_task():
 
 
 @celery.task(name='weekly_task', base=MyTask)
-def giweekly_task():
+def weekly_task():
     do_task(weekly_task_group, break_if_exception=False)
     return {'status': 'success'}
 
