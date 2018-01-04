@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from config_fh import STR_FORMAT_DATE, get_db_engine, get_db_session
 import matplotlib.pyplot as plt  # pycharm 需要通过现实调用 plt.show 才能显示plot
-from fh_tools.fh_utils import str_2_date, DataFrame, return_risk_analysis
+from fh_tools.fh_utils import str_2_date, DataFrame, return_risk_analysis, try_2_date
 import logging
 
 logger = logging.getLogger()
@@ -728,6 +728,82 @@ from
     # print(date_fund_pct_df)
     return date_fund_pct_df
 
+
+def get_fof_fund_rr_contribution(wind_code, date_from=None, date_to=None):
+    """
+    计算 FOF 个股子基金收益率利润贡献度
+    :param wind_code: 
+    :param date_from: 
+    :param date_to: 
+    :return: 
+    """
+#     sql_str = """select base_line.wind_code, fi.sec_name, fei.sec_name_s, nav_date_begin, nav_date_end,
+# nav_begin.nav_acc nav_acc_begin, nav_end.nav_acc nav_acc_end, nav_end.nav_acc/nav_begin.nav_acc-1 rr
+# from
+# (
+#     select wind_code, min(nav_date) nav_date_begin, max(nav_date) nav_date_end
+#     from fund_nav where wind_code in (
+#     select distinct wind_code_s from fof_fund_pct where wind_code_p = %s
+#     )
+#     group by wind_code
+# ) base_line
+# left join
+#     fund_nav nav_begin
+#     on base_line.wind_code = nav_begin.wind_code
+#     and base_line.nav_date_begin = nav_begin.nav_date
+# left join
+#     fund_nav nav_end
+#     on base_line.wind_code = nav_end.wind_code
+#     and base_line.nav_date_end = nav_end.nav_date
+# left join
+#     fund_essential_info fei
+#     on base_line.wind_code = fei.wind_code_s
+# left join
+#     fund_info fi
+#     on base_line.wind_code = fi.wind_code
+#     """
+    engine = get_db_engine()
+    with get_db_session(engine) as session:
+        sql_str = """select base_line.wind_code_s, IFNULL(sec_name_s,sec_name) sec_name FROM
+(
+	select distinct wind_code_s from fof_fund_pct where wind_code_p = :wind_code_p
+) base_line
+left join
+fund_essential_info fei
+on base_line.wind_code_s = fei.wind_code_s
+left join
+fund_info fi
+on base_line.wind_code_s = fi.wind_code
+;"""
+        table = session.execute(sql_str, {"wind_code_p": wind_code})
+        wind_code_name_dic = dict(table.fetchall())
+
+    sql_str = """select wind_code, nav_date, nav_acc
+    from fund_nav where wind_code in (
+    select distinct wind_code_s from fof_fund_pct where wind_code_p = %s
+    )"""
+    data_df = pd.read_sql(sql_str, engine, params=[wind_code])
+    date_wind_code_nav_acc_df = data_df.pivot(index="nav_date", columns="wind_code", values="nav_acc")
+    if date_from is not None:
+        date_from = try_2_date(date_from)
+        date_wind_code_nav_acc_df = date_wind_code_nav_acc_df[date_from <= date_wind_code_nav_acc_df.index]
+    if date_to is not None:
+        date_to = try_2_date(date_to)
+        date_wind_code_nav_acc_df = date_wind_code_nav_acc_df[date_wind_code_nav_acc_df.index <= date_to]
+
+    # 临时计算一下收益率使用
+    def calc_rr(nav_acc_s: pd.Series):
+        nav_acc_s_new = nav_acc_s.dropna().sort_index()
+        if nav_acc_s_new.shape[0] == 0:
+            return np.nan
+        rr = nav_acc_s_new[-1] / nav_acc_s_new[0] -1
+        return rr
+
+    wind_code_rr_s = date_wind_code_nav_acc_df.apply(calc_rr)
+    rr_list = [{"wind_code": wind_code, "rr": rr, "sec_name": wind_code_name_dic.setdefault(wind_code, "")} for wind_code, rr in wind_code_rr_s.items()]
+    return rr_list
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
     # wind_code_list = ['XT090739.XT', 'XT090970.XT', 'XT091012.XT']
@@ -790,6 +866,11 @@ if __name__ == '__main__':
     # date_fund_pct_df.to_csv('%s date_fund_pct_df.csv' % wind_code)
 
     # 获取 每一个净值日期的子基金配比记录
-    wind_code_p = 'FHF-101601'
-    nav_df, nav_date_fund_scale_df = get_fof_fund_pct_each_nav_date(wind_code_p)
-    print(nav_date_fund_scale_df)
+    # wind_code_p = 'FHF-101601'
+    # nav_df, nav_date_fund_scale_df = get_fof_fund_pct_each_nav_date(wind_code_p)
+    # print(nav_date_fund_scale_df)
+
+    # 查询 fof 子基金收益率贡献
+    wind_code = 'FHF-101601'
+    rr_list = get_fof_fund_rr_contribution(wind_code)
+    [print(rr) for rr in rr_list]
