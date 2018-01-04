@@ -21,12 +21,9 @@ table .desc:hover{
 .dropdown-menu .inner {
   max-height: 200px!important;
 }
-.my_class {
-  background: #eee;
-  font-weight: 800;
-}
-.group {
+tbody .my_class {
   background: #d9edf7;
+  font-weight: 800;
 }
 </style>
 {% endblock %}
@@ -183,18 +180,18 @@ table .desc:hover{
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
 <script>
-   
     new PNotify({
-        title: '可以折叠左侧菜单，最大化显示表格',
+        title: '可以点击左侧菜单按钮，最大化显示表格',
         text:  '',
         type: 'success',
-        styling: 'bootstrap3'
+        styling: 'bootstrap3',
+        stack: {"dir1": "down", "dir2": "right", "firstpos1": 20, "firstpos2": 45}
     });
     var rows_selected = [];
     var table=$('#invest_tab').DataTable({
         "info":false,
         "paging": true,
-        "displayLength": 20,
+        "displayLength": 10,
         "language": {
             "lengthMenu": "每页 _MENU_ 条记录",
             "zeroRecords": "没有找到记录",
