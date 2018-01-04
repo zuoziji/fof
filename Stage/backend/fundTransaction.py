@@ -2,7 +2,7 @@
 # .....
 import pandas as pd
 import logging
-from fof_app.models import db, FUND_TRANSACTION, FUND_ESSENTIAL, FOF_FUND_PCT, FoFModel
+from fof_app.models import db, FUND_TRANSACTION, FUND_ESSENTIAL, FOF_FUND_PCT, FoFModel,new_transaction
 import os
 from sqlalchemy import and_
 
@@ -22,8 +22,7 @@ class Transaction(object):
         self.file = file
         self.column_name = ['wind_code_s', 'fof_name', 'sec_name_s', 'operating_type', 'accounting_date',
                             'request_date',
-                            'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description', 'total_amount',
-                            'total_cost']
+                            'confirm_date', 'confirm_benchmark', 'share', 'amount', 'description']
         self.operating_type = ["申购", "赎回", "返费", "现金分红", "分红再投资", "提取业绩报酬", "份额强增", "份额强减"]
         self.positive_type = ["申购", "分红再投资", "份额强增"]
         self.negative_type = ["赎回", "提取业绩报酬", "份额强减"]
@@ -36,7 +35,6 @@ class Transaction(object):
         df = pd.read_excel(self.file)
         df = df.astype(object).where(pd.notnull(df), None)
         df.columns = self.column_name
-        df = df.drop(['total_amount', 'total_cost'], axis=1)
         logger.info("共计{}条记录".format(len(df.index)))
         df_dict = df.T.to_dict()
         return df_dict
@@ -104,9 +102,8 @@ class Transaction(object):
         :return:
         """
         for _, v in df_dict.items():
-            record = FUND_TRANSACTION(**v)
-            db.session.add(record)
-            db.session.commit()
+            record = FUND_TRANSACTION(**self.formatData(v))
+            new_transaction(record)
 
 
 if __name__ == "__main__":
@@ -116,8 +113,7 @@ if __name__ == "__main__":
     flask_app = create_app('fof_app.config.%sConfig' % env.capitalize())
     with flask_app.test_request_context():
         db.init_app(flask_app)
-        file = "/home/hd/Downloads/基金交易记录管理导入模板.xlsx"
+        file = "/home/hd/Downloads/data.xlsx"
         x = Transaction(file)
         data = x.formatFile()
         x.importDate(data)
-        db.session.remove()
