@@ -41,6 +41,7 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
+import pandas as pd
 
 logger = logging.getLogger()
 
@@ -2147,7 +2148,8 @@ def query_transaction():
                                                   "total_cost": last.total_cost, "confirm_data": last.confirm_date})
             else:
                 new = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == data['wind_code_s'],
-                                                   FUND_TRANSACTION.confirm_date > data['confirm_date'])).order_by(
+                                                         FUND_TRANSACTION.confirm_date > data[
+                                                             'confirm_date'])).order_by(
                     FUND_TRANSACTION.confirm_date.desc()).all()
                 if len(new) > 0:
                     return jsonify(status='add')
@@ -2155,6 +2157,48 @@ def query_transaction():
                     return jsonify(status='new')
         else:
             return jsonify(status='check')
+
+
+@f_app_blueprint.route('/export_transaction')
+def export_transaction():
+    """
+
+    :return:
+    """
+    def format_date(d: dict) -> dict:
+        """
+        :param d: sqlalchemy record
+        :return:  format datetime
+        """
+        return {k: (v.strftime('%Y-%d-%m') if isinstance(v, datetime.date) else v) for k, v in d.items()}
+    tr = FUND_TRANSACTION.query.all()
+    tr_list = [format_date(i.as_dict()) for i in tr]
+    print(tr_list)
+    df = DataFrame(tr_list)
+    df.drop('id', axis=1, inplace=True)
+    df = df.rename(columns={"wind_code_s": "基金要素代码", "fof_name": "FOF基金名称", "sec_name_s": "基金名称",
+                            "operating_type": "操作类型", "accounting_date": "资金交收日期", "request_date": "申请日期",
+                            "confirm_date":
+                                "确认日期", "confirm_benchmark": "确认基准净值", "share": "份额", "amount": "金额",
+                            "description": "事项说明",
+                            "total_share": "当前总份额", "total_cost": "当前总持仓成本"})
+    date_tag = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    file_name = date_tag + ".xlsx"
+    corp_path = current_app.config['CORP_FOLDER']
+    corp_file_path = path.join(corp_path, file_name)
+    writer = pd.ExcelWriter(corp_file_path)
+    df.to_excel(writer, columns=["基金要素代码", "FOF基金名称", "基金名称", "操作类型", "资金交收日期", "申请日期", "确认日期", "确认基准净值",
+                                 "份额", "金额", "事项说明", "当前总份额", "当前总持仓成本"])
+    writer.save()
+    response = make_response(send_file(corp_file_path, as_attachment=True, attachment_filename=file_name))
+    basename = os.path.basename(file_name)
+    response.headers["Content-Disposition"] = \
+        "attachment;" \
+        "filename*=UTF-8''{utf_filename}".format(
+            utf_filename=quote(basename.encode('utf-8'))
+        )
+    os.remove(corp_file_path)
+    return response
 
 
 def allowed_file(filename):
