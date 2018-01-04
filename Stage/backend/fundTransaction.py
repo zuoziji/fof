@@ -112,7 +112,7 @@ class Transaction(object):
 if __name__ == "__main__":
     from fof_app import create_app
 
-    env = os.environ.get('APP_ENV', 'dev')
+    env = os.environ.get('APP_ENV', 'prod')
     flask_app = create_app('fof_app.config.%sConfig' % env.capitalize())
     with flask_app.test_request_context():
         db.init_app(flask_app)

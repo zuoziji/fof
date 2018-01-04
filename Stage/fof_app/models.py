@@ -8,6 +8,7 @@
 from sqlalchemy import event, and_
 from flask_login import AnonymousUserMixin, current_user
 from datetime import datetime
+import datetime as dt
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
@@ -16,7 +17,6 @@ from .tasks import send_email
 from sqlalchemy.types import TypeDecorator, String
 from cryptography.fernet import Fernet
 from flask_sqlalchemy import SQLAlchemy
-import itertools
 from sqlalchemy.sql import exists
 
 key = "lNXHXIz61VOA6Q1Zc1v5K-udwN1dEfHK8d8DBXA3-MQ="
@@ -650,6 +650,14 @@ class FUND_TRANSACTION(db.Model):
             d[c.name] = v
         return d
 
+    def export(self):
+        d = {}
+        for c in self.__table__.columns:
+            v = getattr(self, c.name)
+            if isinstance(v, dt.date):
+                v = v.strftime('%Y-%m-%d')
+            d[c.name] = v
+        return d
 
 def new_transaction(target):
     """

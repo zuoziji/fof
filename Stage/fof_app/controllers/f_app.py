@@ -41,6 +41,7 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
+import pandas as pd
 
 logger = logging.getLogger()
 
@@ -190,10 +191,12 @@ def details(wind_code: str) -> object:
     nav_obj = {} if nav_df is None else nav_df.to_dict()
     scale_obj = {} if nav_date_fund_scale_df is None else nav_date_fund_scale_df.to_dict()
     year_periods, risk, drawback = calc_periods(wind_code)
+    # contribution
+    contribution = data_handler.get_fof_fund_rr_contribution(wind_code)
     return render_template('details.html', fof=fof, child=child, stg=stg, fund_file=file_json,
                            time_line=time_line, result=result, data_name=data_name, fund_rr=rr_chunk
                            , date_latest=date_latest, acc=acc, fof_list=fof_list,
-                           stg_charts=stg_charts,
+                           stg_charts=stg_charts,contribution=contribution,
                            fhs_obj=fhs_obj, copula_obj=copula_obj, multi_obj=multi_obj,
                            capital_data=capital_data, core_info=core_info, nav_obj=nav_obj,
                            scale_obj=scale_obj, year_periods=year_periods, risk=risk, drawback=drawback)
@@ -2147,7 +2150,8 @@ def query_transaction():
                                                   "total_cost": last.total_cost, "confirm_data": last.confirm_date})
             else:
                 new = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == data['wind_code_s'],
-                                                   FUND_TRANSACTION.confirm_date > data['confirm_date'])).order_by(
+                                                         FUND_TRANSACTION.confirm_date > data[
+                                                             'confirm_date'])).order_by(
                     FUND_TRANSACTION.confirm_date.desc()).all()
                 if len(new) > 0:
                     return jsonify(status='add')
@@ -2155,6 +2159,63 @@ def query_transaction():
                     return jsonify(status='new')
         else:
             return jsonify(status='check')
+
+
+@f_app_blueprint.route('/export_transaction')
+def export_transaction():
+    """
+
+    :return:
+    """
+    tr = FUND_TRANSACTION.query.all()
+    tr_list = [i.export() for i in tr]
+    df = DataFrame(tr_list)
+    df.drop('id', axis=1, inplace=True)
+    df = df.rename(columns={"wind_code_s": "基金要素代码", "fof_name": "FOF基金名称", "sec_name_s": "基金名称",
+                            "operating_type": "操作类型", "accounting_date": "资金交收日期", "request_date": "申请日期",
+                            "confirm_date":
+                                "确认日期", "confirm_benchmark": "确认基准净值", "share": "份额", "amount": "金额",
+                            "description": "事项说明",
+                            "total_share": "当前总份额", "total_cost": "当前总持仓成本"})
+    date_tag = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    file_name = date_tag + "_导出交易记录.xlsx"
+    corp_path = current_app.config['CORP_FOLDER']
+    corp_file_path = path.join(corp_path, file_name)
+    with pd.ExcelWriter(corp_file_path, engine='xlsxwriter') as writer:
+        df.to_excel(writer, columns=["基金要素代码", "FOF基金名称", "基金名称", "操作类型", "资金交收日期", "申请日期", "确认日期", "确认基准净值",
+                                     "份额", "金额", "事项说明", "当前总份额", "当前总持仓成本"], sheet_name='Sheet1')
+        workbook = writer.book
+        worksheet = writer.sheets['Sheet1']
+        size = len(df.index) + 1
+        header_fmt = workbook.add_format({'font_name': 'Arial', 'font_size': 10, 'bold': True})
+        center = workbook.add_format({'align': 'center'})
+        worksheet.set_column(1, 1, 15)
+        worksheet.set_column(2, 3, 35)
+        worksheet.set_column(4, 4, 15)
+        worksheet.set_column(5, 8, 15)
+        worksheet.set_column(11, 13, 15)
+        worksheet.set_row(0, None, header_fmt)
+        format_value = workbook.add_format()
+        format_value.set_font_color('red')
+        worksheet.set_column('A:N', None, center)
+        worksheet.conditional_format('I2:K%d' % size, {'type': 'cell',
+                                                       'criteria': '<=',
+                                                       'value': 0,
+                                                       'format': format_value})
+        worksheet.conditional_format('M2:N%d' % size, {'type': 'cell',
+                                                       'criteria': '<=',
+                                                       'value': 0,
+                                                       'format': format_value})
+        writer.save()
+    response = make_response(send_file(corp_file_path, as_attachment=True, attachment_filename=file_name))
+    basename = os.path.basename(file_name)
+    response.headers["Content-Disposition"] = \
+        "attachment;" \
+        "filename*=UTF-8''{utf_filename}".format(
+            utf_filename=quote(basename.encode('utf-8'))
+        )
+    os.remove(corp_file_path)
+    return response
 
 
 def allowed_file(filename):

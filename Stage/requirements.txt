@@ -108,3 +108,4 @@ flask-socketio
 gevent
 python-docx
 cryptography
+xlsxwriter
