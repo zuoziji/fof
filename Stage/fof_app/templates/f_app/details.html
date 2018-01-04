@@ -497,27 +497,28 @@
             </div>
 
             <div role="tabpanel" class="tab-pane fade" id="tab_content7" aria-labelledby="profile-tab">        
-            <div class="x_panel fixed_height_390">
-              <div class="x_title">
-                <div class="col-md-11">
-                  <h4>基本净值信息</h4>
+              <div class="x_panel fixed_height_390">
+                <div class="x_title">
+                  <div class="col-md-11">
+                    <h4>基本净值信息</h4>
+                  </div>
+                  <div class="col-md-1">
+                    <a style="font-size: 25px;" href="{{ url_for('f_app.benchmark',wind_code=fof.wind_code) }}">
+                      <button class="btn btn-primary btn-sm"><i class="fa fa-line-chart"></i> 方案分析</button>
+                    </a>
+                  </div>
+                  <div class="clearfix"></div>
                 </div>
-                <div class="col-md-1">
-                  <a style="font-size: 25px;" href="{{ url_for('f_app.benchmark',wind_code=fof.wind_code) }}">
-                    <button class="btn btn-primary btn-sm"><i class="fa fa-line-chart"></i> 方案分析</button>
-                  </a>
+                <div class="x_content">
+
+                <div id="content6" class="x_content">
                 </div>
-                <div class="clearfix"></div>
-              </div>
-              <div class="x_content">
 
-              <div id="content6" class="x_content">
+                </div>
               </div>
-
-              </div>
-            </div>
               <div id="t3chart" style="height:500px;padding:10px;"></div>
               <div id="t4chart" style="height:500px;padding:10px;"></div>
+              <div id="t5chart" style="height:500px;padding:10px;"></div>
               <div id="t6chart" style="height:500px;padding:10px;"></div>
               <div id="t6cchart" style="height:500px;padding:10px;"></div>
               <div id="t7chart" style="height:500px;padding:10px;"></div>
@@ -561,6 +562,8 @@
   var year_periods = {{ year_periods | tojson }};
   var risk = {{ risk | tojson }};
   var drawback = {{ drawback | tojson }};
+  var contribution = {{ contribution | tojson }};
+  console.log(contribution)
 
   function  t2charts(wind_code,displayType) {
    var obj = {"wind_code":wind_code,'disPlayType':displayType};
@@ -1562,62 +1565,123 @@ html+=`
   var t3chart = echarts.init(document.getElementById('t3chart'),"shine");
   t3chart.setOption(option);
 
-  var option_sub = {
-      title: {
+  var option_sub=Object.assign(option,{title: {
           text: '回撤分析'
-      },
-      tooltip: {
-          trigger: 'axis'
-      },
-      legend: {
-        orient: 'horizontal',
-        top: 0,
-        left: 150,
-        width : 1200,
-        padding: [0,10,10,0],
-        data: '',
-        itemGap: 10,
-        itemHeight: 10
-      },
-      grid:{
-        y2: 90,
-        top: 80
-      },
-      toolbox: {
-        show : true,
-        feature : {
-          mark : {show: true},
-          dataView : {show: true, readOnly: false},
-          magicType : {show: true, type: ['line', 'bar']},
-          restore : {show: true},
-          saveAsImage : {show: true}
-        }
-      },
-      xAxis: {
-          type: 'category',
+      },xAxis: {
           boundaryGap: false,
-          data: Object.keys(drawback),
-          splitLine:{
-            　　　　show:true
-          　　 }
-      },
-      yAxis: {
-          type: 'value',
-          scale:true
-      },
-      series: [
+          data: Object.keys(drawback)
+      },series: [
           {
               name:'回撤分析',
               type:'line',
               stack: '总量',
               data: Object.values(drawback)
           }
-      ]
-
-  };
-
+      ]})
   var t4chart = echarts.init(document.getElementById('t4chart'),"shine");
   t4chart.setOption(option_sub);
+
+
+var rr=[];
+var name=[];
+var plus=[];
+var minus=[];
+$.each(contribution,function(index,val){
+  var num=Math.round(val.rr*10000)/100; 
+  if(num < 0){
+    minus.push({value:-num,name:val.sec_name});
+  }else{
+    plus.push({value:num,name:val.sec_name});
+  }
+  rr.push(num);
+  
+  name.push(val.sec_name);
+  rr=rr.sort(function(a,b){
+    return b-a;
+  });
+})
+
+option5 = {
+    backgroundColor: {
+        type: 'pattern',
+        repeat: 'repeat'
+    },
+    tooltip:  {
+    },
+    title: [{
+        text: '子基金收益贡献',
+    }, {
+        text: '子基金正向收益占比',
+        x: '75%',
+        textAlign: 'center'
+    }, {
+        text: '子基金负向收益占比',
+        x: '75%',
+        y: '50%',
+        textAlign: 'center'
+    }],
+    grid: [{
+        top: 90,
+        width: '50%',
+        bottom: '20%',
+        left: 90,
+        containLabel: true
+    }],
+    xAxis: [{
+        type: 'category',
+        data: name,
+        axisLabel: {
+            interval: 0,
+            rotate: 30
+        }
+    }],
+    yAxis: [{
+        name: '单位（%）',
+        type: 'value',
+        data: rr,
+        axisLabel: {
+            interval: 0,
+            rotate: 35
+        }
+    }],
+    series: [{
+        type: 'bar',
+        stack: 'chart',
+        z: 3,
+        data: rr,
+        itemStyle:{
+          normal:{
+            color: function(params){
+              if(params.data<0){
+                return '#2b821d';
+              }else{
+                return '#c12e34';
+              }
+            },
+            label: {
+            show: true,
+            position: 'top',
+            textStyle: {
+            color: '#717171',
+            fontSize:14
+            }
+            }
+          }
+        }
+    }, {
+        type: 'pie',
+        radius: [0, '30%'],
+        center: ['75%', '25%'],
+        data: plus
+    }, {
+        type: 'pie',
+        radius: [0, '30%'],
+        center: ['75%', '75%'],
+        data: minus
+    }]
+}
+  var t5chart = echarts.init(document.getElementById('t5chart'),"shine");
+  t5chart.setOption(option5);
 })
 
 
