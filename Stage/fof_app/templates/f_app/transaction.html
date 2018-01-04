@@ -21,6 +21,13 @@ table .desc:hover{
 .dropdown-menu .inner {
   max-height: 200px!important;
 }
+.my_class {
+  background: #eee;
+  font-weight: 800;
+}
+.group {
+  background: #d9edf7;
+}
 </style>
 {% endblock %}
 {% block manager %}
@@ -176,7 +183,13 @@ table .desc:hover{
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
 <script>
-
+   
+    new PNotify({
+        title: '可以折叠左侧菜单，最大化显示表格',
+        text:  '',
+        type: 'success',
+        styling: 'bootstrap3'
+    });
     var rows_selected = [];
     var table=$('#invest_tab').DataTable({
         "info":false,
@@ -209,9 +222,8 @@ table .desc:hover{
                'selectRow': true
             }
           },
-          { "orderData": 3,"targets": 5 },
-          { "orderData": 3,"targets": 6 },
-          { "orderData": [5,6],"targets": 7 }],
+          { "orderData": [5,6],"targets": 7 }
+        ],
         'rowCallback': function(row, data, dataIndex){
              // Get row ID
              var rowId = data.id;
@@ -235,32 +247,31 @@ table .desc:hover{
           {data:'fof_name',width:'200px'},
           {data:'sec_name_s'},
           {data:'operating_type'},
-          {data:'accounting_date'},
-          {data:'request_date'},
-          {data:"confirm_date"},
+          {data:'accounting_date',width:'52px'},
+          {data:'request_date',width:'52px'},
+          {data:"confirm_date",width:'52px'},
           {data:"confirm_benchmark"},
           {data:"share"},
           {data:"amount"},
           {data:null,
             render:function(obj){
                 if(obj.description){
-                    return `<div class="desc" style="padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;">${obj.description||''}</div>`;
+                    return `<div class="desc" style="padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:120px;">${obj.description||''}</div>`;
                 }else{
                     return '';
                 }
             }
           },
-          {data:"total_share"},
-          {data:"total_cost"}
+          {data:"total_share", "cellType": "td", "className": "my_class",width:'52px'},
+          {data:"total_cost", "cellType": "td", "className": "my_class",width:'52px'}
       ],
         "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
         "t" +
         "<'row'<'col-xs-6'i><'col-xs-6'p>>",
         "initComplete": function () {
-            $("#mytool").append(`<button type="button" class="add btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span class="fa fa-trash">删除</span></button><button type="button" class="btn btn-success btn-sm download"><span class="fa fa-download">导出</span></button>`);
+            $("#mytool").append(`<button type="button" class="add btn btn-success btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-plus">添加交易记录</span></button><button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span aria-hidden="true" class="glyphicon glyphicon-trash">删除</span></button><a href="export_transaction" type="button" class="btn btn-success btn-sm download"><span aria-hidden="true" class="glyphicon glyphicon-download-alt">导出</span></a>`);
         }
     });
-
 
     function updateDataTableSelectAllCtrl(table){
        var $table             = table.table().node();
@@ -488,6 +499,7 @@ table .desc:hover{
         $("#confirm_date").attr("disabled","disabled");
         $("#myModal").modal("show");
     })
+
 
     function sendAjax(){     
       $.ajax({
