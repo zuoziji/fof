@@ -2173,7 +2173,6 @@ def export_transaction():
         return {k: (v.strftime('%Y-%d-%m') if isinstance(v, datetime.date) else v) for k, v in d.items()}
     tr = FUND_TRANSACTION.query.all()
     tr_list = [format_date(i.as_dict()) for i in tr]
-    print(tr_list)
     df = DataFrame(tr_list)
     df.drop('id', axis=1, inplace=True)
     df = df.rename(columns={"wind_code_s": "基金要素代码", "fof_name": "FOF基金名称", "sec_name_s": "基金名称",
