@@ -206,6 +206,8 @@ order by wind_code"""
                 continue
             if isinstance(date_frm, str):
                 date_frm = datetime.strptime(date_frm, STR_FORMAT_DATE).date()
+            if isinstance(lasttrade_date, str):
+                lasttrade_date = datetime.strptime(lasttrade_date, STR_FORMAT_DATE).date()
             date_to = date_ending if date_ending < lasttrade_date else lasttrade_date
             if date_frm > date_to:
                 continue
@@ -249,7 +251,9 @@ order by wind_code"""
             logger.info('merge data with %d df', data_df_count)
             data_df = pd.concat(data_df_list)
             data_df.index.rename('trade_date', inplace=True)
-            data_df = data_df.reset_index().set_index(['wind_code', 'trade_date'])
+            data_df = data_df.reset_index()
+            data_df['instrument_id'] = data_df['wind_code'].apply(lambda x: x.split('.')[0])
+            data_df = data_df.set_index(['wind_code', 'trade_date'])
             data_df.rename(columns={c: str.lower(c) for c in data_df.columns}, inplace=True)
             data_df.rename(columns={'oi': 'position'}, inplace=True)
             data_count = data_df.shape[0]
@@ -257,6 +261,7 @@ order by wind_code"""
                            index_label=['wind_code', 'trade_date'],
                            dtype={
                                'wind_code': String(20),
+                               'instrument_id': String(20),
                                'trade_date': Date,
                                'open': Float,
                                'high': Float,
