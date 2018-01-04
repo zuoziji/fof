@@ -101,9 +101,11 @@ class Transaction(object):
         write data to db
         :return:
         """
-        for _, v in df_dict.items():
+        for k, v in df_dict.items():
+            print(k,v)
             record = FUND_TRANSACTION(**self.formatData(v))
             new_transaction(record)
+            #print(self.formatData(v))
 
 
 if __name__ == "__main__":
