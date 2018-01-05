@@ -250,8 +250,22 @@ tbody .my_class {
           {data:'request_date',width:'52px'},
           {data:"confirm_date",width:'52px'},
           {data:"confirm_benchmark"},
-          {data:"share"},
-          {data:"amount"},
+          {data:null,
+            render:function(obj){
+                if(obj.share<0){
+                    return `<span style="color:#f00;">${obj.share}</span>`;
+                }else{
+                    return obj.share;
+                }
+            }},
+          {data:null,
+            render:function(obj){
+                if(obj.amount<0){
+                    return `<span style="color:#f00;">${obj.amount}</span>`;
+                }else{
+                    return obj.amount;
+                }
+            }},
           {data:null,
             render:function(obj){
                 if(obj.description){
@@ -261,8 +275,22 @@ tbody .my_class {
                 }
             }
           },
-          {data:"total_share", "cellType": "td", "className": "my_class",width:'52px'},
-          {data:"total_cost", "cellType": "td", "className": "my_class",width:'52px'}
+          {data:null, "cellType": "td", "className": "my_class",width:'52px',
+            render:function(obj){
+                if(obj.total_share<0){
+                    return `<span style="color:#f00;">${obj.total_share}</span>`;
+                }else{
+                    return obj.total_share;
+                }
+            }},
+          {data:null, "cellType": "td", "className": "my_class",width:'52px',
+            render:function(obj){
+                if(obj.total_cost<0){
+                    return `<span style="color:#f00;">${obj.total_cost}</span>`;
+                }else{
+                    return obj.total_cost;
+                }
+            }},
       ],
         "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
         "t" +
