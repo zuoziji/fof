@@ -665,6 +665,10 @@ def new_transaction(target):
     :param target:
     :return:
     """
+    if target.share is None:
+        target.share = 0
+    if target.amount is None:
+        target.amount  = 0
     record = FUND_TRANSACTION.query.filter_by(wind_code_s=target.wind_code_s). \
         order_by(FUND_TRANSACTION.confirm_date.asc()).all()
     if len(record) == 0:
