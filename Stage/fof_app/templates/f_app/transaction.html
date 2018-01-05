@@ -61,6 +61,9 @@ tbody .my_class {
         </thead>
        </table>
       </div>
+      <div class="btn-group" role="group" id="menu" style="display: none;z-index:999;">
+        <button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span aria-hidden="true" class="glyphicon glyphicon-trash">删除</span></button>
+      </div>
    </div>
   </div>
 </div>
@@ -170,7 +173,6 @@ tbody .my_class {
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 
@@ -191,6 +193,7 @@ tbody .my_class {
     });
     var rows_selected = [];
     var table=$('#invest_tab').DataTable({
+        scrollY:600,
         "info":false,
         "paging": true,
         "displayLength": 25,
@@ -277,7 +280,7 @@ tbody .my_class {
           },
           {data:null, "cellType": "td", "className": "my_class",width:'52px',
             render:function(obj){
-                if(obj.total_share>0){
+                if(obj.total_share<0){
                     return `<div style="color:#f00;">${obj.total_share}</div>`;
                 }else{
                     return obj.total_share;
@@ -361,6 +364,7 @@ tbody .my_class {
       updateDataTableSelectAllCtrl(table);
 
       // Prevent click event from propagating to parent
+      menu.style.display = 'none';
       e.stopPropagation();
    });
 
@@ -378,6 +382,7 @@ tbody .my_class {
       }
 
       // Prevent click event from propagating to parent
+      menu.style.display = 'none';
       e.stopPropagation();
    });
 
@@ -386,6 +391,32 @@ tbody .my_class {
       // Update state of "Select all" control
       updateDataTableSelectAllCtrl(table);
    });
+
+//right click menu 
+    $("tbody").contextmenu(function(e){
+        e = e || window.event;
+        if(e.preventDefault){
+            e.preventDefault();
+        }else{
+            e.returnValue = false;
+        }
+        if(e.clientX>(invest_tab.offsetWidth+240)){
+          menu.style.left = invest_tab.offsetWidth-80+'px';
+        }else{
+          menu.style.left = e.clientX-320+'px';
+        }
+        menu.style.top = e.pageY-60+'px';
+        menu.style.display = 'block';
+        menu.style.position = 'absolute';
+    });
+  if(rows_selected.length!=0){ 
+  }
+
+//close menu
+    document.onclick=function(){
+        menu.style.display = 'none';
+    }
+
 
 //delete checked
     $(".x_panel").on('click','.btn.del',function(){
@@ -465,6 +496,14 @@ tbody .my_class {
                     },
                     notEmpty: {
                         message: '份额不能为空'
+                    }
+                }
+            },
+            description: {
+                validators: {
+                    stringLength: {
+                        max: 100,
+                        message: '事项说明不能超过100个字符'
                     }
                 }
             }
@@ -602,6 +641,7 @@ tbody .my_class {
                     if(resp.status == "ok"){
                         table.ajax.reload(null,false);
                         $("#myModal").modal("hide");
+                        $("#form").data("bootstrapValidator").resetForm();
                     }else{
                         var text='';
                         $(resp.error).each(function(index,val){
