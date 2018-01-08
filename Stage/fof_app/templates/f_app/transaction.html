@@ -14,12 +14,16 @@ table .desc:hover{
     padding: 5px!important;
     border-radius: 2px;
     z-index: 9;
+    word-wrap: break-word;
 }
 .dropdown-menu span.glyphicon-ok:before{
     content: "";
 }
 .dropdown-menu .inner {
   max-height: 200px!important;
+}
+td {
+  min-width:52px;
 }
 tbody .my_class {
   background: #d9edf7;
@@ -249,9 +253,9 @@ tbody .my_class {
           {data:'fof_name',width:'200px'},
           {data:'sec_name_s'},
           {data:'operating_type'},
-          {data:'accounting_date',width:'52px'},
-          {data:'request_date',width:'52px'},
-          {data:"confirm_date",width:'52px'},
+          {data:'accounting_date'},
+          {data:'request_date'},
+          {data:"confirm_date"},
           {data:"confirm_benchmark"},
           {data:null,
             render:function(obj){
@@ -278,7 +282,7 @@ tbody .my_class {
                 }
             }
           },
-          {data:null, "cellType": "td", "className": "my_class",width:'52px',
+          {data:null, "cellType": "td", "className": "my_class",
             render:function(obj){
                 if(obj.total_share<0){
                     return `<div style="color:#f00;">${obj.total_share}</div>`;
@@ -286,7 +290,7 @@ tbody .my_class {
                     return obj.total_share;
                 }
             }},
-          {data:null, "cellType": "td", "className": "my_class",width:'52px',
+          {data:null, "cellType": "td", "className": "my_class",
             render:function(obj){
                 if(obj.total_cost<0){
                     return `<div style="color:#f00;">${obj.total_cost}</div>`;
