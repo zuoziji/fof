@@ -5,11 +5,12 @@ Created on Thu Apr  6 11:11:26 2017
 @author: Yupeng Guo
 """
 
-from fh_tools.windy_utils_rest import WindRest
+from fh_tools.windy_utils_rest import WindRest, APIError
 from fh_tools.fh_utils import get_first, get_last, str_2_date
 import pandas as pd
 from datetime import date, timedelta
 from sqlalchemy.types import String, Date
+from sqlalchemy.dialects.mysql import DOUBLE
 from config_fh import get_db_engine, WIND_REST_URL, get_db_session
 import logging
 logger = logging.getLogger()
@@ -73,9 +74,16 @@ def import_wind_index_daily():
     """导入指数数据"""
     engine = get_db_engine()
     yesterday = date.today() - timedelta(days=1)
-    query = pd.read_sql_query(
-        'select wind_code,index_name, max(trade_date) as latest_date from wind_index_daily group by wind_code', engine)
-    query.set_index('wind_code', inplace=True)
+    sql_str = """select wii.wind_code, wii.sec_name, ifnull(adddate(latest_date, INTERVAL 1 DAY), wii.basedate) date_from
+        from wind_index_info wii left join 
+        (
+            select wind_code,index_name, max(trade_date) as latest_date 
+            from wind_index_daily group by wind_code
+        ) daily
+        on wii.wind_code=daily.wind_code"""
+    with get_db_session(engine) as session:
+        table = session.execute(sql_str)
+        wind_code_date_from_dic = {wind_code: (sec_name, date_from) for wind_code, sec_name, date_from in table.fetchall()}
     with get_db_session(engine) as session:
         # 获取市场有效交易日数据
         sql_str = "select trade_date from wind_trade_date where trade_date > '2005-1-1'"
@@ -83,19 +91,27 @@ def import_wind_index_daily():
         trade_date_sorted_list = [t[0] for t in table.fetchall()]
         trade_date_sorted_list.sort()
     date_to = get_last(trade_date_sorted_list, lambda x: x <= yesterday)
-    logger.info('%d indexes will been import', query.shape[0])
-    for code in query.index:
-        date_from = (query.loc[code, 'latest_date'] + timedelta(days=1))
-        date_from = get_first(trade_date_sorted_list, lambda x: x >= date_from)
-        if date_from is None or date_to is None or date_from > date_to:
+    data_len = len(wind_code_date_from_dic)
+    logger.info('%d indexes will been import', data_len)
+    for data_num, (wind_code, (index_name, date_from)) in enumerate(wind_code_date_from_dic.items()):
+        if str_2_date(date_from) > date_to:
+            logger.warning("%d/%d) %s %s - %s 跳过", data_num, data_len, wind_code, date_from, date_to)
             continue
-        index_name = query.loc[code, 'index_name']
-        temp = rest.wsd(code, "open,high,low,close,volume,amt,turn,free_turn", date_from, date_to)
+        try:
+            temp = rest.wsd(wind_code, "open,high,low,close,volume,amt,turn,free_turn", date_from, date_to)
+        except APIError as exp:
+            logger.exception("%d/%d) %s 执行异常", data_num, data_len, wind_code)
+            if exp.ret_dic.setdefault('error_code', 0) in (
+                    -40520007,  # 没有可用数据
+                    -40521009,  # 数据解码失败。检查输入参数是否正确，如：日期参数注意大小月月末及短二月
+            ):
+                continue
+            else:
+                break
         temp.reset_index(inplace=True)
         temp.rename(columns={'index': 'trade_date'}, inplace=True)
-        temp.trade_date = pd.to_datetime(temp.trade_date)
-        temp.trade_date = temp.trade_date.map(lambda x: x.date())
-        temp['wind_code'] = code
+        # temp.trade_date = temp.trade_date.apply(str_2_date)
+        temp['wind_code'] = wind_code
         temp['index_name'] = index_name
         temp.set_index(['wind_code', 'trade_date'], inplace=True)
         temp.to_sql('wind_index_daily', engine, if_exists='append', index_label=['wind_code', 'trade_date'],
@@ -103,16 +119,95 @@ def import_wind_index_daily():
                         'wind_code': String(20),
                         'trade_date': Date,
                     })
-        logger.info('Success update %s - %s' % (code, index_name))
+        logger.info('更新指数 %s %s 成功', wind_code, index_name)
+
+
+def import_wind_index_daily_by_xls(file_path, wind_code, index_name):
+    """
+    将历史数据净值文件导入数据库
+    1990年前的数据，wind端口无法导出，但可以通过wind终端导出文件后再导入数据库
+    :param file_path: 
+    :param wind_code: 
+    :param index_name: 
+    :return: 
+    """
+    data_df = pd.read_excel(file_path)
+    data_df.rename(columns={
+        "日期": "trade_date",
+        "开盘价(元)": "open",
+        "最高价(元)": "high",
+        "最低价(元)": "low",
+        "收盘价(元)": "close",
+        "成交额(百万)": "amt",
+        "成交量(股)": "volume",
+    }, inplace=True)
+    data_df["wind_code"] = wind_code
+    data_df['index_name'] = index_name
+    data_df.set_index(['wind_code', 'trade_date'], inplace=True)
+    # 删除历史数据
+    engine = get_db_engine()
+    with get_db_session(engine) as session:
+        # 获取市场有效交易日数据
+        sql_str = "delete from wind_index_daily where wind_code = :wind_code"
+        table = session.execute(sql_str, params={"wind_code": wind_code})
+    # 导入历史数据
+    data_df.to_sql('wind_index_daily', engine, if_exists='append', index_label=['wind_code', 'trade_date'],
+                dtype={
+                    'wind_code': String(20),
+                    'trade_date': Date,
+                })
+    logger.info("%s %s %d 条数据被导入", wind_code, index_name, data_df.shape[0])
+
+
+def import_wind_index_info(wind_codes):
+    """
+    导入指数信息
+    :param wind_codes: 
+    :return: 
+    """
+    engine = get_db_engine()
+    info_df = rest.wss(wind_codes, "sec_name,launchdate,basedate,basevalue,crm_issuer,country")
+    if info_df is None or info_df.shape[0] == 0:
+        logger.warning("没有数据可导入")
+        return
+    info_df.rename(columns={
+        'LAUNCHDATE': 'launchdate',
+        'BASEDATE': 'basedate',
+        'BASEVALUE': 'basevalue',
+        'COUNTRY': 'country',
+        'CRM_ISSUER': 'crm_issuer',
+        'SEC_NAME': 'sec_name',
+    }, inplace=True)
+    info_df.index.rename("wind_code", inplace=True)
+    table_name = 'wind_index_info'
+    info_df.to_sql(table_name, engine, if_exists='append', index=True,
+                    dtype={
+                    'wind_code': String(20),
+                    'launchdate': Date,
+                    'basedate': Date,
+                    'basevalue': DOUBLE,
+                    'country': String(20),
+                    'crm_issuer': String(20),
+                    'sec_name': String(20),
+                    })
+    logger.info('%d 条指数信息导入成功\n%s', info_df.shape[0], info_df)
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
 
     # 数据库 wind_index_daily 表中新增加指数
-    wind_codes = ['000905.SH']
+    # wind_codes = ['HSCEI.HI', 'HSI.HI', 'HSML25.HI', 'HSPI.HI', '000001.SH', '000016.SH',
+    #               '000300.SH', '000905.SH', '037.CS', '399001.SZ', '399005.SZ', '399006.SZ', '399101.SZ',
+    #               '399102.SZ',
+    #               ]
+    # import_wind_index_info(wind_codes)
     # import_wind_index_daily_first(wind_codes)
 
     # 每日更新指数信息
     import_wind_index_daily()
     # fill_wind_index_daily_col()
+
+    # file_path = r'd:\Downloads\HSI.xlsx'
+    # wind_code, index_name = "HSI.HI", "恒生指数"
+    # import_wind_index_daily_by_xls(file_path, wind_code, index_name)
