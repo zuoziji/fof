@@ -133,12 +133,12 @@ def update_fund_nav_df(data_df, mode='delete_insert'):
                                            'nav_acc': FLOAT,
                                            'source_mark': Integer
                                        })
-                    # 执行存储过程，将相关批次数据统一更新
-                    if date_max is not None:
-                        sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
-                        session.execute(sql_str, [{'wind_code': wind_code,
-                                                   'nav_date': date_max,
-                                                   'force_update': True}])
+                    # 执行存储过程，将相关批次数据统一更新（废弃，各产品归一后净值由单独模块来进行维护）
+                    # if date_max is not None:
+                    #     sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
+                    #     session.execute(sql_str, [{'wind_code': wind_code,
+                    #                                'nav_date': date_max,
+                    #                                'force_update': True}])
 
         elif mode == 'remove_insert':
             with get_db_session(engine) as session:
@@ -157,23 +157,23 @@ def update_fund_nav_df(data_df, mode='delete_insert'):
                                        'nav_acc': FLOAT,
                                        'source_mark': Integer
                                    })
-                # 执行存储过程，将相关批次数据统一更新
-                if date_max is not None:
-                    sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
-                    session.execute(sql_str, [{'wind_code': wind_code,
-                                               'nav_date': date_max,
-                                               'force_update': True}])
+                # 执行存储过程，将相关批次数据统一更新（废弃，各产品归一后净值由单独模块来进行维护）
+                # if date_max is not None:
+                #     sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
+                #     session.execute(sql_str, [{'wind_code': wind_code,
+                #                                'nav_date': date_max,
+                #                                'force_update': True}])
         elif mode == 'replace_insert':
             data_list = list(fund_nav_df.T.to_dict().values())
             with get_db_session() as session:
                 sql_str = "REPLACE INTO fund_nav (wind_code, nav_date, nav, nav_acc, source_mark) values (:wind_code, :nav_date, :nav, :nav_acc, :source_mark)"
                 session.execute(sql_str, data_list)
-                # 执行存储过程，将相关批次数据统一更新
-                if date_max is not None:
-                    sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
-                    session.execute(sql_str, [{'wind_code': wind_code,
-                                               'nav_date': date_max,
-                                               'force_update': True}])
+                # 执行存储过程，将相关批次数据统一更新（废弃，各产品归一后净值由单独模块来进行维护）
+                # if date_max is not None:
+                #     sql_str = 'call proc_replace_fund_nav_by_wind_code_until(:wind_code, :nav_date, :force_update)'
+                #     session.execute(sql_str, [{'wind_code': wind_code,
+                #                                'nav_date': date_max,
+                #                                'force_update': True}])
         else:
             raise ValueError('mode="%s" is not available' % mode)
 
