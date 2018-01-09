@@ -402,9 +402,6 @@ table.center-all td,th{
 .bootstrap-select{
     width: 100%!important;
 }
-#mytool.col-xs-4{
-    padding-top: 5px;
-}
 .dropdown-header {
     color: #5A738E;
     padding: 5px 20px;
