@@ -5,7 +5,7 @@
 :license: Apache 2.0, see LICENSE for more details.
 """
 from functools import wraps
-from fof_app.models import FoFModel, FUND_ESSENTIAL, get_all_fof, db, FOF_FUND_PCT, FUND_STG_PCT, code_get_name, \
+from fof_app.models import FoFModel, FUND_ESSENTIAL, global_user_cache, db, FOF_FUND_PCT, FUND_STG_PCT, code_get_name, \
     Fund_Core_Info, FUND_NAV
 from flask import request, current_app, redirect, flash
 from flask_login import current_user
@@ -35,7 +35,7 @@ def fund_owner(func):
     def _deco(wind_code: str) -> object:
         logger.info("当前用户{}基金代码{}".format(current_user.username, wind_code))
         all_fund = set()
-        for i in get_all_fof():
+        for i in global_user_cache():
             all_fund.add(i['primary'].wind_code)
             all_child = FOF_FUND_PCT.query.filter_by(wind_code_p=i['primary'].wind_code).all()
             for c in all_child:

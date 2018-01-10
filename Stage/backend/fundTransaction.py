@@ -94,6 +94,7 @@ class Transaction(object):
             d['share'] = float(d['share']) * -1
         if d['operating_type'] == "申购":
             d['amount'] = float(d['amount']) * -1
+        print(d)
         return d
 
     def importDate(self, df_dict):
@@ -102,9 +103,8 @@ class Transaction(object):
         :return:
         """
         for k, v in df_dict.items():
-            print(k,v)
-            record = FUND_TRANSACTION(**self.formatData(v))
-            new_transaction(record)
+            record = FUND_TRANSACTION(**v)
+            new_transaction(record, import_tag=True)
             #print(self.formatData(v))
 
 

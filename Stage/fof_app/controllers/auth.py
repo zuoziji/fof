@@ -9,7 +9,7 @@
 from os import path
 from flask import flash,url_for,redirect,render_template,Blueprint,request
 from fof_app.forms import LoginForm,RegisterForm,ChangePasswordForm,PasswordResetForm,PasswordResetRequestForm
-from fof_app.models import  db,UserModel,get_all_fof
+from fof_app.models import  db,UserModel,global_user_cache
 from flask_login import login_user,logout_user,current_user,login_required
 from ..extensions import send_email
 import logging
@@ -67,7 +67,7 @@ def confirm(token):
 @auth_blueprint.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     form = ChangePasswordForm()
     if form.validate_on_submit():
         if current_user.verify_password(form.old_password.data):

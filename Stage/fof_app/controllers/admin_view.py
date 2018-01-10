@@ -7,7 +7,7 @@
 
 
 from flask_admin.contrib.sqla import ModelView
-from ..models import FoFModel,get_all_fof
+from ..models import FoFModel,global_user_cache
 from logging import getLogger
 from ..extensions import cache
 from wtforms import PasswordField
@@ -103,7 +103,7 @@ class UserAdmin(ModelView):
     def on_model_change(self, form, User, is_created):
         if len(form.password2.data) > 0 :
             User.password_hash = User.set_password(form.password2.data)
-        fof_list = get_all_fof(User)
+        fof_list = global_user_cache(User)
         if fof_list is None:
             logger.warning("用户没有可管理的基金,删除缓存")
             cache.delete(str(User.id))
@@ -161,7 +161,7 @@ class RoleAdmin(ModelView):
         user = model.user
         if len(user) > 0 :
             for i in user:
-                fof_list = get_all_fof(i)
+                fof_list = global_user_cache(i)
                 if fof_list is None:
                     logger.warning("用户没有可管理的基金,删除缓存")
                     cache.delete(str(i.id))

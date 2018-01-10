@@ -1,0 +1,513 @@
+{% extends  "main.html" %}
+{% block css %}
+    <link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">
+    <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
+{% endblock %}
+{% block manager %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>净值管理&nbsp;&nbsp;<span style="font-size: 16px;color:#8698aa;"></span></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="col-md-4" style="padding-bottom: 20px;">
+                <select class="selectpicker" Standard title="请选择基金">
+                   <optgroup label="请选择基金">
+                   </optgroup>
+
+                    {% for i in fund_list %}
+                         <option value="{{ i.wind_code }}">{{ i.sec_name }}</option>
+                        {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1 col-md-offset-7">
+                <a class="btn btn-primary " onclick="history.go(-1)">返回</a>
+            </div>
+            <table id="accTable" class="table table-striped center-all ">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>净值时间</th>
+                        <th>单位净值</th>
+                        <th>累计净值</th>
+                        <th>增长率</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel" data-tag>增加一个新的净值</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form">
+                            <span id="tag"></span>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label" for="nav_date">时间</label>
+                                <input type="date" class="form-control" id="nav_date" placeholder="时间" name="time"
+                                data-date-format="YYYY-MM-DD">
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-３ control-label" for="nav_acc">单位净值</label>
+                                <input type="text" class="form-control" id="nav_acc" placeholder="单位净值" name="nav_acc">
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-３ control-label" for="nav">累计净值</label>
+                                <input type="text" class="form-control" id="nav" placeholder="累计净值" name="nav">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="close">关闭</button>
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="upload" tabindex="-1" role="dialog"
+        aria-labelledby="myModalLabel" aria-hidden="true" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close"
+                    data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    上传文件
+                </h4>
+            </div>
+
+            <div class="modal-body">
+             <div class="form-group">
+                <div class="col-sm-offset-1 col-sm-10">
+                  <div class="container" >
+                      <span class="btn btn-success fileinput-button" id="add">
+                          <i class="glyphicon glyphicon-plus"></i>
+                          <span>添加上传文件</span>
+                          <input id="fileupload" type="file" name="file[]" multiple >
+                      </span>
+                      <br>
+                      <br>
+                      <div id="progress" class="progress">
+                          <div class="progress-bar progress-bar-success"></div>
+                      </div>
+                      <div id="files" class="files"></div>
+
+                      <br>
+                  </div>
+              </div>
+
+          </div>
+
+
+          <div class="form-group">
+           <div class="col-md-3 col-md-offset-1 ">
+               <a href="{{ url_for('f_app.home',wind_code=wind_code) }}">
+                   <input type="button" class="btn btn-success" value="返回">
+               </a>
+           </div>
+       </div><!-- Modal Footer -->
+       <div class="clearfix"></div>
+   </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+{% endblock %}
+
+{% block script %}
+<script src="../../static/vendors/bootstrap-select/js/bootstrap-select.js"></script>
+<script src="../../static/vendors/bootstrap-select/js/i18n/defaults-zh_CN.js"></script>
+<script src="../../static/vendors/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
+<script src="../../static/vendors/jquery-file-upload/js/jquery.iframe-transport.js"></script>
+<script src="../../static/vendors/jquery-file-upload/js/jquery.fileupload.js"></script>
+<script src="../../static/vendors/jquery-file-upload/js/jquery.fileupload-process.js"></script>
+<script src="../../static/vendors/jquery-file-upload/js/jquery.fileupload-validate.js"></script>
+<script src="../../static/vendors/moment/moment.js"></script>
+<script src="../../static/js/bootstrap-datetimepicker.js"></script>
+<script src="../../static/js/handlebars-v4.0.10.js"></script>
+<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
+<script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
+
+<script id="tpl" type="text/x-handlebars-template">
+    {% raw %}
+    {{#each func}}
+    <button type="button" class="btn btn-{{this.type}}{% endraw %} btn-sm" onclick="{% raw %}{{this.fn}}{% endraw %}">{% raw %}{{this.name}}{% endraw %}</button>
+    {% raw %}{{/each}}{% endraw %}
+</script>
+
+<script>
+        $("#form").bootstrapValidator({            //表单验证
+            feedbackIcons: {
+                valid: 'glyphicon glyphicon-ok',
+                invalid: 'glyphicon glyphicon-remove',
+                validating: 'glyphicon glyphicon-refresh',
+                framework: 'bootstrap'
+            }, fields: {
+                time: {
+                    validators: {
+                        notEmpty: {
+                            message: '时间不能为空'
+                        }
+                    }
+                },
+                nav_acc: {
+                    validators: {
+                        notEmpty: {
+                            message: '单位净值不能为空'
+                        }
+                    }
+                },
+                nav: {
+                    validators: {
+                        notEmpty: {
+                            message: '累计净值不能为空'
+                        }
+                    }
+                }
+            }
+        });
+        function clear() {
+            $("#form").data("bootstrapValidator").resetForm();
+            $("#myModalLabel").text("新增");
+            $("#nav_date").val("").attr("disabled",false);
+            $("#nav_acc").val("");
+            $("#nav").val("");
+            $("#pct").val("");
+        }
+        function add(windCode) {
+            var addJson = {
+                "nav_date": $("#nav_date").val(),
+                "nav_acc": $("#nav_acc").val(),
+                "nav": $("#nav").val(),
+                "wind_code":windCode,
+            };
+            ajax(addJson);
+        }
+
+
+        function edit(nav_date,nav_acc,nav) {
+            $("#form").data("bootstrapValidator").resetForm();
+            $("#myModalLabel").text("修改");
+            $("#nav_date").val(nav_date).attr("disabled",true);
+            $("#nav_acc").val(nav_acc);
+            $("#nav").val(nav);
+            $("#myModal").modal("show");
+        }
+
+
+
+        function ajax(obj) {
+            var table = $("#accTable").DataTable();
+            $.ajax({
+                url:'/f_app/add_acc' ,
+                contentType: 'application/json',
+                method:"POST",
+                dataType:'json',
+                data:JSON.stringify({
+                    "nav_date": obj.nav_date,
+                    "nav_acc": obj.nav_acc,
+                    "nav": obj.nav,
+                    "wind_code":obj.wind_code,
+                    "assembly":true
+                }), success: function (data) {
+                    if(data.acc == "edit"){
+                        table.ajax.reload(null,false);
+                        new PNotify({
+                        title: '修改成功',
+                        text:  '',
+                        type: 'success',
+                        styling: 'bootstrap3'
+                    });
+
+                    }else{
+                        console.log(data.result)
+                         table.ajax.reload();
+                        new PNotify({
+                        title: '添加成功',
+                        text:  '',
+                        type: 'success',
+                        styling: 'bootstrap3'
+                    });
+                    }
+
+                    $("#myModal").modal("hide");
+                    $("#myModalLabel").text("新增");
+                    clear();
+
+                }
+            });
+        }
+
+        function del(wind_code,nav_date) {
+            var table = $("#accTable").DataTable();
+            $.ajax({
+                url: "/f_app/del_acc",
+                data: JSON.stringify({"wind_code":wind_code,
+                    "nav_date": nav_date
+                }),
+                method:"POST",
+                contentType: 'application/json',
+                dataType:'json',
+                success: function (data) {
+                    table.ajax.reload(null,false);
+                    new PNotify({
+                        title: '删除成功',
+                        text:  '',
+                        type: 'warn',
+                        styling: 'bootstrap3'
+                    });
+                }
+            });
+        }
+
+
+
+        $('.selectpicker').on('change',function (e) {
+
+            var selectItem= $(this).find("option:selected").val();
+            var selectItemText= $(this).find("option:selected").text();
+
+            $("h2 span").html("("+selectItemText+")");
+            $(function () {
+                $('#start_date').datetimepicker();
+                var tpl = $("#tpl").html();
+                var template = Handlebars.compile(tpl);
+                var selectItem= $(this).find("option:selected").val();
+                table = $('#accTable').DataTable({
+                    ajax: {
+                        url: "/f_app/show_acc/"+selectItem
+                    },
+                    "order": [[1, 'desc']],
+                    "serverSide": false,
+                    "destroy": true,
+                    "columns": [
+                    {"data": null},
+                    {"data": "nav_date"},
+                    {"data": "nav_acc"},
+                    {"data": "nav"},
+                    {"data":"pct"},
+                    {"data": null}
+                    ],
+                    "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": [0.-1]
+                    },
+                    {
+                        "targets": 5,
+                        "render": function (a, b, c, d) {
+                            var context =
+                            {
+                                func: [
+                                {"name": "修改", "fn": "edit(\'" + c.nav_date + "\',\'" + c.nav_acc + "\',\'" + c.nav + "\',\'" + c.pct + "\')", "type": "primary"},
+                                {"name": "删除", "fn": "del(\'" + selectItem + "\',\'" + c.nav_date + "\')", "type": "danger"}
+                                ]
+                            };
+                            var html = template(context);
+                            return html;
+                        }
+                    }
+                    ],
+                    "language": {
+                        "lengthMenu": "每页 _MENU_ 条记录",
+                        "zeroRecords": "没有找到记录",
+                        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                        "infoEmpty": "无记录",
+                        "search": "搜索：",
+                        "infoFiltered": "(从 _MAX_ 条记录过滤)",
+                        "paginate": {
+                            "previous": "上一页",
+                            "next": "下一页"
+                        }
+                    },
+                    "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
+                    "t" +
+                    "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                    "initComplete": function () {
+                        $("#mytool").append('<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span>添加净值</button>');
+                        $("#mytool").append('<button type="button" class="btn btn-success btn-sm col-xs-offset-1" data-toggle="modal" data-target="#upload"><span aria-hidden="true" class="glyphicon glyphicon-open"></span>上传净值文件</button>');
+                    }
+                });
+                //添加序号
+                //不管是排序，还是分页，还是搜索最后都会重画，这里监听draw事件即可
+                table.on('draw.dt',function() {
+                    table.column(0, {
+                        search: 'applied',
+                        order: 'applied'
+                    }).nodes().each(function(cell, i) {
+                        i = i+1;
+                        var page = table.page.info();
+                        var pageno = page.page;
+                        var length = page.length;
+                        var columnIndex = (i+pageno*length);
+                        cell.innerHTML = columnIndex;
+                    });
+                }).draw();
+
+                $("#save").unbind('click').on("click",function (e) {
+                    e.stopPropagation();
+                    var bv = $('#form').data('bootstrapValidator');
+                    bv.validate();
+                    if(bv.isValid()){
+                        add(selectItem)
+                    } else{
+                        return false;
+                    }
+                });
+                $("#close").unbind('click').click(function(){
+                    clear();
+                });
+                $(function () {
+                    'use strict';
+                    // Change this to the location of your server-side upload handler:
+                    var url = '/f_app/upload_acc/'+selectItem,
+                    uploadButton = $('<button/>')
+                    .addClass('btn btn-primary')
+                    .prop('disabled', true)
+                    .text('Processing...')
+                    .on('click', function () {
+                        var $this = $(this),
+                        data = $this.data();
+                        $this
+                        .off('click')
+                        .text('Abort')
+                        .on('click', function () {
+                            $this.remove();
+                            data.abort();
+                        });
+                        data.submit().always(function () {
+                            $this.remove();
+                        });
+                    });
+                    $('#fileupload').fileupload({
+                        url: url,
+                        dataType: 'json',
+                        autoUpload: false,
+                        acceptFileTypes: /(\.|\/)(gif|jpe?g|png|pdf|xlsx|pptx|ppt|xls|doc|docx)$/i,
+                        maxFileSize: 99900000,
+                        sequentialUploads: true,
+                        // Enable image resizing, except for Android and Opera,
+                        // which actually support image resizing, but fail to
+                        // send Blob objects via XHR requests:
+                        disableImageResize: /Android(?!.*Chrome)|Opera/
+                        .test(window.navigator.userAgent),
+                        previewMaxWidth: 100,
+                        previewMaxHeight: 100,
+                        previewCrop: true
+                    }).on('fileuploadadd', function (e, data) {
+                        data.context = $('<div/>').appendTo('#files');
+                        $.each(data.files, function (index, file) {
+                            var node = $('<p/>')
+                            .append($('<span/>').text(file.name));
+                            if (!index) {
+                                node
+                                .append('<br>')
+                                .append(uploadButton.clone(true).data(data));
+                            }
+                            node.appendTo(data.context);
+                        });
+                    }).on('fileuploadprocessalways', function (e, data) {
+                        var index = data.index,
+                        file = data.files[index],
+                        node = $(data.context.children()[index]);
+                        if (file.preview) {
+                            node
+                            .prepend('<br>')
+                            .prepend(file.preview);
+                        }
+                        if (file.error) {
+                            node
+                            .append('<br>')
+                            .append($('<span class="text-danger"/>').text(file.error));
+                        }
+                        if (index + 1 === data.files.length) {
+                            data.context.find('button')
+                            .text('Upload')
+                            .prop('disabled', !!data.files.error);
+                        }
+                    }).on('fileuploadprogressall', function (e, data) {
+                        var progress = parseInt(data.loaded / data.total * 100, 10);
+                        $('#progress .progress-bar').css(
+                            'width',
+                            progress + '%'
+                            );
+                    }).on('fileuploaddone', function (e, data) {
+                        $.each(data.result.files, function (index, file) {
+
+                            if (file.url) {
+                                var link = $('<a>')
+                                .attr('target', '_blank')
+                                .prop('href', file.url);
+                                $(data.context.children()[index])
+                                .wrap(link);
+                            } else if (file.error) {
+                                var error = $('<span class="text-danger"/>').text(file.error);
+                                $(data.context.children()[index])
+                                .append('<br>')
+                                .append(error);
+                            } else if (file.message){
+                                var message = $('<span class="text-success"/>').text(file.message);
+                                $(data.context.children()[index])
+                                .append('<br>')
+                                .append(message);
+                            }
+                        });
+                    }).on('fileuploadfail', function (e, data) {
+                        $.each(data.files, function (index) {
+                            var error = $('<span class="text-danger"/>').text('文件上传失败');
+                            $(data.context.children()[index])
+                            .append('<br>')
+                            .append(error);
+                        });
+                    }).prop('disabled', !$.support.fileInput)
+                    .parent().addClass($.support.fileInput ? undefined : 'disabled');
+                });
+
+            });
+        });
+        $('#myModal').on('show.bs.modal',function () {
+            if($('#nav_date').val() == ""){
+                var today  = moment().format('YYYY-MM-DD');
+                $('#nav_date').val(today);
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+{% endblock %}

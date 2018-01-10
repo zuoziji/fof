@@ -28,7 +28,7 @@ from backend.tools import fund_owner, chunks, get_Value, range_years, check_code
     get_stress_data, get_stg, child_charts, get_core_info, calc_periods
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
-    strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, get_all_fof, PCT_SCHEME, INFO_SCHEME, UserModel, \
+    strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, global_user_cache, PCT_SCHEME, INFO_SCHEME, UserModel, \
     Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION, new_transaction, \
     delete_transaction, edit_transaction
 from fof_app.tasks import run_scheme_testing
@@ -41,7 +41,10 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
+from backend.NavFactory import CalcBase,query_batch
 import pandas as pd
+
+
 
 logger = logging.getLogger()
 
@@ -64,7 +67,7 @@ def before_request():
     if current_user.is_authenticated:
         fof_list = cache.get(str(current_user.id))
         if fof_list is None:
-            fof_list = get_all_fof()
+            fof_list = global_user_cache()
             if fof_list is None:
                 abort(409)
             else:
@@ -312,7 +315,7 @@ def add_child(wind_code: str) -> object:
             db.session.commit()
             logger.info("wind_code_p {} wind_code_s {} invest_scale {}".format(wind_code, i[0], i[1]))
         logger.info("用户{}更新持仓记录成功".format(current_user.username))
-        fof_list = get_all_fof()
+        fof_list = global_user_cache()
         logger.info("更新缓存用户{}可访问基金列表".format(current_user.username))
         cache.set(key=str(current_user.id), value=fof_list)
         data_handler.update_fof_stg_pct(wind_code)
@@ -640,7 +643,7 @@ def del_acc():
     with get_db_session(get_db_engine()) as session:
         logger.info("开始执行存储过程")
         session.execute(del_nav_str, {'wind_code': wind_code, 'nav_date': nav_date})
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     cache.set(key=str(current_user.id), value=fof_list)
     logger.info("用户{}基金列表缓存已更新".format(current_user.username))
     return jsonify(status='ok')
@@ -654,7 +657,7 @@ def add_acc():
     :return:
     """
     post_data = request.json
-
+    print(post_data)
     acc_record = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == post_data['wind_code']),
                                        (FUND_NAV.nav_date == post_data['nav_date'])).first()
     if acc_record is None:
@@ -665,17 +668,21 @@ def add_acc():
         db.session.add(acc_record)
         db.session.commit()
         sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
-        replace_nav_str = "call proc_replace_fund_nav_by_wind_code(:wind_code, :nav_date,:force_update)"
         with get_db_session(get_db_engine()) as session:
             logger.info("开始执行存储过程")
             session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
-            session.execute(replace_nav_str,
-                            {'wind_code': request.json['wind_code'], 'nav_date': request.json['nav_date'],
-                             'force_update': True})
-            fof_list = get_all_fof()
+            fof_list = global_user_cache()
             cache.set(key=str(current_user.id), value=fof_list)
             logger.info("用户{}基金列表缓存已更新".format(current_user.username))
-        return jsonify(acc="add")
+        if post_data.get('assembly'):
+            result = dict()
+            result['fund'] = acc_record.as_dict()
+            result['batch'] = []
+            for i in query_batch(acc_record):
+                x = CalcBase.from_operater(i['operating_type'], acc_record, i)
+                return_data = x.calc()
+                result['batch'].append(return_data)
+        return jsonify(acc="add", result=result)
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))
         post_data = request.json
@@ -685,13 +692,10 @@ def add_acc():
         acc_record.nav = post_data['nav']
         db.session.commit()
         sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
-        replace_nav_str = "call proc_replace_fund_nav_by_wind_code(:wind_code, :nav_date,:force_update)"
 
         with get_db_session(get_db_engine()) as session:
             logger.info("开始执行存储过程")
             session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
-            session.execute(replace_nav_str, {'wind_code': request.json['wind_code'],
-                                              'nav_date': request.json['nav_date'], 'force_update': True})
         return jsonify(acc="edit")
 
 
@@ -762,7 +766,7 @@ def upload_acc(wind_code):
                 file_path = path.join(current_app.config['ACC_FOLDER'], filename)
                 file.save(file_path)
                 fund_nav_import_csv.update_fundnav_by_file(wind_code=wind_code, file_path=file_path)
-                fof_list = get_all_fof()
+                fof_list = global_user_cache()
                 cache.set(key=str(current_user.id), value=fof_list)
                 return json.dumps({"files": [{"message": "净值已更新"}]})
         else:
@@ -867,7 +871,7 @@ def confirm_asset(wind_code):
                     session.execute(replace_nav_str,
                                     {'wind_code': post_data['wind_code'], 'nav_date': post_data['nav_date'],
                                      'force_update': False})
-                    fof_list = get_all_fof()
+                    fof_list = global_user_cache()
                     cache.set(key=str(current_user.id), value=fof_list)
                     logger.info("用户{}基金列表缓存已更新".format(current_user.username))
                 return jsonify(status='ok')
@@ -1022,7 +1026,7 @@ def all_cal():
     :by hdhuang
     :return:
     """
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     return render_template('allcalendar.html', fof_list=fof_list)
 
 
@@ -1288,7 +1292,7 @@ def manual_add():
     :return:
     """
     if request.method == 'GET':
-        fof_list = get_all_fof()
+        fof_list = global_user_cache()
         return render_template('manual_add.html', fof_list=fof_list)
     elif request.method == 'POST':
         post_data = request.json
@@ -1374,7 +1378,7 @@ def testing_result():
     :return: 所有的压力结果供用户选择
     """
     if request.method == 'GET':
-        fof_list = get_all_fof()
+        fof_list = global_user_cache()
         result = INFO_SCHEME.query.all()
         for i in result:
             print(i.create_user)
@@ -1448,7 +1452,7 @@ def del_scheme():
 
 @f_app_blueprint.route('/data_show', methods=['GET', 'POST'])
 def data_show():
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     return render_template('data_show.html', fof_list=fof_list)
 
 
@@ -1488,7 +1492,7 @@ def invest_corp():
     :by hdhuang
     :return:
     """
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     invest = Invest_corp.query.all()
     all_invest = [{"id": index, "name": i.name, "alias": i.alias, "review_status": i.review_status,
                    'tot': i.fund_count_tot, 'existing': i.fund_count_existing, "active": i.fund_count_active,
@@ -1528,7 +1532,7 @@ def process(uid):
        :return:
        """
     if request.method == 'GET':
-        fof_list = get_all_fof()
+        fof_list = global_user_cache()
         corp = Invest_corp.query.get(uid)
         return render_template("process.html", fof_list=fof_list, corp=corp)
     if request.method == 'POST':
@@ -1555,7 +1559,7 @@ def corp_upload_file(uid):
         :by zhoushaobo
         :return:
     """
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     corp = Invest_corp.query.get(uid)
     file_type = FileType.query.filter(FileType.type_name != "评估报告").all()
     file_type = [i.type_name for i in file_type]
@@ -1590,7 +1594,7 @@ def corp(uid):
     :by hdhuang
     :return:
     """
-    fof_list = get_all_fof()
+    fof_list = global_user_cache()
     corp = Invest_corp.query.get(uid)
     fof = FoFModel.query.filter_by(mgrcomp_id=uid).all()
     all_files = Invest_corp_file.query.filter(Invest_corp_file.mgrcomp_id == uid).all()
@@ -2070,8 +2074,6 @@ def get_transaction():
         for k, v in i.items():
             if v is not None and isinstance(v, datetime.date):
                 i[k] = v.strftime('%Y-%m-%d')
-            if isinstance(v, float):
-                i[k] = abs(v)
     return json.dumps(result)
 
 
@@ -2216,6 +2218,22 @@ def export_transaction():
         )
     os.remove(corp_file_path)
     return response
+
+
+@f_app_blueprint.route('/assembly_acc')
+def assembly_acc():
+    fof_list = cache.get(str(current_user.id))
+    fund_list = []
+    for i in fof_list:
+        for x in i['child']:
+            batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=x['code']).first()
+            if batch is None:
+                fund = FoFModel.query.filter_by(wind_code=x['code']).first()
+            else:
+                fund = FoFModel.query.filter_by(wind_code=batch.wind_code).first()
+            if fund not in fund_list:
+                fund_list.append(fund)
+    return render_template('assembly_acc.html', fof_list=fof_list, fund_list=fund_list)
 
 
 def allowed_file(filename):
