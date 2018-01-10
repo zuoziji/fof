@@ -22,6 +22,9 @@ table .desc:hover{
 .dropdown-menu .inner {
   max-height: 200px!important;
 }
+.dataTables_scrollHeadInner,table{
+  width:100%!important;
+}
 td {
   min-width:52px;
 }
@@ -44,7 +47,7 @@ tbody .my_class {
         <div class="clearfix"></div>
       </div>
       <div class="x_content">
-       <table class="table table-bordered center-all display" id="invest_tab" width="100%" >
+       <table class="table table-bordered center-all display" id="invest_tab">
         <thead>
           <tr>
             <th style="padding:8px 10px;"><input type="checkbox" name="select_all"></th>
@@ -64,9 +67,6 @@ tbody .my_class {
           </tr>
         </thead>
        </table>
-      </div>
-      <div class="btn-group" role="group" id="menu" style="display: none;z-index:999;">
-        <button type="button" class="edit btn btn-primary btn-sm"><span aria-hidden="true" class="glyphicon glyphicon-edit">编辑</span></button><button type="button" class="btn btn-danger btn-sm del"><span aria-hidden="true" class="glyphicon glyphicon-trash">删除</span></button>
       </div>
    </div>
   </div>
@@ -368,7 +368,6 @@ tbody .my_class {
       updateDataTableSelectAllCtrl(table);
 
       // Prevent click event from propagating to parent
-      menu.style.display = 'none';
       e.stopPropagation();
    });
 
@@ -386,7 +385,6 @@ tbody .my_class {
       }
 
       // Prevent click event from propagating to parent
-      menu.style.display = 'none';
       e.stopPropagation();
    });
 
@@ -395,32 +393,6 @@ tbody .my_class {
       // Update state of "Select all" control
       updateDataTableSelectAllCtrl(table);
    });
-
-//right click menu 
-    $("tbody").contextmenu(function(e){
-        e = e || window.event;
-        if(e.preventDefault){
-            e.preventDefault();
-        }else{
-            e.returnValue = false;
-        }
-        if(e.clientX>(invest_tab.offsetWidth+240)){
-          menu.style.left = invest_tab.offsetWidth-80+'px';
-        }else{
-          menu.style.left = e.clientX-320+'px';
-        }
-        menu.style.top = e.pageY-60+'px';
-        menu.style.display = 'block';
-        menu.style.position = 'absolute';
-    });
-  if(rows_selected.length!=0){ 
-  }
-
-//close menu
-    document.onclick=function(){
-        menu.style.display = 'none';
-    }
-
 
 //delete checked
     $(".x_panel").on('click','.btn.del',function(){
