@@ -3,7 +3,8 @@ import abc
 import logging
 from sqlalchemy import and_
 from fof_app.models import FUND_TRANSACTION, FUND_NAV, FUND_ESSENTIAL, db
-
+from backend.data_handler import get_fund_nav_by_wind_code
+from functools import reduce
 logger = logging.getLogger()
 
 
@@ -22,17 +23,40 @@ class CalcBase(object):
 
 
 def query_batch(target):
+    """
+
+    :param target:
+    :return:
+    """
+    s = ["分红再投资", "现金分红", "份额强增", "份额强减"]
+    result = []
     batch = FUND_ESSENTIAL.query.filter(FUND_ESSENTIAL.wind_code == target.wind_code).all()
     for i in batch:
         recent_record = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i.wind_code_s,
-                                                           FUND_TRANSACTION.total_share > 0)).order_by(
-            FUND_TRANSACTION.confirm_date.desc()).first()
-        if recent_record is not None:
-            rv = recent_record.as_dict()
-            logger.info(
-                "批次-{}-当前总份额{},基金{}最新净值{}".format(rv['sec_name_s'], rv['total_share'], target.wind_code, target.nav))
-            rv['market_cap'] = rv['total_share'] * target.nav
-            yield rv
+                                                           FUND_TRANSACTION.total_share > 0,
+                                                           FUND_TRANSACTION.confirm_date == target.nav_date)).order_by(
+            FUND_TRANSACTION.confirm_date.desc()).all()
+        if len(recent_record) > 1:
+
+            for e in recent_record:
+                r_dict = e.as_dict()
+                r_dict['market_cap'] = r_dict['total_share'] * target.nav
+                logger.info(
+                    "批次-{}-当前总份额{},基金{}最新净值{}".format(r_dict['sec_name_s'], r_dict['total_share'], target.wind_code,
+                                                      target.nav))
+                result.append(r_dict)
+            yield result
+        else:
+            r = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i.wind_code_s,
+                                                   FUND_TRANSACTION.total_share > 0)).order_by(
+                FUND_TRANSACTION.confirm_date.desc()).first()
+            if r is not None:
+                r_dict = r.as_dict()
+                r_dict['market_cap'] = r_dict['total_share'] * target.nav
+                logger.info(
+                    "批次-{}-当前总份额{},基金{}最新净值{}".format(r_dict['sec_name_s'], r_dict['total_share'], target.wind_code,
+                                                      target.nav))
+                yield r_dict
 
 
 class InitTarget(object):
@@ -48,8 +72,9 @@ class InitTarget(object):
                             "normalized_nav": self.normalized_nav,
                             "wind_code": self.target['wind_code_s'],
                             "sec_name_s": self.target['sec_name_s'],
-                            'operating_type':self.target['operating_type']}
+                            'operating_type': self.target['operating_type']}
         self.normal = True if self.fund.nav_date != self.target['confirm_date'] else False
+
     def _last_nav(self):
         last_nav = FUND_NAV.query.filter_by(wind_code=self.fund.wind_code).order_by(
             FUND_NAV.nav_date.desc()).all()
@@ -86,7 +111,8 @@ class ShareDividends(CalcBase, InitTarget):
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             batch_last_cap = last_batch.total_share * self.recent_nav.nav
             batch_new_cap = self.target['market_cap']
@@ -103,12 +129,11 @@ class ShareDividends(CalcBase, InitTarget):
 
 class CashDividends(CalcBase, InitTarget):
     def calc(self):
-        print(self.normal)
-
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             batch_last_cap = last_batch.total_share * self.recent_nav.nav
             self.normalized_nav = (self.target['amount'] + self.target[
@@ -128,7 +153,8 @@ class SharePlusMinus(CalcBase, InitTarget):
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             batch_last_cap = last_batch.total_share * self.recent_nav.nav
             self.normalized_nav = self.target['market_cap'] / batch_last_cap * self.recent_batch_nav.nav
@@ -160,10 +186,37 @@ class TaskCash(CalcBase, InitTarget):
                                                         self.fund.nav_date, self.normalized_nav))
             return self.return_data
 
-
     def __oper__(self):
         return ["提取业绩报酬"]
 
+
+class SpecialCal(object):
+    def __init__(self, fund,target):
+        self.target = target
+        self.fund = fund
+        self.wind_code = target[0]['wind_code_s']
+        self.last_cap,self.last_share  = self._last_batch()
+    def calc(self):
+        this_cap = self.target[-1]['total_share'] * self.fund.nav
+        sum_value = reduce((lambda x,y:x+y),[i['amount'] for i in self.target])
+        normalized_nav = (this_cap+sum_value) /self.last_share * self.last_cap
+        return {"share": self.target[-1]['total_share'],
+                            "market_cap": self.target[-1]['market_cap'],
+                            "normalized_nav": normalized_nav,
+                            "wind_code": self.target[-1]['wind_code_s'],
+                            "sec_name_s": self.target[-1]['sec_name_s'],
+                            'operating_type': self.target[-1]['operating_type']}
+
+    def _last_batch_nav(self):
+        last_nav = FUND_NAV.query.filter_by(wind_code=self.wind_code).order_by(
+            FUND_NAV.nav_date.desc()).first()
+        return last_nav.nav
+    def _last_batch(self):
+        last_batch = FUND_TRANSACTION.query.filter_by(wind_code_s=self.wind_code).order_by(
+            FUND_TRANSACTION.confirm_date.asc()).limit(len(self.target)+1).first()
+        last_share = last_batch.total_share
+        last_cap = last_share * self._last_batch_nav()
+        return last_cap,last_share
 
 if __name__ == "__main__":
     from fof_app import create_app
@@ -175,5 +228,11 @@ if __name__ == "__main__":
         db.init_app(flask_app)
         r = FUND_NAV.query.filter_by(wind_code="XT1605537.XT").order_by(FUND_NAV.nav_date.desc()).first()
         for i in query_batch(r):
-            x = CalcBase.from_operater(i['operating_type'], r, i)
-            return_data = x.calc()
+            if isinstance(i, list):
+                x = SpecialCal(r, i)
+            else:
+                x = CalcBase.from_operater(i['operating_type'], r, i)
+            value = x.calc()
+            print(value)
+            nav_record = get_fund_nav_by_wind_code(value['wind_code'], limit=5)
+            print(nav_record)

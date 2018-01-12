@@ -41,7 +41,7 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
-from backend.NavFactory import CalcBase,query_batch
+from backend.NavFactory import CalcBase,query_batch,SpecialCal
 import pandas as pd
 
 
@@ -639,6 +639,10 @@ def del_acc():
                                        (FUND_NAV.nav_date == nav_date)).first()
     db.session.delete(acc_record)
     db.session.commit()
+    batch = FUND_ESSENTIAL.query.filter(FUND_ESSENTIAL.wind_code == wind_code).all()
+    for i in batch:
+        FUND_NAV.query.filter(and_(FUND_NAV.wind_code == i.wind_code_s),(FUND_NAV.nav_date == nav_date)).delete()
+        db.session.commit()
     del_nav_str = "call proc_delete_fund_nav_by_wind_code(:wind_code, :nav_date)"
     with get_db_session(get_db_engine()) as session:
         logger.info("开始执行存储过程")
@@ -668,20 +672,42 @@ def add_acc():
         db.session.add(acc_record)
         db.session.commit()
         sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
-        with get_db_session(get_db_engine()) as session:
+        with get_db_session(get_db_engine()) as s:
             logger.info("开始执行存储过程")
-            session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
+            s.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})
             fof_list = global_user_cache()
             cache.set(key=str(current_user.id), value=fof_list)
             logger.info("用户{}基金列表缓存已更新".format(current_user.username))
         if post_data.get('assembly'):
             result = dict()
-            result['fund'] = acc_record.as_dict()
+            acc_data = data_handler.get_fund_nav_by_wind_code(post_data['wind_code'], limit=5)
+            if acc_data is not None:
+                acc_data.reset_index(inplace=True)
+                acc_data = acc_data.to_dict(orient='records')
+                acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],
+                        "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in acc_data]
+            result['fund'] = acc
             result['batch'] = []
             for i in query_batch(acc_record):
-                x = CalcBase.from_operater(i['operating_type'], acc_record, i)
+                if isinstance(i, list):
+                    x = SpecialCal(acc_record, i)
+                else:
+                    x = CalcBase.from_operater(i['operating_type'], acc_record, i)
                 return_data = x.calc()
-                result['batch'].append(return_data)
+                batch_record = FUND_NAV(wind_code=return_data['wind_code'], nav_date=request.json['nav_date'],
+                              nav=return_data['normalized_nav'],
+                              nav_acc=return_data['normalized_nav'], source_mark=1)
+                db.session.add(batch_record)
+                db.session.commit()
+                batch_acc = data_handler.get_fund_nav_by_wind_code(return_data['wind_code'], limit=5)
+                if batch_acc is not None:
+                    batch_acc.reset_index(inplace=True)
+                    batch_acc = batch_acc.to_dict(orient='records')
+                    acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],"share":return_data['share'],
+                            "market_cap":return_data['market_cap'],
+                            "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
+                           batch_acc]
+                result['batch'].append(acc)
         return jsonify(acc="add", result=result)
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))
@@ -692,7 +718,6 @@ def add_acc():
         acc_record.nav = post_data['nav']
         db.session.commit()
         sql_str = "call proc_update_fund_info_by_wind_code2(:wind_code, :force_update)"
-
         with get_db_session(get_db_engine()) as session:
             logger.info("开始执行存储过程")
             session.execute(sql_str, {'wind_code': request.json['wind_code'], 'force_update': True})

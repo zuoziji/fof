@@ -1,4 +1,6 @@
 
 
-x= [1]
-print(x[-1])
+x = list(range(10))
+
+
+x[11]
