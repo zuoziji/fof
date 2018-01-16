@@ -410,3 +410,24 @@ table.center-all td,th{
 .dropdown-menu li a.opt {
     padding-left: 4em!important;
 }
+td.details-control {
+    background: url(../images/details_open.png) no-repeat center center;
+    cursor: pointer;
+}
+
+/*fixed columns*/
+.DTFC_ScrollWrapper{
+  height:auto!important;
+}
+.DTFC_LeftHeadWrapper,.DTFC_LeftBodyWrapper,.DTFC_LeftBodyLiner{
+    overflow: visible!important;
+}
+.DTFC_LeftHeadWrapper table.dataTable,.DTFC_LeftBodyWrapper table.dataTable {
+    background: #f1f1f1!important;
+    margin-bottom: 0 !important;
+}
+.DTFC_LeftBodyWrapper table.dataTable {
+    background: #f1f1f1!important;
+    margin-top: -3px !important;
+    margin-bottom: 0 !important;
+}

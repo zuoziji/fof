@@ -2,6 +2,16 @@
 {% block css %}
     <link href="../../static/vendors/jquery-file-upload/css/jquery.fileupload.css" rel="stylesheet">
     <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
+    <style>
+    th,td{
+        min-width: 80px;
+    }
+
+    .modal-lg {
+        min-width: 600px!important;
+        max-width: 1200px!important;
+    }
+    </style>
 {% endblock %}
 {% block manager %}
 {% endblock %}
@@ -43,6 +53,30 @@
     </div>
 
     <div>
+
+        <div class="modal fade bs-example-modal-lg" id="tableModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="tableModalLabel" data-tag></h4>
+                    </div>
+                    <div class="modal-body" id="table-modal">
+                        <table id="Table" class="table table-bordered center-all ">
+                            <thead>
+
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success" id="edit">确认</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="cancle">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -147,7 +181,8 @@
 <script src="../../static/js/handlebars-v4.0.10.js"></script>
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
-
+<script src="../../static/js/jquery.dataTables.min.js"></script>
+<script src="../../static/js/dataTables.fixedColumns.min.js"></script>
 <script id="tpl" type="text/x-handlebars-template">
     {% raw %}
     {{#each func}}
@@ -156,6 +191,7 @@
 </script>
 
 <script>
+
         $("#form").bootstrapValidator({            //表单验证
             feedbackIcons: {
                 valid: 'glyphicon glyphicon-ok',
@@ -214,8 +250,7 @@
             $("#myModal").modal("show");
         }
 
-
-
+        
         function ajax(obj) {
             var table = $("#accTable").DataTable();
             $.ajax({
@@ -233,26 +268,171 @@
                     if(data.acc == "edit"){
                         table.ajax.reload(null,false);
                         new PNotify({
-                        title: '修改成功',
-                        text:  '',
-                        type: 'success',
-                        styling: 'bootstrap3'
-                    });
-
+                            title: '修改成功',
+                            text:  '',
+                            type: 'success',
+                            styling: 'bootstrap3'
+                        });
+                        $("#myModal").modal("hide");
+                        $("#myModalLabel").text("新增");
+                        clear();
                     }else{
-                        console.log(data.result)
-                         table.ajax.reload();
+                        var batch= data.result.batch;
+                        var fund= data.result.fund;
+                        var tableDate=[];
+                        var fundObj={};
+                        var columns=[
+                            {"data": "nav_date"},
+                            {"data": "nav"},
+                            {"data": "pct"}
+                        ];
+                        var columnDefs = [];
+                        var sendObj = [];
+                        $.each(fund,function(index,value){
+                            value.pct=Math.round(value.pct*10000)/100;
+                            fundObj[value.nav_date]=value;
+                        })
+                        $.each(batch,function(index,value){
+                            columns.push(
+                                {"data": "nav"+index},
+                                {"data": "share"+index},
+                                {"data": "market_cap"+index},
+                                {"data": "pct"+index}
+                            );
+                            $.each(value,function(k,v){
+                                fundObj[v.nav_date]=fundObj[v.nav_date]||{}; 
+                                fundObj[v.nav_date].nav_date=v.nav_date;
+                                fundObj[v.nav_date]["last"]=fundObj[v.nav_date]["last"]||[];                       
+                                $.each(v,function(key,val){
+                                    if(key=="pct"){
+                                        fundObj[v.nav_date][key+index]=Math.round(val*10000)/100;
+                                    }else{
+                                        fundObj[v.nav_date][key+index]=val;
+                                    }
+                                })
+                                if(k==value.length-1){
+                                    fundObj[v.nav_date].last.push(3+4*index);
+                                    columnDefs.push({
+                                        "render": function(data, type, row) {
+                                            if($.inArray(3+4*index,row.last)!=-1){
+                                                sendObj.push({
+                                                    "nav_date": row["nav_date"+index],
+                                                    "nav_acc": row["nav_acc"+index],
+                                                    "nav": row["nav"+index],
+                                                    "wind_code":row["wind_code"+index]
+                                                })
+                                                return `<input type="number" index="${index}" value=${value[k].nav} style="width:80px;height:18px;">`;
+
+                                            }else{
+                                                return row["nav"+index];
+                                            }
+                                        },
+                                        "targets": [3+4*index]
+                                    })
+                                }
+
+                            })
+                        })
+                        var fund=[];
+                        $.each(fundObj,function(key,val){
+                            fund.push(val);
+                        })
+                        fund.sort(function(a,b){
+                            if(a["nav_date"]>b["nav_date"]){
+                                return 1;
+                            }else if(a["nav_date"]<b["nav_date"]){
+                                return -1;
+                            }else{
+                                return 0;
+                            }
+                        });
+
+                        $("#myModal").modal("hide");
+                        $("#myModalLabel").text("新增");
+                        clear();
+                        $("#tableModal").modal("show");
+                        $("#table-modal").html(`
+                        <table id="Table" class="table table-bordered center-all ">
+                            <thead>
+
+                            </thead>
+                        </table>`);
+                        $("#tableModalLabel").text("净值维护");
+                        var len=data.result.batch.length;
+                        var fundname=$(".filter-option.pull-left").text();
+                        var thead=`<tr><th colspan="3">${fundname}</th>`;
+                        var thead2=`<tr><th>时间</th><th>净值</th><th>变化率(%)</th>`;
+                        if(len!==0){
+                            for(var i=0;i<len;i++){
+                                thead+=`<th colspan="4">${batch[i][0].sec_name}</th>`;
+                                thead2+=`<th>净值</th><th>份额</th><th>市值</th><th>变化率(%)</th>`;
+                            }
+                        }
+
+                        $("#Table thead").html(`${thead}</tr>${thead2}</tr>`);
+                        var tableModal=$('#Table').DataTable({
+                            "data":fund,
+                            "serverSide": false,
+                            "paging":false,
+                            "searching":false,
+                            "ordering":false,
+                            "info":false,
+                            "scrollX":true,
+                            "scrollCollapse": true,
+                            "autoWidth":true,
+                            "columns": columns,
+                            "columnDefs":columnDefs,
+                            "displayLength": "400",
+                            "order": [[1, 'asc']],
+                            "fixedColumns":   {
+                                leftColumns: 3
+                            },
+                            "language": {
+                                "zeroRecords": "没有找到记录"
+                            }
+                        });
+                        var sendObjIndex=[];
+                        $("#tableModal").on("change","input",function(){
+                            var index=$(this).attr("index");
+                            sendObj[index].nav=$(this).val();
+                            if($.inArray(index,sendObjIndex)==-1){
+                                sendObjIndex.push(index);
+                            }
+                        })
+                        $("#edit").click(function(){
+                            $.each(sendObjIndex,function(i,v){         
+                                $.ajax({
+                                    url:'/f_app/add_acc' ,
+                                    contentType: 'application/json',
+                                    method:"POST",
+                                    dataType:'json',
+                                    data:JSON.stringify({
+                                        "nav_date": sendObj[v].nav_date,
+                                        "nav_acc": sendObj[v].nav_acc,
+                                        "nav": sendObj[v].nav,
+                                        "wind_code":sendObj[v].wind_code,
+                                        "assembly":true
+                                    }), success: function (data) {}
+                                })
+                            })
+                            new PNotify({
+                                title: '修改成功',
+                                text:  '',
+                                type: 'success',
+                                styling: 'bootstrap3'
+                            });
+                            $("#tableModal").modal("hide"); 
+                        })
+
+                        table.ajax.reload();
                         new PNotify({
-                        title: '添加成功',
-                        text:  '',
-                        type: 'success',
-                        styling: 'bootstrap3'
-                    });
+                            title: '添加成功',
+                            text:  '',
+                            type: 'success',
+                            styling: 'bootstrap3'
+                        });
                     }
 
-                    $("#myModal").modal("hide");
-                    $("#myModalLabel").text("新增");
-                    clear();
 
                 }
             });
@@ -492,8 +672,6 @@
                 $('#nav_date').val(today);
             }
         });
-
-
 
 
 
