@@ -280,23 +280,93 @@
                         var fund= data.result.fund;
                         var tableDate=[];
                         var fundObj={};
+                        // var columns=[
+                        //     {"data": "nav_date"},
+                        //     {"data": "nav"},
+                        //     {"data": "pct"}
+                        // ];
                         var columns=[
-                            {"data": "nav_date"},
-                            {"data": "nav"},
-                            {"data": "pct"}
-                        ];
-                        var columnDefs = [];
+                            {data:null,
+                            render:function(obj){
+                                if(obj.nav_date||obj.nav_date==0){
+                                    return obj.nav_date;
+                                }else{
+                                    return "";
+                                }
+                            }},
+                            {data:null,
+                            render:function(obj){
+                                if(obj.nav||obj.nav==0){
+                                    return obj.nav;
+                                }else{
+                                    return "";
+                                }
+                            }},
+                            {data:null,
+                            render:function(obj){
+                                if(obj.pct||obj.pct==0){
+                                    return obj.pct;
+                                }else{
+                                    return "";
+                                }
+                            }}
+                        ]; 
                         var sendObj = [];
                         $.each(fund,function(index,value){
                             value.pct=Math.round(value.pct*10000)/100;
                             fundObj[value.nav_date]=value;
                         })
                         $.each(batch,function(index,value){
-                            columns.push(
+/*                            columns.push(
                                 {"data": "nav"+index},
                                 {"data": "share"+index},
                                 {"data": "market_cap"+index},
                                 {"data": "pct"+index}
+                            );*/
+                            columns.push(
+                            {data:null,
+                            render:function(obj){
+                                if($.inArray(3+4*index,obj.last)!=-1){
+                                    sendObj.push({
+                                        "nav_date": obj["nav_date"+index],
+                                        "nav_acc": obj["nav_acc"+index],
+                                        "nav": obj["nav"+index],
+                                        "wind_code":obj["wind_code"+index]
+                                    })
+                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} data=${obj["nav"+index]} style="width:80px;height:18px;">`;
+
+                                }else{
+                                    if(obj["nav"+index]||obj["nav"+index]==0){
+                                        return obj["nav"+index];
+                                    }else{
+                                        return "";
+                                    }
+                                }
+                            }},
+                            {data:null,
+                            render:function(obj){
+                                if(obj["share"+index]||["share"+index]==0){
+                                    return obj["share"+index];
+                                }else{
+                                    return "";
+                                }
+                            }},
+                            {data:null,
+                            render:function(obj){
+                                if(obj["market_cap"+index]||obj["market_cap"+index]==0){
+                                    return obj["market_cap"+index];
+                                }else{
+                                    return "";
+                                }
+                            }},
+                            {data:null,
+                            render:function(obj){
+                                if(obj["pct"+index]||obj["pct"+index]==0){
+                                    return obj["pct"+index];
+                                }else{
+                                    return "";
+                                }
+                            }}
                             );
                             $.each(value,function(k,v){
                                 fundObj[v.nav_date]=fundObj[v.nav_date]||{}; 
@@ -311,23 +381,6 @@
                                 })
                                 if(k==value.length-1){
                                     fundObj[v.nav_date].last.push(3+4*index);
-                                    columnDefs.push({
-                                        "render": function(data, type, row) {
-                                            if($.inArray(3+4*index,row.last)!=-1){
-                                                sendObj.push({
-                                                    "nav_date": row["nav_date"+index],
-                                                    "nav_acc": row["nav_acc"+index],
-                                                    "nav": row["nav"+index],
-                                                    "wind_code":row["wind_code"+index]
-                                                })
-                                                return `<input type="number" index="${index}" value=${value[k].nav} style="width:80px;height:18px;">`;
-
-                                            }else{
-                                                return row["nav"+index];
-                                            }
-                                        },
-                                        "targets": [3+4*index]
-                                    })
                                 }
 
                             })
@@ -380,7 +433,6 @@
                             "scrollCollapse": true,
                             "autoWidth":true,
                             "columns": columns,
-                            "columnDefs":columnDefs,
                             "displayLength": "400",
                             "order": [[1, 'asc']],
                             "fixedColumns":{
@@ -393,6 +445,7 @@
                         var sendObjIndex=[];
                         $("#tableModal").on("change","input",function(){
                             var index=$(this).attr("index");
+                            $(this).css({"color":"#0353f1","fontWeight":800});
                             sendObj[index].nav=$(this).val();
                             if($.inArray(index,sendObjIndex)==-1){
                                 sendObjIndex.push(index);
