@@ -5,6 +5,7 @@ from sqlalchemy import and_
 from fof_app.models import FUND_TRANSACTION, FUND_NAV, FUND_ESSENTIAL, db
 from backend.data_handler import get_fund_nav_by_wind_code
 from functools import reduce
+
 logger = logging.getLogger()
 
 
@@ -191,32 +192,35 @@ class TaskCash(CalcBase, InitTarget):
 
 
 class SpecialCal(object):
-    def __init__(self, fund,target):
+    def __init__(self, fund, target):
         self.target = target
         self.fund = fund
         self.wind_code = target[0]['wind_code_s']
-        self.last_cap,self.last_share  = self._last_batch()
+        self.last_cap, self.last_share = self._last_batch()
+
     def calc(self):
         this_cap = self.target[-1]['total_share'] * self.fund.nav
-        sum_value = reduce((lambda x,y:x+y),[i['amount'] for i in self.target])
-        normalized_nav = (this_cap+sum_value) /self.last_share * self.last_cap
+        sum_value = reduce((lambda x, y: x + y), [i['amount'] for i in self.target])
+        normalized_nav = (this_cap + sum_value) / self.last_share * self.last_cap
         return {"share": self.target[-1]['total_share'],
-                            "market_cap": self.target[-1]['market_cap'],
-                            "normalized_nav": normalized_nav,
-                            "wind_code": self.target[-1]['wind_code_s'],
-                            "sec_name_s": self.target[-1]['sec_name_s'],
-                            'operating_type': self.target[-1]['operating_type']}
+                "market_cap": self.target[-1]['market_cap'],
+                "normalized_nav": normalized_nav,
+                "wind_code": self.target[-1]['wind_code_s'],
+                "sec_name_s": self.target[-1]['sec_name_s'],
+                'operating_type': self.target[-1]['operating_type']}
 
     def _last_batch_nav(self):
         last_nav = FUND_NAV.query.filter_by(wind_code=self.wind_code).order_by(
             FUND_NAV.nav_date.desc()).first()
         return last_nav.nav
+
     def _last_batch(self):
         last_batch = FUND_TRANSACTION.query.filter_by(wind_code_s=self.wind_code).order_by(
-            FUND_TRANSACTION.confirm_date.asc()).limit(len(self.target)+1).first()
+            FUND_TRANSACTION.confirm_date.asc()).limit(len(self.target) + 1).first()
         last_share = last_batch.total_share
         last_cap = last_share * self._last_batch_nav()
-        return last_cap,last_share
+        return last_cap, last_share
+
 
 if __name__ == "__main__":
     from fof_app import create_app
