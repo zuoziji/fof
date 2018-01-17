@@ -17,6 +17,9 @@ BEGIN
     DECLARE sharpe_ratio FLOAT;
     # 最新净值日期
     DECLARE nav_date_ltest DATE;
+    # 年化收益率计算溢出
+    DECLARE CONTINUE HANDLER FOR 1264 SET annual_return_curr=0;
+    
     select min(nav_date) nav_date_first, max(nav_date) nav_date_max into nav_date_first, nav_date_curr
 	FROM fund_nav
     where wind_code = wind_code_curr
@@ -31,13 +34,15 @@ BEGIN
             set sharpe_ratio = 0;
             set nav_mdd = 0;
 		ELSE
-			if nav_date_curr > nav_date_first then
+			# DATEDIFF(nav_date_curr, nav_date_first) > 5 时间太短算年化收益率可能导致数据太大而溢出
+			if nav_date_curr > nav_date_first then --  and DATEDIFF(nav_date_curr, nav_date_first) > 5
 				set annual_return_curr = POW(nav_acc_curr,365/DATEDIFF(nav_date_curr, nav_date_first)) - 1;
 			else
 				set annual_return_curr = 0;
 			end if;
+            # set annual_return_curr = -1;
             # 计算sharpe比率
-            select func_SharpeRatio(wind_code_curr, 0.03) into sharpe_ratio;
+            select func_SharpeRatio(wind_code_curr, 0.02) into sharpe_ratio;
             # 统计最大回撤
             IF nav_date_ltest is NULL THEN
 				select func_drawdown(wind_code_curr) into nav_mdd;
@@ -47,7 +52,6 @@ BEGIN
             
 		END IF;
 		
-        
 		# 更新相关统计数据
 		update fund_info
         set nav_acc_mdd = nav_mdd, 
@@ -58,5 +62,4 @@ BEGIN
 		where wind_code = wind_code_curr;
     END if;
 
-END;
-
+END
