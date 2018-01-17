@@ -21,7 +21,7 @@ logger = logging.getLogger()
 DATE_BASE = datetime.strptime('1980-01-01', STR_FORMAT_DATE).date()
 ONE_DAY = timedelta(days=1)
 # 标示每天几点以后下载当日行情数据
-BASE_LINE_HOUR = 16
+BASE_LINE_HOUR = 20
 
 w = WindRest(WIND_REST_URL)
 
