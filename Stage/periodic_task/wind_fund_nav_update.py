@@ -4,10 +4,9 @@ Created on Fri Feb 17 10:56:11 2017
 
 @author: Administrator
 """
-
 import pandas as pd
 from fh_tools.windy_utils_rest import WindRest,APIError
-from fh_tools.fh_utils import str_2_date
+from fh_tools.fh_utils import str_2_date, date_2_str
 from sqlalchemy.types import String, Date
 from datetime import datetime, date, timedelta
 import logging
@@ -83,8 +82,22 @@ where fn.nav_date is null"""
     with get_db_session() as session:
         session.execute(sql_str)
         logger.info('导入结束')
+    # 更新 name_date_rr，每次执行更新前删除近1个月的结果重新计算
+    update_name_date_rr()
+
+
+def update_name_date_rr():
+    """
+    更新 name_date_rr，每次执行更新前删除近1个月的结果重新计算
+    :return: 
+    """
+    with get_db_session() as session:
+        date_from = date.today() - timedelta(days=30)
+        sql_str = "delete from name_date_rr where date>:date_from"
+        session.execute(sql_str, params={"date_from": date_from})
         date_min_since = session.execute("select func_calc_fund_nav_rr_all()").fetchone()
         logger.info('更新自 %s 起基金收益率信息', date_min_since)
+    return date_min_since
 
 
 def update_wind_fund_nav(get_df=False, wind_code_list=None):
@@ -312,13 +325,13 @@ and fn_after.nav_acc / fn_before.nav_acc < 0.5
 
 
 if __name__ == '__main__':
-
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
+
     # fund_info 表 及 fund_nav表更新完成后，更新及插入 fund_mgrcomp_info 表相关统计信息
     # update_fund_mgrcomp_info()
 
     # 调用wind接口更新基金净值
-    update_wind_fund_nav(get_df=False)  # , wind_code_list=['XT1513361.XT']
+    # update_wind_fund_nav(get_df=False)  # , wind_code_list=['XT1513361.XT']
 
     # 将 wind_fund_nav 数据导入到 fund_nav 表中
     # import_wind_fund_nav_to_fund_nav()
@@ -332,4 +345,7 @@ if __name__ == '__main__':
     # for datetimeobj in date_list:
     #     date_str = str(datetimeobj.date())
     #     clean_fund_nav(date_str)
+
+    # 更新 name_date_rr，每次执行更新前删除近1个月的结果重新计算
+    update_name_date_rr()
 
