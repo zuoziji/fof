@@ -47,7 +47,7 @@ daily_task_group = OrderedDict([
     ('factor exposure', {'func': update_factors, 'params': []}),
     ('convertible bond daily', {'func': import_cb_daily, 'params': []}),
     ('futurn daily', {'func': import_wind_future_daily, 'params': []}),
-    ('index daily', {'func': import_wind_index_daily, 'params': []})
+    ('index daily', {'func': import_wind_index_daily, 'params': []}),
     ('stock info hk', {'func': import_wind_stock_info_hk, 'params': []}),
     ('stock daily hk', {'func': import_stock_daily_hk, 'params': []}),
 ])
