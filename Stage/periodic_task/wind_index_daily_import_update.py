@@ -201,13 +201,14 @@ if __name__ == '__main__':
     #               '000300.SH', '000905.SH', '037.CS', '399001.SZ', '399005.SZ', '399006.SZ', '399101.SZ',
     #               '399102.SZ',
     #               ]
+    wind_codes = ['CES120.CSI']
     # import_wind_index_info(wind_codes)
     # import_wind_index_daily_first(wind_codes)
 
     # 每日更新指数信息
-    import_wind_index_daily()
+    # import_wind_index_daily()
     # fill_wind_index_daily_col()
 
-    # file_path = r'd:\Downloads\HSI.xlsx'
-    # wind_code, index_name = "HSI.HI", "恒生指数"
+    # file_path = r'd:\Downloads\CES120.xlsx'
+    # wind_code, index_name = "CES120.CSI", "中华120"
     # import_wind_index_daily_by_xls(file_path, wind_code, index_name)

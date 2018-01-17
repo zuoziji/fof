@@ -40,7 +40,7 @@ def import_wind_stock_info(refresh=False):
         if stock_code_set_sub is not None:
             stock_code_set |= stock_code_set_sub
         date_fetch += timedelta(days=365)
-    stock_code_set_sub = get_stock_code_set(date_fetch)
+    stock_code_set_sub = get_stock_code_set(date_end)
     if stock_code_set_sub is not None:
         stock_code_set |= stock_code_set_sub
 

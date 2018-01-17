@@ -1014,8 +1014,10 @@ if __name__ == '__main__':
         return rr
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    date_from_str, date_to_str = '2016-12-1', '2017-12-1'
-    stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True)
+    date_from_str, date_to_str = '2015-12-1', '2017-12-31'
+    stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(
+        date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True,
+        q_list=[0.10, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.75, 0.90])
     folder_path = get_cache_file_path("%s_%s" % (date_from_str, date_to_str))
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)

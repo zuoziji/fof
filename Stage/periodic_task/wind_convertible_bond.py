@@ -132,7 +132,7 @@ def import_cb_daily():
                           wind_code, ipo_date, end_date in table.fetchall()}
     today_t_1 = date.today() - ONE_DAY
     data_df_list = []
-    logger.info('%d stocks will been import into wind_trade_date_wch', len(stock_date_dic))
+    logger.info('%d stocks will been import into wind_convertible_bond_daily', len(stock_date_dic))
     # 获取股票量价等行情数据
     field_col_name_dic = {
         'outstandingbalance': 'outstanding_balance',
