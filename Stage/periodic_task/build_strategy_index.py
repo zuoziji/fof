@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from collections import OrderedDict
 from config_fh import get_db_engine, get_db_session, get_cache_file_path, STR_FORMAT_DATE
-from fh_tools.fh_utils import return_risk_analysis, str_2_date, try_2_date, reduce_list
+from fh_tools.fh_utils import return_risk_analysis, str_2_date, try_2_date, reduce_list, date_2_str
 from fh_tools import fh_utils
 import matplotlib.pyplot as plt  # pycharm 需要通过现实调用 plt.show 才能显示plot
 from datetime import date, datetime, timedelta
@@ -864,7 +864,10 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
     and date between %s and %s
     """ + "and strategy_type in %s" % ("('" + "','".join(strategy_type_list) + "')") + """
     and ndr.name = fi.wind_code group by mgrcomp_id, strategy_type, date"""
-    data_df = pd.read_sql(sql_str, engine, params=[date_from_str, date_to_str])
+    # 多取1个月的数据便于进行后续插值处理
+    date_to = str_2_date(date_to_str)
+    date_end_str = date_2_str(date_to + timedelta(days=30))
+    data_df = pd.read_sql(sql_str, engine, params=[date_from_str, date_end_str])
     data_dfg = data_df.groupby('strategy_type')
     stg_idx_quantile_dic = {}
     stat_dic = {}
@@ -891,10 +894,14 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
                 if len(date_mgr_idx_s.shape) == 1 and (date_mgr_idx_s.fillna(0) == 0).sum() < do_filter:
                     column_name_list.append(name)
             date_mgr_idx_df = date_mgr_idx_df[column_name_list]
-
-        date_mgr_idx_df_tmp = date_mgr_idx_df.interpolate()
-        date_idx_quantile_df = date_mgr_idx_df_tmp.quantile(q_list, axis=1).T
-        date_idx_mid_s = date_mgr_idx_df_tmp.quantile(axis=1)
+        # 插值处理
+        date_mgr_idx_df = date_mgr_idx_df.interpolate()
+        # 日期过滤，将超出截止日期的部分剔除
+        date_mgr_idx_df = date_mgr_idx_df[date_mgr_idx_df.index <= date_to]
+        # 按分位数统计
+        date_idx_quantile_df = date_mgr_idx_df.quantile(q_list, axis=1).T
+        # 按中位数统计
+        date_idx_mid_s = date_mgr_idx_df.quantile(axis=1)
         date_idx_quantile_df.rename(
             columns={col_name: '%.0f%% 分位数' % (col_name * 100) for col_name in date_idx_quantile_df.columns}, inplace=True)
         stg_idx_mid_dic[strategy_type] = date_idx_mid_s
@@ -903,7 +910,7 @@ def get_stg_index_quantile(date_from_str, date_to_str, do_filter=6,
         period_count, mgr_count = date_mgr_idx_df.shape
         # mgr_idx_s = date_mgr_idx_df.ix[-1, :].dropna()
         # date_mgr_idx_df_tmp = date_mgr_idx_df.interpolate()
-        mgr_idx_s = date_mgr_idx_df_tmp.ix[-1, :]
+        mgr_idx_s = date_mgr_idx_df.ix[-1, :]
         date_list = list(date_mgr_idx_df.index)
         win_count = (mgr_idx_s > 1).sum()
         win_1_count = (mgr_idx_s > 1.01).sum()
@@ -1008,16 +1015,13 @@ def nav_xls_2_index(file_path, fund_weight, index_code_name_dic={'000300.SH': 'H
 
 if __name__ == '__main__':
     import os
-    def calc_rr(data_s: pd.Series):
-        tmp_s = data_s.dropna()
-        rr = tmp_s[-1] / tmp_s[0] - 1
-        return rr
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
     # 获取全市场策略指数，分位数统计数据【按机构统计】
-    date_from_str, date_to_str = '2015-12-1', '2017-12-31'
+    date_from_str, date_to_str = '2016-12-31', '2017-12-31'
     stg_idx_quantile_dic, stat_df, stg_idx_mid_df = get_stg_index_quantile(
-        date_from_str, date_to_str, do_filter=3, mgrcomp_id_2_name=True,
-        q_list=[0.10, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.75, 0.90])
+        date_from_str, date_to_str, do_filter=6, mgrcomp_id_2_name=True,
+        q_list=[0.15, 0.25, 0.40, 0.50, 0.60, 0.75, 0.85]
+    )
     folder_path = get_cache_file_path("%s_%s" % (date_from_str, date_to_str))
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
@@ -1026,16 +1030,16 @@ if __name__ == '__main__':
         date_mgr_idx_df = stg_idx_info_dic["date_mgr_idx_df"]
 
         file_path = get_cache_file_path(r'%s_%s\%s_每周idx_分位图.csv' % (date_from_str, date_to_str, stg))
-        date_idx_quantile_df.to_csv(file_path)
+        date_idx_quantile_df.to_csv(file_path, encoding='GBK')
         logger.info(file_path)
         file_path = get_cache_file_path('%s_%s\%s_每周idx_按机构.csv' % (date_from_str, date_to_str, stg))
-        date_mgr_idx_df.to_csv(file_path)
+        date_mgr_idx_df.to_csv(file_path, encoding='GBK')
         logger.info(file_path)
     file_path = get_cache_file_path('%s_%s\策略盈亏统计_按机构.csv' % (date_from_str, date_to_str))
-    stat_df.to_csv(file_path)
+    stat_df.to_csv(file_path, encoding='GBK')
     logger.info(file_path)
     file_path = get_cache_file_path('%s_%s\各策略指数走势_按机构.csv' % (date_from_str, date_to_str))
-    stg_idx_mid_df.to_csv(file_path)
+    stg_idx_mid_df.to_csv(file_path, encoding='GBK')
     logger.info(file_path)
 
     # 计算市场各个策略分位数走势、统计策略绩效（供季度报告使用）
