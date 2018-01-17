@@ -5,7 +5,8 @@ from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILAB
 from fh_tools.windy_utils_rest import WindRest, APIError
 from fh_tools.fh_utils import get_last, get_first
 import logging
-from sqlalchemy.types import String, Date, Float, Integer
+from sqlalchemy.types import String, Date, Integer
+from sqlalchemy.dialects.mysql import DOUBLE
 logger = logging.getLogger()
 DATE_BASE = datetime.strptime('2005-01-01', STR_FORMAT_DATE).date()
 ONE_DAY = timedelta(days=1)
@@ -172,7 +173,7 @@ def import_stock_daily():
     date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
     data_len = len(stock_date_dic)
-    logger.info('%d stocks will been import into wind_trade_date', data_len)
+    logger.info('%d stocks will been import into wind_stock_daily', data_len)
     try:
         for data_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
             date_ipo, date_delist = date_pair
@@ -222,23 +223,23 @@ def import_stock_daily():
                                dtype={
                                    'wind_code': String(20),
                                    'trade_date': Date,
-                                   'open': Float,
-                                   'high': Float,
-                                   'low': Float,
-                                   'close': Float,
-                                   'adjfactor': Float,
-                                   'volume': Float,
-                                   'amt': Float,
-                                   'pct_chg': Float,
+                                   'open': DOUBLE,
+                                   'high': DOUBLE,
+                                   'low': DOUBLE,
+                                   'close': DOUBLE,
+                                   'adjfactor': DOUBLE,
+                                   'volume': DOUBLE,
+                                   'amt': DOUBLE,
+                                   'pct_chg': DOUBLE,
                                    'maxupordown': Integer,
-                                   'swing': Float,
-                                   'turn': Float,
-                                   'free_turn': Float,
+                                   'swing': DOUBLE,
+                                   'turn': DOUBLE,
+                                   'free_turn': DOUBLE,
                                    'trade_status': String(20),
                                    'susp_days': Integer,
-                                   'total_shares': Float,
-                                   'free_float_shares': Float,
-                                   'ev2_to_ebitda': Float,
+                                   'total_shares': DOUBLE,
+                                   'free_DOUBLE_shares': DOUBLE,
+                                   'ev2_to_ebitda': DOUBLE,
                                }
                                )
             logging.info("更新 wind_stock_daily 结束 %d 条信息被更新", data_df_all.shape[0])
@@ -270,7 +271,7 @@ def import_stock_daily_wch():
     date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     data_df_list = []
     data_len = len(stock_date_dic)
-    logger.info('%d stocks will been import into wind_trade_date_wch', data_len)
+    logger.info('%d stocks will been import into wind_stock_daily_wch', data_len)
     try:
         for data_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
             date_ipo, date_delist = date_pair

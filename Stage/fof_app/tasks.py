@@ -26,9 +26,10 @@ from stress_testing.fhs_garch_fund import do_fhs_garch
 from periodic_task.fund_multi_factor_exp import do_fund_multi_factor
 from periodic_task.build_strategy_index import do_update_strategy_index
 from periodic_task.wind_fund_nav_update import update_wind_fund_nav
-from periodic_task.wind_future import import_wind_future_daily
-from periodic_task.wind_future import import_wind_future_info
+from periodic_task.wind_future import import_wind_future_daily, import_wind_future_info
 from periodic_task.wind_pub_fund import import_pub_fund_info, import_pub_fund_daily
+from periodic_task.wind_smfund_daily import import_smfund_daily
+from periodic_task.wind_stock_hk import import_stock_quertarly_hk, import_stock_daily_hk, import_wind_stock_info_hk
 
 
 logger = logging.getLogger()
@@ -36,6 +37,7 @@ logger = logging.getLogger()
 daily_mid_night_task_group = OrderedDict([
     ('fund nav', {'func': update_wind_fund_nav, 'params': []}),
     ('strategy index val', {'func': do_update_strategy_index, 'params': []}),
+    ('sm fund daily', {'func': import_smfund_daily, 'params': []}),
 ])
 
 daily_task_group = OrderedDict([
@@ -46,6 +48,8 @@ daily_task_group = OrderedDict([
     ('convertible bond daily', {'func': import_cb_daily, 'params': []}),
     ('futurn daily', {'func': import_wind_future_daily, 'params': []}),
     ('index daily', {'func': import_wind_index_daily, 'params': []})
+    ('stock info hk', {'func': import_wind_stock_info_hk, 'params': []}),
+    ('stock daily hk', {'func': import_stock_daily_hk, 'params': []}),
 ])
 
 daily_night_task_group = OrderedDict([
@@ -64,6 +68,7 @@ weekly_task_group = OrderedDict([
     ('fund info', {'func': update_wind_fund_info, 'params': [], }),
     ('convertible bond info', {'func': import_cb_info, 'params': []}),
     ('stock quertarly', {'func': import_stock_quertarly, 'params': []}),
+    ('stock quertarly hk', {'func': import_wind_stock_info_hk, 'params': []}),
 ])
 
 
