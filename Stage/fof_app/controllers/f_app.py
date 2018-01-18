@@ -705,6 +705,7 @@ def add_acc():
                     batch_acc = batch_acc.to_dict(orient='records')
                     acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],"share":return_data['share'],
                             "market_cap":return_data['market_cap'],"sec_name":return_data['sec_name_s'],
+                            "operating_type":return_data['operating_type'],"confirm_date":return_data["confirm_date"],
                             "wind_code":return_data['wind_code'],
                             "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
                            batch_acc]

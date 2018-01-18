@@ -1,27 +1,12 @@
+from bs4 import BeautifulSoup
+import requests
+from urllib3 import request
+url = "http://guba.eastmoney.com/list,000725.html"
 
+t = requests.get(url)
+soup = BeautifulSoup(t.text,"lxml")
+mydivs = soup.find(attrs={"data-pager":True})
+l = mydivs['data-pager']
 
-x = list(range(10))
-
-
-x[11]
-说好一起做大事情
-原来靠山寨忽悠投资人
-总是要每次提交之后
-才发现需求错的太离谱
-最初对手的一个demo
-竟然被我们成功上线
-抄完了gayhub
-再抄stackoverflow
-commit后混了一天又一天
-
-
-
-没有人知道为什么
-太阳总下到山的那一边
-没有人能够告诉我
-山里面有没有住着神仙
-多少的日子里总是
-一个人面对着天空发呆
-就这么好奇
-就这么幻想
-这么孤单的童年
+l = l.split('|')
+print(l[1])

@@ -49,7 +49,8 @@ def query_batch(target):
             yield result
         else:
             r = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i.wind_code_s,
-                                                   FUND_TRANSACTION.total_share > 0)).order_by(
+                                                   FUND_TRANSACTION.total_share > 0,
+                                                   FUND_TRANSACTION.confirm_date <= target.nav_date)).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             if r is not None:
                 r_dict = r.as_dict()
@@ -73,7 +74,8 @@ class InitTarget(object):
                             "normalized_nav": self.normalized_nav,
                             "wind_code": self.target['wind_code_s'],
                             "sec_name_s": self.target['sec_name_s'],
-                            'operating_type': self.target['operating_type']}
+                            'operating_type': self.target['operating_type'],
+                            "confirm_date": self.target["confirm_date"]}
         self.normal = True if self.fund.nav_date != self.target['confirm_date'] else False
 
     def _last_nav(self):
@@ -150,7 +152,6 @@ class CashDividends(CalcBase, InitTarget):
 
 class SharePlusMinus(CalcBase, InitTarget):
     def calc(self):
-
         if self.normal:
             return self.normal_cal()
         else:
@@ -207,7 +208,8 @@ class SpecialCal(object):
                 "normalized_nav": normalized_nav,
                 "wind_code": self.target[-1]['wind_code_s'],
                 "sec_name_s": self.target[-1]['sec_name_s'],
-                'operating_type': self.target[-1]['operating_type']}
+                'operating_type': self.target[-1]['operating_type'],
+                "confirm_date": self.target[-1]['confirm_date']}
 
     def _last_batch_nav(self):
         last_nav = FUND_NAV.query.filter_by(wind_code=self.wind_code).order_by(
@@ -232,6 +234,7 @@ if __name__ == "__main__":
         db.init_app(flask_app)
         r = FUND_NAV.query.filter_by(wind_code="XT1605537.XT").order_by(FUND_NAV.nav_date.desc()).first()
         for i in query_batch(r):
+            print(i)
             if isinstance(i, list):
                 x = SpecialCal(r, i)
             else:
