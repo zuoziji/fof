@@ -280,11 +280,6 @@
                         var fund= data.result.fund;
                         var tableDate=[];
                         var fundObj={};
-                        // var columns=[
-                        //     {"data": "nav_date"},
-                        //     {"data": "nav"},
-                        //     {"data": "pct"}
-                        // ];
                         var columns=[
                             {data:null,
                             render:function(obj){
@@ -317,12 +312,6 @@
                             fundObj[value.nav_date]=value;
                         })
                         $.each(batch,function(index,value){
-/*                            columns.push(
-                                {"data": "nav"+index},
-                                {"data": "share"+index},
-                                {"data": "market_cap"+index},
-                                {"data": "pct"+index}
-                            );*/
                             columns.push(
                             {data:null,
                             render:function(obj){
@@ -452,27 +441,29 @@
                             }
                         })
                         $("#edit").click(function(){
-                            $.each(sendObjIndex,function(i,v){         
-                                $.ajax({
-                                    url:'/f_app/add_acc' ,
-                                    contentType: 'application/json',
-                                    method:"POST",
-                                    dataType:'json',
-                                    data:JSON.stringify({
-                                        "nav_date": sendObj[v].nav_date,
-                                        "nav_acc": sendObj[v].nav_acc,
-                                        "nav": sendObj[v].nav,
-                                        "wind_code":sendObj[v].wind_code,
-                                        "assembly":true
-                                    }), success: function (data) {}
+                            if(sendObjIndex.length){
+                                $.each(sendObjIndex,function(i,v){         
+                                    $.ajax({
+                                        url:'/f_app/add_acc' ,
+                                        contentType: 'application/json',
+                                        method:"POST",
+                                        dataType:'json',
+                                        data:JSON.stringify({
+                                            "nav_date": sendObj[v].nav_date,
+                                            "nav_acc": sendObj[v].nav_acc,
+                                            "nav": sendObj[v].nav,
+                                            "wind_code":sendObj[v].wind_code,
+                                            "assembly":true
+                                        }), success: function (data) {}
+                                    })
                                 })
-                            })
-                            new PNotify({
-                                title: '修改成功',
-                                text:  '',
-                                type: 'success',
-                                styling: 'bootstrap3'
-                            });
+                                new PNotify({
+                                    title: '修改成功',
+                                    text:  '',
+                                    type: 'success',
+                                    styling: 'bootstrap3'
+                                });
+                            }
                             $("#tableModal").modal("hide"); 
                         })
 
