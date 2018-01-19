@@ -689,6 +689,7 @@ def add_acc():
                                                   FUND_NAV.nav_date < acc_record.nav_date)).order_by(FUND_NAV.nav_date.desc()).first()
             result['fund'] = acc
             result['batch'] = []
+            result['tr'] = []
             for i in query_batch(acc_record):
                 if isinstance(i, list):
                     x = SpecialCal(acc_record, i)
@@ -715,7 +716,7 @@ def add_acc():
                                                                    FUND_TRANSACTION.confirm_date >= prev_nav.nav_date,
                                                                    FUND_TRANSACTION.confirm_date <= acc_record.nav_date)).all()
                     recent_tr = [i.as_dict() for i in recent_tr]
-                    result['tr'] = recent_tr
+                    result['tr'].append(recent_tr)
         return jsonify(acc="add", result=result)
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))

@@ -232,12 +232,21 @@ if __name__ == "__main__":
     with flask_app.test_request_context():
         db.init_app(flask_app)
         r = FUND_NAV.query.filter_by(wind_code="XT1605537.XT").order_by(FUND_NAV.nav_date.desc()).first()
+        prev_nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == r.wind_code,
+                                              FUND_NAV.nav_date < r.nav_date)).order_by(
+            FUND_NAV.nav_date.desc()).first()
         for i in query_batch(r):
-            print(i)
-            if isinstance(i, list):
-                x = SpecialCal(r, i)
-            else:
-                x = CalcBase.from_operater(i['operating_type'], r, i)
-            value = x.calc()
-            print(value)
-            nav_record = get_fund_nav_by_wind_code(value['wind_code'], limit=5)
+            # print(i)
+            # if isinstance(i, list):
+            #     x = SpecialCal(r, i)
+            # else:
+            #     x = CalcBase.from_operater(i['operating_type'], r, i)
+            # value = x.calc()
+            # print(value)
+            # nav_record = get_fund_nav_by_wind_code(value['wind_code'], limit=5)
+            print(prev_nav.nav_date)
+            recent_tr = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i['wind_code_s'],
+                                                           FUND_TRANSACTION.confirm_date >= prev_nav.nav_date,
+                                                           FUND_TRANSACTION.confirm_date <= r.nav_date)).all()
+            recent_tr = [i.as_dict() for i in recent_tr]
+            print(recent_tr)
