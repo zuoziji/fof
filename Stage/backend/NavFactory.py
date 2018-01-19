@@ -38,7 +38,6 @@ def query_batch(target):
                                                            FUND_TRANSACTION.confirm_date == target.nav_date)).order_by(
             FUND_TRANSACTION.confirm_date.desc()).all()
         if len(recent_record) > 1:
-
             for e in recent_record:
                 r_dict = e.as_dict()
                 r_dict['market_cap'] = r_dict['total_share'] * target.nav
@@ -200,6 +199,7 @@ class SpecialCal(object):
         self.last_cap, self.last_share = self._last_batch()
 
     def calc(self):
+        print(self.target)
         this_cap = self.target[-1]['total_share'] * self.fund.nav
         sum_value = reduce((lambda x, y: x + y), [i['amount'] for i in self.target])
         normalized_nav = (this_cap + sum_value) / self.last_share * self.last_cap
@@ -227,7 +227,6 @@ class SpecialCal(object):
 if __name__ == "__main__":
     from fof_app import create_app
     import os
-
     env = os.environ.get('APP_ENV', 'dev')
     flask_app = create_app('fof_app.config.%sConfig' % env.capitalize())
     with flask_app.test_request_context():
@@ -242,4 +241,3 @@ if __name__ == "__main__":
             value = x.calc()
             print(value)
             nav_record = get_fund_nav_by_wind_code(value['wind_code'], limit=5)
-            print(nav_record)

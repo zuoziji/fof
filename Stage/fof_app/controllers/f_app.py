@@ -661,7 +661,6 @@ def add_acc():
     :return:
     """
     post_data = request.json
-    print(post_data)
     acc_record = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == post_data['wind_code']),
                                        (FUND_NAV.nav_date == post_data['nav_date'])).first()
     if acc_record is None:
@@ -686,6 +685,8 @@ def add_acc():
                 acc_data = acc_data.to_dict(orient='records')
                 acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],
                         "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in acc_data]
+            prev_nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code==acc_record.wind_code,
+                                                  FUND_NAV.nav_date < acc_record.nav_date)).order_by(FUND_NAV.nav_date.desc()).first()
             result['fund'] = acc
             result['batch'] = []
             for i in query_batch(acc_record):
@@ -700,15 +701,19 @@ def add_acc():
                 db.session.add(batch_record)
                 db.session.commit()
                 batch_acc = data_handler.get_fund_nav_by_wind_code(return_data['wind_code'], limit=5)
-                if batch_acc is not None:
+                if batch_acc  is not None:
                     batch_acc.reset_index(inplace=True)
                     batch_acc = batch_acc.to_dict(orient='records')
-                    acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],"share":return_data['share'],
-                            "market_cap":return_data['market_cap'],"sec_name":return_data['sec_name_s'],
-                            "operating_type":return_data['operating_type'],"confirm_date":return_data["confirm_date"],
-                            "wind_code":return_data['wind_code'],
-                            "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
-                           batch_acc]
+                    if prev_nav is not None:
+                        recent_tr = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i['wind_code_s'],
+                                                               FUND_TRANSACTION.confirm_date >= prev_nav.nav_date,
+                                                               FUND_TRANSACTION.confirm_date <= acc_record.nav_date)).all()
+                        recent_tr = [i.as_dict() for i in recent_tr]
+                        acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],"share":return_data['share'],
+                                "market_cap":return_data['market_cap'],"sec_name":return_data['sec_name_s'],
+                                "wind_code":return_data['wind_code'],"recent_tr":recent_tr,
+                                "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
+                               batch_acc]
                 result['batch'].append(acc)
         return jsonify(acc="add", result=result)
     else:
