@@ -226,15 +226,22 @@ class SpecialCal(object):
         return last_cap, last_share
 
 
-def query_recent_tr(wind_code: str, confirm_date: str) -> object:
+def query_recent_tr(wind_code: str, confirm_date: str) -> list:
+    tr_list =[]
     tr = FUND_TRANSACTION.query.filter(
-        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
-    if tr is None:
+        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).all()
+    if len(tr) == 0:
         tr = FUND_TRANSACTION.query.filter(
-            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).first()
-    return tr
-
-
+            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
+        tr_list.append(tr)
+        if tr is None:
+            tr = FUND_TRANSACTION.query.filter(
+                and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).first()
+            tr_list.append(tr)
+    else:
+        tr_list.extend(tr)
+    tr_list = [ i.as_dict() for i in tr_list if i is not None ]
+    return tr_list
 if __name__ == "__main__":
     from fof_app import create_app
     import os
@@ -279,8 +286,8 @@ if __name__ == "__main__":
                 #  "confirm_date": self.target[-1]['confirm_date']}
                 for b in batch_acc:
                     tr = query_recent_tr(i['wind_code_s'], b['nav_date'])
-                    if tr is None:
-                        print(b, i['sec_name_s'])
+                    if tr is not None:
+                        print(b, tr)
                 # acc = [{"nav_acc": "%0.4f" % z['nav_acc'], "pct": "%0.4f" % z['pct'],
                 #         "sec_name": i['sec_name_s'],
                 #         "wind_code": i['wind_code_s'],

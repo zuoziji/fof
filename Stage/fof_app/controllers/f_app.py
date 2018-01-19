@@ -707,12 +707,11 @@ def add_acc():
                         tr = query_recent_tr(i['wind_code_s'], b['nav_date'])
                         if tr is not None:
                             bx = {"nav_acc": "%0.4f" % b['nav_acc'], "pct": "%0.4f" % b['pct'],
-                                  "sec_name": return_data['sec_name_s'], "tr": tr.as_dict(),
+                                  "sec_name": return_data['sec_name_s'], "tr": tr,
                                   "wind_code": return_data['wind_code'],
                                   "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
                             b_list.append(bx)
                     result['batch'].append(b_list)
-                    print(b_list)
         return jsonify(acc="add", result=result)
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))
