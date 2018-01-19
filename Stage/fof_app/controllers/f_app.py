@@ -701,20 +701,21 @@ def add_acc():
                 db.session.add(batch_record)
                 db.session.commit()
                 batch_acc = data_handler.get_fund_nav_by_wind_code(return_data['wind_code'], limit=5)
-                if batch_acc  is not None:
+                if batch_acc is not None:
                     batch_acc.reset_index(inplace=True)
                     batch_acc = batch_acc.to_dict(orient='records')
-                    if prev_nav is not None:
-                        recent_tr = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i['wind_code_s'],
-                                                               FUND_TRANSACTION.confirm_date >= prev_nav.nav_date,
-                                                               FUND_TRANSACTION.confirm_date <= acc_record.nav_date)).all()
-                        recent_tr = [i.as_dict() for i in recent_tr]
-                        acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],"share":return_data['share'],
-                                "market_cap":return_data['market_cap'],"sec_name":return_data['sec_name_s'],
-                                "wind_code":return_data['wind_code'],"recent_tr":recent_tr,
-                                "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
-                               batch_acc]
-                result['batch'].append(acc)
+                    acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],
+                            "sec_name":return_data['sec_name_s'],
+                            "wind_code":return_data['wind_code'],
+                            "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
+                           batch_acc]
+                    result['batch'].append(acc)
+                if prev_nav is not None:
+                    recent_tr = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i['wind_code_s'],
+                                                                   FUND_TRANSACTION.confirm_date >= prev_nav.nav_date,
+                                                                   FUND_TRANSACTION.confirm_date <= acc_record.nav_date)).all()
+                    recent_tr = [i.as_dict() for i in recent_tr]
+                    result['tr'] = recent_tr
         return jsonify(acc="add", result=result)
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))
