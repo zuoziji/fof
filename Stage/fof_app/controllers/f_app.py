@@ -42,7 +42,7 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
-from backend.NavFactory import CalcBase, query_batch, SpecialCal, query_recent_tr
+from backend.NavFactory import CalcBase, query_batch, SpecialCal, query_recent_tr,query_range_tr
 import pandas as pd
 
 logger = logging.getLogger()
@@ -687,6 +687,7 @@ def add_acc():
             result['fund'] = acc
             result['batch'] = []
             result['tr'] = []
+            result['tr_range'] = []
             for i in query_batch(acc_record):
                 if isinstance(i, list):
                     x = SpecialCal(acc_record, i)
@@ -708,14 +709,17 @@ def add_acc():
                     elif len(batch_acc) == 1:
                         start = batch_acc[-1]
                         end = batch_acc[-1]
+                    tr_range = query_range_tr(return_data['wind_code'],start['nav_date'],end['nav_date'])
                     b_list = []
                     for b in batch_acc:
-                        bx = {"nav_acc": "%0.4f" % b['nav_acc'], "pct": "%0.4f" % b['pct'],
-                              "sec_name": return_data['sec_name_s'],
-                              "wind_code": return_data['wind_code'],
-                              "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
-                        b_list.append(bx)
-                    tr = query_recent_tr(return_data['wind_code'],start['nav_date'],end['nav_date'])
+                        tr = query_recent_tr(return_data['wind_code'], b['nav_date'])
+                        if tr is not None:
+                            bx = {"nav_acc": "%0.4f" % b['nav_acc'], "pct": "%0.4f" % b['pct'],
+                                  "sec_name": return_data['sec_name_s'], "tr": tr,
+                                  "wind_code": return_data['wind_code'],
+                                  "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
+                            b_list.append(bx)
+                    result['tr_range'].append(tr_range)
                     result['tr'].append(tr)
                     result['batch'].append(b_list)
         return jsonify(acc="add", result=result)

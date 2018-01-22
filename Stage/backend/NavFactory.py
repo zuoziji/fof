@@ -225,15 +225,34 @@ class SpecialCal(object):
         return last_cap, last_share
 
 
-def query_recent_tr(wind_code, start,end):
+def query_recent_tr(wind_code: str, confirm_date: str) -> list:
+    tr_list =[]
     tr = FUND_TRANSACTION.query.filter(
-        and_(FUND_TRANSACTION.wind_code_s == wind_code,FUND_TRANSACTION.confirm_date >= start,
+        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).all()
+    if len(tr) == 0:
+        tr = FUND_TRANSACTION.query.filter(
+            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
+        tr_list.append(tr)
+        if tr is None:
+            tr = FUND_TRANSACTION.query.filter(
+                and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).first()
+            tr_list.append(tr)
+    else:
+        tr_list.extend(tr)
+    tr_list = [ i.as_dict() for i in tr_list if i is not None ]
+    return tr_list
+
+def query_range_tr(wind_code,start,end):
+    tr = FUND_TRANSACTION.query.filter(
+        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date >= start,
              FUND_TRANSACTION.confirm_date <= end)).all()
     if len(tr) > 0:
         tr_list = [i.as_dict() for i in tr]
         return tr_list
     else:
         return None
+
+
 if __name__ == "__main__":
     from fof_app import create_app
     import os
