@@ -81,7 +81,7 @@
                     </div>
                     <div class="clearfix"></div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success" id="edit">确认</button>
+                        <button type="submit" class="btn btn-success" id="edit">更新</button>
                         <button type="button" class="btn btn-default" data-dismiss="modal" id="cancle">取消</button>
                     </div>
                 </div>
@@ -497,25 +497,29 @@
                             d.forEach(function(val,index){
                                 if(val){
                                     len.push(val.length);
-                                    tHead+=`<th class="border">日期</th><th>金额</th><th>份额</th><th>操作</th>`;
+                                    tHead+=`<th class="border">日期</th><th>份额</th><th>金额</th><th>操作</th>`;
                                 }else{
                                     len.push(0);
-                                    tHead+=`<th class="border">日期</th><th>金额</th><th>份额</th><th>操作</th>`;
+                                    tHead+=`<th class="border">日期</th><th>份额</th><th>金额</th><th>操作</th>`;
                                 }
                             });
                             var max=Math.max(...len);
-                            for(var i=0; i<max;i++){
-                                tBody+=`<tr><td></td><td></td><td></td><td></td>`;
-                                d.forEach(function(val,index){  
-                                    if(val&&val[i]){
-                                        tBody+=`<td class="border">${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].amount}</td><td>${val[i].share}</td><td>${val[i].operating_type}</td>`;
-                                    }else{
-                                        tBody+=`<td></td><td></td><td></td><td></td>`;
-                                    }
-                                })
-                                tBody+=`</tr>`;
+                            if(max==0){
+                                return '没有操作记录';
+                            }else{
+                                for(var i=0; i<max;i++){
+                                    tBody+=`<tr><td></td><td></td><td></td><td></td>`;
+                                    d.forEach(function(val,index){  
+                                        if(val&&val[i]){
+                                            tBody+=`<td class="border">${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].share}</td><td>${val[i].amount}</td><td>${val[i].operating_type}</td>`;
+                                        }else{
+                                            tBody+=`<td></td><td></td><td></td><td></td>`;
+                                        }
+                                    })
+                                    tBody+=`</tr>`;
+                                }
+                                return `<table class="table row-border dataTable"><thead><tr><th colspan="4"></th>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
                             }
-                            return `<table class="table row-border dataTable"><thead><tr><th colspan="4"></th>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
                         }
                         $("#edit").click(function(){
                             if(sendObjIndex.length){
