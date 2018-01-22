@@ -4,11 +4,24 @@
     <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
     <style>
     th,td{
-        min-width: 80px;
+        min-width: 90px;
+    }
+    .border{
+        border-left:1px solid #ccc!important;
     }
 
     .modal-lg {
         width: 1200px!important;
+    }
+
+    td span.details-control {
+        padding:10px;
+        background: url(../../static/images/details_open.png) no-repeat center center;
+        cursor: pointer;
+    }
+    tr.shown td span.details-control {
+        padding:10px;
+        background: url(../../static/images/details_close.png) no-repeat center center;
     }
     </style>
 {% endblock %}
@@ -88,7 +101,7 @@
                             <div class="form-group">
                                 <label class="col-md-2 control-label" for="nav_date">时间</label>
                                 <input type="date" class="form-control" id="nav_date" placeholder="时间" name="time"
-                                data-date-format="YYYY-MM-DD">
+                                data-format="yyyy-MM-dd">
                             </div>
                             <div class="form-group">
                                 <label class="col-md-３ control-label" for="nav_acc">单位净值</label>
@@ -181,6 +194,7 @@
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/bootstrapValidator.js"></script>
 <script src="../../static/vendors/bootstrapvalidator-0.5.3/dist/js/language/zh_CN.js"></script>
 <script src="../../static/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script src="../../static/js/dataTables.fixedColumns.min.js"></script>
 <script id="tpl" type="text/x-handlebars-template">
     {% raw %}
@@ -281,6 +295,16 @@
                         var tableDate=[];
                         var fundObj={};
                         var columns=[
+                            {"data":null,
+                            // "class":"details-control",
+                            // "dataContent":""
+                            render:function(obj){
+                                if(obj.operate){
+                                    return "<span class='details-control'></span>";
+                                }else{
+                                    return "";
+                                }
+                            }},
                             {data:null,
                             render:function(obj){
                                 if(obj.nav_date||obj.nav_date==0){
@@ -324,6 +348,7 @@
                                     })
                                     return `<input type="number" index="${index}" value=${obj["nav"+index]} data=${obj["nav"+index]} style="width:80px;height:18px;">`;
 
+
                                 }else{
                                     if(obj["nav"+index]||obj["nav"+index]==0){
                                         return obj["nav"+index];
@@ -364,6 +389,13 @@
                                 $.each(v,function(key,val){
                                     if(key=="pct"){
                                         fundObj[v.nav_date][key+index]=Math.round(val*10000)/100;
+                                    }else if(key=="tr"){
+                                        fundObj[v.nav_date]["tr"]=fundObj[v.nav_date]["tr"]||[];
+                                        fundObj[v.nav_date]["tr"].push(val);
+                                        if(val.length!=0){
+                                            fundObj[v.nav_date]["share"+index]=val[val.length-1].share;
+                                            fundObj[v.nav_date]["market_cap"+index]=val[val.length-1].share*v.nav;
+                                        }
                                     }else{
                                         fundObj[v.nav_date][key+index]=val;
                                     }
@@ -387,6 +419,9 @@
                                 return 0;
                             }
                         });
+                        if(fund[fund.length-1].tr&&fund[fund.length-1].tr.length!=0){
+                            fund[fund.length-1]["operate"]="true";
+                        }
 
                         $("#myModal").modal("hide");
                         $("#myModalLabel").text("新增");
@@ -401,8 +436,8 @@
                         $("#tableModalLabel").text("净值维护");
                         var len=data.result.batch.length;
                         var fundname=$(".filter-option.pull-left").text();
-                        var thead=`<tr><th colspan="3">${fundname}</th>`;
-                        var thead2=`<tr><th>时间</th><th>净值</th><th>变化率(%)</th>`;
+                        var thead=`<tr><th>操作记录</th><th colspan="3">${fundname}</th>`;
+                        var thead2=`<tr><th></th><th>时间</th><th>净值</th><th>变化率(%)</th>`;
                         if(len!==0){
                             for(var i=0;i<len;i++){
                                 thead+=`<th colspan="4">${batch[i][0].sec_name}</th>`;
@@ -425,21 +460,62 @@
                             "displayLength": "400",
                             "order": [[1, 'asc']],
                             "fixedColumns":{
-                                leftColumns: 3
+                                leftColumns: 4
                             },
                             "language": {
                                 "zeroRecords": "没有找到记录"
                             }
-                        });
+                        });    
                         var sendObjIndex=[];
-                        $("#tableModal").on("change","input",function(){
+                        $("#tableModal").on("change propertychange input","input",function(){
                             var index=$(this).attr("index");
+                            var nav=$(this).val();
+                            var share=$(this).parent().next().html();
                             $(this).css({"color":"#0353f1","fontWeight":800});
+                            $(this).parent().next().next().html(Math.round(nav*share*100)/100);
                             sendObj[index].nav=$(this).val();
                             if($.inArray(index,sendObjIndex)==-1){
                                 sendObjIndex.push(index);
                             }
                         })
+                        // Add event listener for opening and closing details
+                        $('#tableModal').on('click', 'span.details-control', function () {
+                            var tr = $(this).parent().closest('tr');
+                            var row = tableModal.row( tr );
+                            if ( row.child.isShown() ) {
+                                row.child.hide();
+                                tr.removeClass('shown');
+                            }
+                            else {
+                                // Open this row
+                                row.child( format(row.data().tr) ).show();
+                                tr.addClass('shown');
+                            }
+                        } );
+
+                        /* Formatting function for row details - modify as you need */
+                        function format ( d ) {
+                            var len=[];
+                            var tHead='';
+                            var tBody='';
+                            d.forEach(function(val,index){
+                                len.push(val.length);
+                                tHead+=`<th class="border">日期</th><th>金额</th><th>份额</th><th>操作</th>`;
+                            });
+                            var max=Math.max(...len);
+                            for(var i=0; i<max;i++){
+                                tBody+=`<tr><td></td><td></td><td></td><td></td>`;
+                                d.forEach(function(val,index){  
+                                    if(val[i]){
+                                        tBody+=`<td class="border">${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].amount}</td><td>${val[i].share}</td><td>${val[i].operating_type}</td>`;
+                                    }else{
+                                        tBody+=`<td></td><td></td><td></td><td></td>`;
+                                    }
+                                })
+                                tBody+=`</tr>`;
+                            }
+                            return `<table class="table row-border dataTable"><thead><tr><th colspan="4"></th>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
+                        }
                         $("#edit").click(function(){
                             if(sendObjIndex.length){
                                 $.each(sendObjIndex,function(i,v){         
@@ -480,7 +556,6 @@
                 }
             });
         }
-
         function del(wind_code,nav_date) {
             var table = $("#accTable").DataTable();
             $.ajax({
@@ -715,9 +790,6 @@
                 $('#nav_date').val(today);
             }
         });
-
-
-
 
 
 

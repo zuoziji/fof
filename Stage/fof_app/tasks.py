@@ -53,7 +53,7 @@ daily_task_group = OrderedDict([
 daily_night_task_group = OrderedDict([
     ('pub fund daily', {'func': import_pub_fund_daily, 'params': []}),
     ('stock info hk', {'func': import_wind_stock_info_hk, 'params': []}),
-    ('stock daily hk', {'func': import_stock_daily_hk, 'params': []}),
+    # ('stock daily hk', {'func': import_stock_daily_hk, 'params': []}),
 ])
 
 stress_testing_group = OrderedDict([
