@@ -686,7 +686,6 @@ def add_acc():
                         "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in acc_data]
             result['fund'] = acc
             result['batch'] = []
-            result['tr'] = []
             result['tr_range'] = []
             for i in query_batch(acc_record):
                 if isinstance(i, list):
@@ -720,7 +719,6 @@ def add_acc():
                                   "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
                             b_list.append(bx)
                     result['tr_range'].append(tr_range)
-                    result['tr'].append(tr)
                     result['batch'].append(b_list)
         return jsonify(acc="add", result=result)
     else:
