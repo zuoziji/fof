@@ -201,7 +201,6 @@ class SpecialCal(object):
         self.last_cap, self.last_share = self._last_batch()
 
     def calc(self):
-        print(self.target)
         this_cap = self.target[-1]['total_share'] * self.fund.nav
         sum_value = reduce((lambda x, y: x + y), [i['amount'] for i in self.target])
         normalized_nav = (this_cap + sum_value) / self.last_share * self.last_cap
@@ -226,22 +225,15 @@ class SpecialCal(object):
         return last_cap, last_share
 
 
-def query_recent_tr(wind_code: str, confirm_date: str) -> list:
-    tr_list =[]
+def query_recent_tr(wind_code, start,end):
     tr = FUND_TRANSACTION.query.filter(
-        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).all()
-    if len(tr) == 0:
-        tr = FUND_TRANSACTION.query.filter(
-            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
-        tr_list.append(tr)
-        if tr is None:
-            tr = FUND_TRANSACTION.query.filter(
-                and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).first()
-            tr_list.append(tr)
+        and_(FUND_TRANSACTION.wind_code_s == wind_code,FUND_TRANSACTION.confirm_date >= start,
+             FUND_TRANSACTION.confirm_date <= end)).all()
+    if len(tr) > 0:
+        tr_list = [i.as_dict() for i in tr]
+        return tr_list
     else:
-        tr_list.extend(tr)
-    tr_list = [ i.as_dict() for i in tr_list if i is not None ]
-    return tr_list
+        return None
 if __name__ == "__main__":
     from fof_app import create_app
     import os
@@ -264,30 +256,20 @@ if __name__ == "__main__":
             if nav_record is not None:
                 nav_record.reset_index(inplace=True)
                 batch_acc = nav_record.to_dict(orient='records')
-                #
-                # # recent_tr = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i['wind_code_s'],
-                # #                                                FUND_TRANSACTION.confirm_date >= batch_acc[0]['nav_date'],
-                # #                                                FUND_TRANSACTION.confirm_date <= batch_acc[-1]['nav_date'])).all()
-                # #
-                # #
-                # recent_tr = [i.as_dict() for i in recent_tr]
-                # new_df = DataFrame(recent_tr)
-                # result = pd.concat([new_df, nav_record], axis=1, join_axes=[nav_record.index])
-                # #
-                # for k,v in result.T.to_dict().items():
-                #     print(k,v)
+                if len(batch_acc) > 1:
+                    start = batch_acc[-2]
+                    end = batch_acc[-1]
+                elif len(batch_acc) == 1:
+                    start = batch_acc[0]
+                    end = batch_acc[0]
 
-                # {"share": self.target[-1]['total_share'],
-                #  "market_cap": self.target[-1]['market_cap'],
-                #  "normalized_nav": normalized_nav,
-                #  "wind_code": self.target[-1]['wind_code_s'],
-                #  "sec_name_s": self.target[-1]['sec_name_s'],
-                #  'operating_type': self.target[-1]['operating_type'],
-                #  "confirm_date": self.target[-1]['confirm_date']}
-                for b in batch_acc:
-                    tr = query_recent_tr(i['wind_code_s'], b['nav_date'])
-                    if tr is not None:
-                        print(b, tr)
+
+                s = start['nav_date']
+                e = end['nav_date']
+                tr = query_recent_tr(value['wind_code'],s,e)
+                if tr is not None:
+                    print(tr)
+                    #     pass
                 # acc = [{"nav_acc": "%0.4f" % z['nav_acc'], "pct": "%0.4f" % z['pct'],
                 #         "sec_name": i['sec_name_s'],
                 #         "wind_code": i['wind_code_s'],

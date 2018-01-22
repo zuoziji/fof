@@ -702,15 +702,21 @@ def add_acc():
                 if batch_acc is not None:
                     batch_acc.reset_index(inplace=True)
                     batch_acc = batch_acc.to_dict(orient='records')
+                    if len(batch_acc) > 1:
+                        start = batch_acc[-2]
+                        end = batch_acc[-1]
+                    elif len(batch_acc) == 1:
+                        start = batch_acc[-1]
+                        end = batch_acc[-1]
                     b_list = []
                     for b in batch_acc:
-                        tr = query_recent_tr(i['wind_code_s'], b['nav_date'])
-                        if tr is not None:
-                            bx = {"nav_acc": "%0.4f" % b['nav_acc'], "pct": "%0.4f" % b['pct'],
-                                  "sec_name": return_data['sec_name_s'], "tr": tr,
-                                  "wind_code": return_data['wind_code'],
-                                  "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
-                            b_list.append(bx)
+                        bx = {"nav_acc": "%0.4f" % b['nav_acc'], "pct": "%0.4f" % b['pct'],
+                              "sec_name": return_data['sec_name_s'],
+                              "wind_code": return_data['wind_code'],
+                              "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
+                        b_list.append(bx)
+                    tr = query_recent_tr(return_data['wind_code'],start['nav_date'],end['nav_date'])
+                    result['tr'].append(tr)
                     result['batch'].append(b_list)
         return jsonify(acc="add", result=result)
     else:
