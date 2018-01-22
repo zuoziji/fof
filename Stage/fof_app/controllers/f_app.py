@@ -28,7 +28,8 @@ from backend.tools import fund_owner, chunks, get_Value, range_years, check_code
     get_stress_data, get_stg, child_charts, get_core_info, calc_periods
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
-    strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, global_user_cache, PCT_SCHEME, INFO_SCHEME, UserModel, \
+    strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, global_user_cache, PCT_SCHEME, INFO_SCHEME, \
+    UserModel, \
     Invest_corp, query_invest, Invest_corp_file, FUND_NAV_CALC, Fund_Core_Info, FUND_TRANSACTION, new_transaction, \
     delete_transaction, edit_transaction
 from fof_app.tasks import run_scheme_testing
@@ -41,10 +42,8 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
-from backend.NavFactory import CalcBase,query_batch,SpecialCal
+from backend.NavFactory import CalcBase, query_batch, SpecialCal, query_recent_tr
 import pandas as pd
-
-
 
 logger = logging.getLogger()
 
@@ -199,7 +198,7 @@ def details(wind_code: str) -> object:
     return render_template('details.html', fof=fof, child=child, stg=stg, fund_file=file_json,
                            time_line=time_line, result=result, data_name=data_name, fund_rr=rr_chunk
                            , date_latest=date_latest, acc=acc, fof_list=fof_list,
-                           stg_charts=stg_charts,contribution=contribution,
+                           stg_charts=stg_charts, contribution=contribution,
                            fhs_obj=fhs_obj, copula_obj=copula_obj, multi_obj=multi_obj,
                            capital_data=capital_data, core_info=core_info, nav_obj=nav_obj,
                            scale_obj=scale_obj, year_periods=year_periods, risk=risk, drawback=drawback)
@@ -641,7 +640,7 @@ def del_acc():
     db.session.commit()
     batch = FUND_ESSENTIAL.query.filter(FUND_ESSENTIAL.wind_code == wind_code).all()
     for i in batch:
-        FUND_NAV.query.filter(and_(FUND_NAV.wind_code == i.wind_code_s),(FUND_NAV.nav_date == nav_date)).delete()
+        FUND_NAV.query.filter(and_(FUND_NAV.wind_code == i.wind_code_s), (FUND_NAV.nav_date == nav_date)).delete()
         db.session.commit()
     del_nav_str = "call proc_delete_fund_nav_by_wind_code(:wind_code, :nav_date)"
     with get_db_session(get_db_engine()) as session:
@@ -661,7 +660,6 @@ def add_acc():
     :return:
     """
     post_data = request.json
-    print(post_data)
     acc_record = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == post_data['wind_code']),
                                        (FUND_NAV.nav_date == post_data['nav_date'])).first()
     if acc_record is None:
@@ -688,6 +686,7 @@ def add_acc():
                         "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in acc_data]
             result['fund'] = acc
             result['batch'] = []
+            result['tr'] = []
             for i in query_batch(acc_record):
                 if isinstance(i, list):
                     x = SpecialCal(acc_record, i)
@@ -695,20 +694,24 @@ def add_acc():
                     x = CalcBase.from_operater(i['operating_type'], acc_record, i)
                 return_data = x.calc()
                 batch_record = FUND_NAV(wind_code=return_data['wind_code'], nav_date=request.json['nav_date'],
-                              nav=return_data['normalized_nav'],
-                              nav_acc=return_data['normalized_nav'], source_mark=1)
+                                        nav=return_data['normalized_nav'],
+                                        nav_acc=return_data['normalized_nav'], source_mark=1)
                 db.session.add(batch_record)
                 db.session.commit()
                 batch_acc = data_handler.get_fund_nav_by_wind_code(return_data['wind_code'], limit=5)
                 if batch_acc is not None:
                     batch_acc.reset_index(inplace=True)
                     batch_acc = batch_acc.to_dict(orient='records')
-                    acc = [{"nav_acc": "%0.4f" % i['nav_acc'], "pct": "%0.4f" % i['pct'],"share":return_data['share'],
-                            "market_cap":return_data['market_cap'],"sec_name":return_data['sec_name_s'],
-                            "wind_code":return_data['wind_code'],
-                            "nav_date": i['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % i['nav']} for i in
-                           batch_acc]
-                result['batch'].append(acc)
+                    b_list = []
+                    for b in batch_acc:
+                        tr = query_recent_tr(i['wind_code_s'], b['nav_date'])
+                        if tr is not None:
+                            bx = {"nav_acc": "%0.4f" % b['nav_acc'], "pct": "%0.4f" % b['pct'],
+                                  "sec_name": return_data['sec_name_s'], "tr": tr,
+                                  "wind_code": return_data['wind_code'],
+                                  "nav_date": b['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % b['nav']}
+                            b_list.append(bx)
+                    result['batch'].append(b_list)
         return jsonify(acc="add", result=result)
     else:
         logger.error("这条记录的净值日期已经存在{} {}".format(request.json['wind_code'], request.json['nav_date']))

@@ -5,6 +5,8 @@ from sqlalchemy import and_
 from fof_app.models import FUND_TRANSACTION, FUND_NAV, FUND_ESSENTIAL, db
 from backend.data_handler import get_fund_nav_by_wind_code
 from functools import reduce
+from pandas import DataFrame
+import pandas as pd
 
 logger = logging.getLogger()
 
@@ -38,7 +40,6 @@ def query_batch(target):
                                                            FUND_TRANSACTION.confirm_date == target.nav_date)).order_by(
             FUND_TRANSACTION.confirm_date.desc()).all()
         if len(recent_record) > 1:
-
             for e in recent_record:
                 r_dict = e.as_dict()
                 r_dict['market_cap'] = r_dict['total_share'] * target.nav
@@ -49,7 +50,8 @@ def query_batch(target):
             yield result
         else:
             r = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i.wind_code_s,
-                                                   FUND_TRANSACTION.total_share > 0)).order_by(
+                                                   FUND_TRANSACTION.total_share > 0,
+                                                   FUND_TRANSACTION.confirm_date <= target.nav_date)).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             if r is not None:
                 r_dict = r.as_dict()
@@ -73,7 +75,8 @@ class InitTarget(object):
                             "normalized_nav": self.normalized_nav,
                             "wind_code": self.target['wind_code_s'],
                             "sec_name_s": self.target['sec_name_s'],
-                            'operating_type': self.target['operating_type']}
+                            'operating_type': self.target['operating_type'],
+                            "confirm_date": self.target["confirm_date"]}
         self.normal = True if self.fund.nav_date != self.target['confirm_date'] else False
 
     def _last_nav(self):
@@ -150,7 +153,6 @@ class CashDividends(CalcBase, InitTarget):
 
 class SharePlusMinus(CalcBase, InitTarget):
     def calc(self):
-
         if self.normal:
             return self.normal_cal()
         else:
@@ -199,6 +201,7 @@ class SpecialCal(object):
         self.last_cap, self.last_share = self._last_batch()
 
     def calc(self):
+        print(self.target)
         this_cap = self.target[-1]['total_share'] * self.fund.nav
         sum_value = reduce((lambda x, y: x + y), [i['amount'] for i in self.target])
         normalized_nav = (this_cap + sum_value) / self.last_share * self.last_cap
@@ -207,7 +210,8 @@ class SpecialCal(object):
                 "normalized_nav": normalized_nav,
                 "wind_code": self.target[-1]['wind_code_s'],
                 "sec_name_s": self.target[-1]['sec_name_s'],
-                'operating_type': self.target[-1]['operating_type']}
+                'operating_type': self.target[-1]['operating_type'],
+                "confirm_date": self.target[-1]['confirm_date']}
 
     def _last_batch_nav(self):
         last_nav = FUND_NAV.query.filter_by(wind_code=self.wind_code).order_by(
@@ -222,6 +226,22 @@ class SpecialCal(object):
         return last_cap, last_share
 
 
+def query_recent_tr(wind_code: str, confirm_date: str) -> list:
+    tr_list =[]
+    tr = FUND_TRANSACTION.query.filter(
+        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).all()
+    if len(tr) == 0:
+        tr = FUND_TRANSACTION.query.filter(
+            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
+        tr_list.append(tr)
+        if tr is None:
+            tr = FUND_TRANSACTION.query.filter(
+                and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).first()
+            tr_list.append(tr)
+    else:
+        tr_list.extend(tr)
+    tr_list = [ i.as_dict() for i in tr_list if i is not None ]
+    return tr_list
 if __name__ == "__main__":
     from fof_app import create_app
     import os
@@ -231,12 +251,46 @@ if __name__ == "__main__":
     with flask_app.test_request_context():
         db.init_app(flask_app)
         r = FUND_NAV.query.filter_by(wind_code="XT1605537.XT").order_by(FUND_NAV.nav_date.desc()).first()
+        prev_nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == r.wind_code,
+                                              FUND_NAV.nav_date < r.nav_date)).order_by(
+            FUND_NAV.nav_date.desc()).first()
         for i in query_batch(r):
             if isinstance(i, list):
                 x = SpecialCal(r, i)
             else:
                 x = CalcBase.from_operater(i['operating_type'], r, i)
             value = x.calc()
-            print(value)
             nav_record = get_fund_nav_by_wind_code(value['wind_code'], limit=5)
-            print(nav_record)
+            if nav_record is not None:
+                nav_record.reset_index(inplace=True)
+                batch_acc = nav_record.to_dict(orient='records')
+                #
+                # # recent_tr = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == i['wind_code_s'],
+                # #                                                FUND_TRANSACTION.confirm_date >= batch_acc[0]['nav_date'],
+                # #                                                FUND_TRANSACTION.confirm_date <= batch_acc[-1]['nav_date'])).all()
+                # #
+                # #
+                # recent_tr = [i.as_dict() for i in recent_tr]
+                # new_df = DataFrame(recent_tr)
+                # result = pd.concat([new_df, nav_record], axis=1, join_axes=[nav_record.index])
+                # #
+                # for k,v in result.T.to_dict().items():
+                #     print(k,v)
+
+                # {"share": self.target[-1]['total_share'],
+                #  "market_cap": self.target[-1]['market_cap'],
+                #  "normalized_nav": normalized_nav,
+                #  "wind_code": self.target[-1]['wind_code_s'],
+                #  "sec_name_s": self.target[-1]['sec_name_s'],
+                #  'operating_type': self.target[-1]['operating_type'],
+                #  "confirm_date": self.target[-1]['confirm_date']}
+                for b in batch_acc:
+                    tr = query_recent_tr(i['wind_code_s'], b['nav_date'])
+                    if tr is not None:
+                        print(b, tr)
+                # acc = [{"nav_acc": "%0.4f" % z['nav_acc'], "pct": "%0.4f" % z['pct'],
+                #         "sec_name": i['sec_name_s'],
+                #         "wind_code": i['wind_code_s'],
+                #         "nav_date": z['nav_date'].strftime('%Y-%m-%d'), "nav": "%0.4f" % z['nav']} for z in
+                #        batch_acc]
+            # print(acc)
