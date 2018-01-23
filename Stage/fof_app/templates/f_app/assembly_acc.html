@@ -390,8 +390,8 @@
                                         fundObj[v.nav_date][key+index]=Math.round(val*10000)/100;
                                     }else if(key=="tr"){
                                         if(val.length!=0){
-                                            fundObj[v.nav_date]["share"+index]=val[val.length-1].share;
-                                            fundObj[v.nav_date]["market_cap"+index]=Math.round(val[val.length-1].share*v.nav*100)/100;
+                                            fundObj[v.nav_date]["share"+index]=val[val.length-1].total_share;
+                                            fundObj[v.nav_date]["market_cap"+index]=Math.round(val[val.length-1].total_share*v.nav*100)/100;
                                         }
                                     }else{
                                         fundObj[v.nav_date][key+index]=val;
