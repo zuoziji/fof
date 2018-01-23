@@ -345,20 +345,28 @@
                                         "nav": obj["nav"+index],
                                         "wind_code":obj["wind_code"+index]
                                     })
-                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} data=${obj["nav"+index]} style="width:80px;height:18px;">`;
+                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} style="width:80px;height:18px;">`;
 
 
                                 }else{
-                                    if(obj["nav"+index]||obj["nav"+index]==0){
-                                        return obj["nav"+index];
+                                    if(obj.rate){
+                                        if(obj["nav"+index]||obj["nav"+index]==0){
+                                            return `<div id="rate${index}">${obj["nav"+index]}</div>`;
+                                        }else{
+                                            return `<div id="rate${index}"></div>`;
+                                        }
                                     }else{
-                                        return "";
+                                        if(obj["nav"+index]||obj["nav"+index]==0){
+                                            return obj["nav"+index];
+                                        }else{
+                                            return "";
+                                        }
                                     }
                                 }
                             }},
                             {data:null,
                             render:function(obj){
-                                if(obj["share"+index]||["share"+index]==0){
+                                if(obj["share"+index]||obj["share"+index]==0){
                                     return obj["share"+index];
                                 }else{
                                     return "";
@@ -391,7 +399,7 @@
                                     }else if(key=="tr"){
                                         if(val.length!=0){
                                             fundObj[v.nav_date]["share"+index]=val[val.length-1].total_share;
-                                            fundObj[v.nav_date]["market_cap"+index]=Math.round(val[val.length-1].total_share*v.nav*100)/100;
+                                            fundObj[v.nav_date]["market_cap"+index]=Math.round(val[val.length-1].total_share*fundObj[v.nav_date].nav*100)/100;
                                         }
                                     }else{
                                         fundObj[v.nav_date][key+index]=val;
@@ -417,6 +425,7 @@
                             }
                         });
                         fund[fund.length-1]["operate"]="true";
+                        fund[fund.length-2]["rate"]="true";
 
                         $("#myModal").modal("hide");
                         $("#myModalLabel").text("新增");
@@ -465,9 +474,12 @@
                         $("#tableModal").on("change propertychange input","input",function(){
                             var index=$(this).attr("index");
                             var nav=$(this).val();
+                            var id="#rate"+$(this).attr("index");
+                            var navPre=$(id).html();
                             var share=$(this).parent().next().html();
                             $(this).css({"color":"#0353f1","fontWeight":800});
-                            $(this).parent().next().next().html(Math.round(nav*share*100)/100);
+                            // $(this).parent().next().next().html(Math.round(nav*share*100)/100);
+                            $(this).parent().next().next().next().html(Math.round((nav/navPre-1)*10000)/100);
                             sendObj[index].nav=$(this).val();
                             if($.inArray(index,sendObjIndex)==-1){
                                 sendObjIndex.push(index);
