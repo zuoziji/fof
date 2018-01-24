@@ -6,10 +6,6 @@
     th,td{
         min-width: 100px;
     }
-    .border{
-        border-left:1px solid #ccc!important;
-    }
-
     .modal-lg {
         width: 1200px!important;
     }
@@ -22,6 +18,17 @@
     tr.shown td span.details-control {
         padding:10px;
         background: url(../../static/images/details_close.png) no-repeat center center;
+    }
+    #operate {
+        margin-left:467px; 
+        border-right: 0;
+        border-bottom: 0;
+    }
+    #operate tbody tr:first-child td {
+        border-top: 1px solid #ccc!important; 
+    }
+    #operate th,#operate td{
+        padding:8px;
     }
     </style>
 {% endblock %}
@@ -478,13 +485,18 @@
                             var navPre=$(id).html();
                             var share=$(this).parent().next().html();
                             $(this).css({"color":"#0353f1","fontWeight":800});
-                            // $(this).parent().next().next().html(Math.round(nav*share*100)/100);
                             $(this).parent().next().next().next().html(Math.round((nav/navPre-1)*10000)/100);
                             sendObj[index].nav=$(this).val();
                             if($.inArray(index,sendObjIndex)==-1){
                                 sendObjIndex.push(index);
                             }
                         })
+                        //default show
+                        var tr=$("span.details-control").parent().closest('tr');
+                        var row=tableModal.row(tr);
+                        row.child( format(range) ).show();
+                        tr.addClass('shown');
+                        $("#operate").parent().css({"padding":0});
                         // Add event listener for opening and closing details
                         $('#tableModal').on('click', 'span.details-control', function () {
                             var tr = $(this).parent().closest('tr');
@@ -495,8 +507,8 @@
                             }
                             else {
                                 // Open this row
-                                // row.child( format(row.data().tr) ).show();
                                 row.child( format(range) ).show();
+                                $("#operate").parent().css({"padding":0});
                                 tr.addClass('shown');
                             }
                         } );
@@ -509,28 +521,27 @@
                             d.forEach(function(val,index){
                                 if(val){
                                     len.push(val.length);
-                                    tHead+=`<th class="border">日期</th><th>份额</th><th>金额</th><th>操作</th>`;
                                 }else{
                                     len.push(0);
-                                    tHead+=`<th class="border">日期</th><th>份额</th><th>金额</th><th>操作</th>`;
                                 }
+                                tHead+=`<th>日期</th><th>份额</th><th>金额</th><th>操作</th>`;
                             });
                             var max=Math.max(...len);
-                            if(max==0){
+                            if(len.length==0){
                                 return '没有操作记录';
                             }else{
                                 for(var i=0; i<max;i++){
-                                    tBody+=`<tr><td></td><td></td><td></td><td></td>`;
+                                    tBody+=`<tr>`;
                                     d.forEach(function(val,index){  
                                         if(val&&val[i]){
-                                            tBody+=`<td class="border">${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].share}</td><td>${val[i].amount}</td><td>${val[i].operating_type}</td>`;
+                                            tBody+=`<td>${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].share}</td><td>${val[i].amount}</td><td>${val[i].operating_type}</td>`;
                                         }else{
                                             tBody+=`<td></td><td></td><td></td><td></td>`;
                                         }
                                     })
                                     tBody+=`</tr>`;
                                 }
-                                return `<table class="table row-border dataTable"><thead><tr><th colspan="4"></th>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
+                                return `<table id="operate" class="table-bordered center-all  dataTable"><thead><tr>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
                             }
                         }
                         $("#edit").click(function(){
