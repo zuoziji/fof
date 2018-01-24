@@ -6,15 +6,17 @@ Created on Thu Apr  6 11:11:26 2017
 """
 
 from fh_tools.windy_utils_rest import WindRest, APIError
-from fh_tools.fh_utils import get_first, get_last, str_2_date
+from fh_tools.fh_utils import get_first, get_last, str_2_date, date_2_str
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from sqlalchemy.types import String, Date
 from sqlalchemy.dialects.mysql import DOUBLE
 from config_fh import get_db_engine, WIND_REST_URL, get_db_session
 import logging
 logger = logging.getLogger()
-
+ONE_DAY = timedelta(days=1)
+# 标示每天几点以后下载当日行情数据
+BASE_LINE_HOUR = 16
 rest = WindRest(WIND_REST_URL)  # 初始化服务器接口，用于下载万得数据
 
 
@@ -48,12 +50,13 @@ def import_wind_index_daily_first(wind_codes):
     :return: 
     """
     engine = get_db_engine()
-    yestday = date.today() - timedelta(days=1)
+    # yestday = date.today() - timedelta(days=1)
+    date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     info = rest.wss(wind_codes, "basedate,sec_name")
     for code in info.index:
         begin_date = str_2_date(info.loc[code, 'BASEDATE'])
         index_name = info.loc[code, 'SEC_NAME']
-        index_df = rest.wsd(code, "open,high,low,close,volume,amt,turn,free_turn", begin_date, yestday)
+        index_df = rest.wsd(code, "open,high,low,close,volume,amt,turn,free_turn", begin_date, date_ending)
         index_df.reset_index(inplace=True)
         index_df.rename(columns={'index': 'trade_date'}, inplace=True)
         index_df.trade_date = pd.to_datetime(index_df.trade_date)
@@ -73,7 +76,8 @@ def import_wind_index_daily_first(wind_codes):
 def import_wind_index_daily():
     """导入指数数据"""
     engine = get_db_engine()
-    yesterday = date.today() - timedelta(days=1)
+    # yesterday = date.today() - timedelta(days=1)
+    date_ending = date.today() - ONE_DAY if datetime.now().hour < BASE_LINE_HOUR else date.today()
     sql_str = """select wii.wind_code, wii.sec_name, ifnull(adddate(latest_date, INTERVAL 1 DAY), wii.basedate) date_from
         from wind_index_info wii left join 
         (
@@ -90,7 +94,7 @@ def import_wind_index_daily():
         table = session.execute(sql_str)
         trade_date_sorted_list = [t[0] for t in table.fetchall()]
         trade_date_sorted_list.sort()
-    date_to = get_last(trade_date_sorted_list, lambda x: x <= yesterday)
+    date_to = get_last(trade_date_sorted_list, lambda x: x <= date_ending)
     data_len = len(wind_code_date_from_dic)
     logger.info('%d indexes will been import', data_len)
     for data_num, (wind_code, (index_name, date_from)) in enumerate(wind_code_date_from_dic.items()):
@@ -119,7 +123,7 @@ def import_wind_index_daily():
                         'wind_code': String(20),
                         'trade_date': Date,
                     })
-        logger.info('更新指数 %s %s 成功', wind_code, index_name)
+        logger.info('更新指数 %s %s 至 %s 成功', wind_code, index_name, date_2_str(date_to))
 
 
 def import_wind_index_daily_by_xls(file_path, wind_code, index_name):
@@ -201,12 +205,12 @@ if __name__ == '__main__':
     #               '000300.SH', '000905.SH', '037.CS', '399001.SZ', '399005.SZ', '399006.SZ', '399101.SZ',
     #               '399102.SZ',
     #               ]
-    wind_codes = ['CES120.CSI']
+    # wind_codes = ['CES120.CSI']
     # import_wind_index_info(wind_codes)
     # import_wind_index_daily_first(wind_codes)
 
     # 每日更新指数信息
-    # import_wind_index_daily()
+    import_wind_index_daily()
     # fill_wind_index_daily_col()
 
     # file_path = r'd:\Downloads\CES120.xlsx'
