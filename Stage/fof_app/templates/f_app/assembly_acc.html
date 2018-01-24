@@ -4,12 +4,8 @@
     <link href="../../static/vendors/bootstrap-select/css/bootstrap-select.css" rel="stylesheet">
     <style>
     th,td{
-        min-width: 90px;
+        min-width: 100px;
     }
-    .border{
-        border-left:1px solid #ccc!important;
-    }
-
     .modal-lg {
         width: 1200px!important;
     }
@@ -22,6 +18,17 @@
     tr.shown td span.details-control {
         padding:10px;
         background: url(../../static/images/details_close.png) no-repeat center center;
+    }
+    #operate {
+        margin-left:467px; 
+        border-right: 0;
+        border-bottom: 0;
+    }
+    #operate tbody tr:first-child td {
+        border-top: 1px solid #ccc!important; 
+    }
+    #operate th,#operate td{
+        padding:8px;
     }
     </style>
 {% endblock %}
@@ -81,7 +88,7 @@
                     </div>
                     <div class="clearfix"></div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success" id="edit">确认</button>
+                        <button type="submit" class="btn btn-success" id="edit">更新</button>
                         <button type="button" class="btn btn-default" data-dismiss="modal" id="cancle">取消</button>
                     </div>
                 </div>
@@ -292,12 +299,11 @@
                     }else{
                         var batch= data.result.batch;
                         var fund= data.result.fund;
+                        var range= data.result.tr_range;
                         var tableDate=[];
                         var fundObj={};
                         var columns=[
                             {"data":null,
-                            // "class":"details-control",
-                            // "dataContent":""
                             render:function(obj){
                                 if(obj.operate){
                                     return "<span class='details-control'></span>";
@@ -346,20 +352,28 @@
                                         "nav": obj["nav"+index],
                                         "wind_code":obj["wind_code"+index]
                                     })
-                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} data=${obj["nav"+index]} style="width:80px;height:18px;">`;
+                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} style="width:80px;height:18px;">`;
 
 
                                 }else{
-                                    if(obj["nav"+index]||obj["nav"+index]==0){
-                                        return obj["nav"+index];
+                                    if(obj.rate){
+                                        if(obj["nav"+index]||obj["nav"+index]==0){
+                                            return `<div id="rate${index}">${obj["nav"+index]}</div>`;
+                                        }else{
+                                            return `<div id="rate${index}"></div>`;
+                                        }
                                     }else{
-                                        return "";
+                                        if(obj["nav"+index]||obj["nav"+index]==0){
+                                            return obj["nav"+index];
+                                        }else{
+                                            return "";
+                                        }
                                     }
                                 }
                             }},
                             {data:null,
                             render:function(obj){
-                                if(obj["share"+index]||["share"+index]==0){
+                                if(obj["share"+index]||obj["share"+index]==0){
                                     return obj["share"+index];
                                 }else{
                                     return "";
@@ -390,11 +404,9 @@
                                     if(key=="pct"){
                                         fundObj[v.nav_date][key+index]=Math.round(val*10000)/100;
                                     }else if(key=="tr"){
-                                        fundObj[v.nav_date]["tr"]=fundObj[v.nav_date]["tr"]||[];
-                                        fundObj[v.nav_date]["tr"].push(val);
                                         if(val.length!=0){
-                                            fundObj[v.nav_date]["share"+index]=val[val.length-1].share;
-                                            fundObj[v.nav_date]["market_cap"+index]=val[val.length-1].share*v.nav;
+                                            fundObj[v.nav_date]["share"+index]=val[val.length-1].total_share;
+                                            fundObj[v.nav_date]["market_cap"+index]=Math.round(val[val.length-1].total_share*fundObj[v.nav_date].nav*100)/100;
                                         }
                                     }else{
                                         fundObj[v.nav_date][key+index]=val;
@@ -419,9 +431,8 @@
                                 return 0;
                             }
                         });
-                        if(fund[fund.length-1].tr&&fund[fund.length-1].tr.length!=0){
-                            fund[fund.length-1]["operate"]="true";
-                        }
+                        fund[fund.length-1]["operate"]="true";
+                        fund[fund.length-2]["rate"]="true";
 
                         $("#myModal").modal("hide");
                         $("#myModalLabel").text("新增");
@@ -470,14 +481,22 @@
                         $("#tableModal").on("change propertychange input","input",function(){
                             var index=$(this).attr("index");
                             var nav=$(this).val();
+                            var id="#rate"+$(this).attr("index");
+                            var navPre=$(id).html();
                             var share=$(this).parent().next().html();
                             $(this).css({"color":"#0353f1","fontWeight":800});
-                            $(this).parent().next().next().html(Math.round(nav*share*100)/100);
+                            $(this).parent().next().next().next().html(Math.round((nav/navPre-1)*10000)/100);
                             sendObj[index].nav=$(this).val();
                             if($.inArray(index,sendObjIndex)==-1){
                                 sendObjIndex.push(index);
                             }
                         })
+                        //default show
+                        var tr=$("span.details-control").parent().closest('tr');
+                        var row=tableModal.row(tr);
+                        row.child( format(range) ).show();
+                        tr.addClass('shown');
+                        $("#operate").parent().css({"padding":0});
                         // Add event listener for opening and closing details
                         $('#tableModal').on('click', 'span.details-control', function () {
                             var tr = $(this).parent().closest('tr');
@@ -488,7 +507,8 @@
                             }
                             else {
                                 // Open this row
-                                row.child( format(row.data().tr) ).show();
+                                row.child( format(range) ).show();
+                                $("#operate").parent().css({"padding":0});
                                 tr.addClass('shown');
                             }
                         } );
@@ -499,22 +519,30 @@
                             var tHead='';
                             var tBody='';
                             d.forEach(function(val,index){
-                                len.push(val.length);
-                                tHead+=`<th class="border">日期</th><th>金额</th><th>份额</th><th>操作</th>`;
+                                if(val){
+                                    len.push(val.length);
+                                }else{
+                                    len.push(0);
+                                }
+                                tHead+=`<th>日期</th><th>份额</th><th>金额</th><th>操作</th>`;
                             });
                             var max=Math.max(...len);
-                            for(var i=0; i<max;i++){
-                                tBody+=`<tr><td></td><td></td><td></td><td></td>`;
-                                d.forEach(function(val,index){  
-                                    if(val[i]){
-                                        tBody+=`<td class="border">${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].amount}</td><td>${val[i].share}</td><td>${val[i].operating_type}</td>`;
-                                    }else{
-                                        tBody+=`<td></td><td></td><td></td><td></td>`;
-                                    }
-                                })
-                                tBody+=`</tr>`;
+                            if(len.length==0){
+                                return '没有操作记录';
+                            }else{
+                                for(var i=0; i<max;i++){
+                                    tBody+=`<tr>`;
+                                    d.forEach(function(val,index){  
+                                        if(val&&val[i]){
+                                            tBody+=`<td>${moment(new Date(val[i].confirm_date)).format('YYYY-MM-DD') }</td><td>${val[i].share}</td><td>${val[i].amount}</td><td>${val[i].operating_type}</td>`;
+                                        }else{
+                                            tBody+=`<td></td><td></td><td></td><td></td>`;
+                                        }
+                                    })
+                                    tBody+=`</tr>`;
+                                }
+                                return `<table id="operate" class="table-bordered center-all  dataTable"><thead><tr>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
                             }
-                            return `<table class="table row-border dataTable"><thead><tr><th colspan="4"></th>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
                         }
                         $("#edit").click(function(){
                             if(sendObjIndex.length){
