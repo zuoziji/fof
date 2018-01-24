@@ -30,6 +30,9 @@
     #operate th,#operate td{
         padding:8px;
     }
+    input:hover ::after {
+
+    }
     </style>
 {% endblock %}
 {% block manager %}
@@ -89,7 +92,7 @@
                     <div class="clearfix"></div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success" id="edit">更新</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal" id="cancle">取消</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="cancle">确认</button>
                     </div>
                 </div>
             </div>
@@ -352,7 +355,7 @@
                                         "nav": obj["nav"+index],
                                         "wind_code":obj["wind_code"+index]
                                     })
-                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} style="width:80px;height:18px;">`;
+                                    return `<input type="number" index="${index}" value=${obj["nav"+index]} style="width:80px;height:18px;" title=${obj["nav"+index]}>`;
 
 
                                 }else{
