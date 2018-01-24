@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from config_fh import get_db_engine, get_db_session, STR_FORMAT_DATE, UN_AVAILABLE_DATE, WIND_REST_URL
 from fh_tools.windy_utils_rest import WindRest
-from fh_tools.fh_utils import get_last, get_first
+from fh_tools.fh_utils import get_last, get_first, str_2_date
 import logging
 from sqlalchemy.types import String, Date, Float, Integer
 logger = logging.getLogger()
@@ -111,6 +111,7 @@ def import_cb_info(first_time=False):
 def import_cb_daily():
     """
     导入可转债日线数据
+    需要补充 转股价格
     :return: 
     """
     logging.info("更新 wind_convertible_bond_daily 开始")
@@ -127,12 +128,13 @@ def import_cb_daily():
         trade_date_sorted_list = [t[0] for t in table.fetchall()]
         trade_date_sorted_list.sort()
         # 获取每只股票上市日期、退市日期
-        table = session.execute('SELECT wind_code, ipo_date, end_date FROM wind_convertible_bond_info')
-        stock_date_dic = {wind_code: (ipo_date, end_date if end_date is None or end_date > UN_AVAILABLE_DATE else None) for
+        table = session.execute('SELECT wind_code, ifnull(ipo_date, issue_announcement_date), end_date FROM wind_convertible_bond_info')
+        stock_date_dic = {wind_code: (str_2_date(ipo_date), end_date if end_date is None or end_date > UN_AVAILABLE_DATE else None) for
                           wind_code, ipo_date, end_date in table.fetchall()}
     today_t_1 = date.today() - ONE_DAY
     data_df_list = []
-    logger.info('%d stocks will been import into wind_convertible_bond_daily', len(stock_date_dic))
+    data_count = len(stock_date_dic)
+    logger.info('%d stocks will been import into wind_convertible_bond_daily', data_count)
     # 获取股票量价等行情数据
     field_col_name_dic = {
         'outstandingbalance': 'outstanding_balance',
@@ -154,12 +156,12 @@ def import_cb_daily():
     wind_indictor_str = ",".join(field_col_name_dic.keys())
     upper_col_2_name_dic = {name.upper(): val for name, val in field_col_name_dic.items()}
     try:
-        for data_num, (wind_code, date_pair) in enumerate(stock_date_dic.items()):
+        for data_num, (wind_code, date_pair) in enumerate(stock_date_dic.items(), start=1):
             date_ipo, end_date = date_pair
             # 初次加载阶段全量载入，以后 ipo_date为空的情况，直接warning跳过
             if date_ipo is None:
                 # date_ipo = DATE_BASE
-                logging.warning("%d) %s 缺少 ipo date", data_num, wind_code)
+                logging.warning("%d/%d) %s 缺少 ipo date", data_num, data_count, wind_code)
                 continue
             # 获取 date_from
             if wind_code in trade_date_latest_dic:
@@ -178,10 +180,17 @@ def import_cb_daily():
                 continue
             data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to, "unit=1")
             if data_df is None:
-                logger.warning('%d) %s has no ohlc data during %s %s', data_num, wind_code, date_from, date_to)
+                logger.warning('%d/%d) %s has no data during %s %s',
+                               data_num, data_count, wind_code, date_from, date_to)
                 continue
             data_df.rename(columns=upper_col_2_name_dic, inplace=True)
-            logger.info('%d) %d data of %s between %s and %s', data_num, data_df.shape[0], wind_code, date_from, date_to)
+            data_df = data_df[~data_df['close'].isna()]
+            if data_df.shape[0] == 0:
+                logger.warning('%d/%d) %s has no available data during %s %s',
+                               data_num, data_count, wind_code, date_from, date_to)
+                continue
+            logger.info('%d/%d) %d data of %s between %s and %s',
+                        data_num, data_count, data_df.shape[0], wind_code, date_from, date_to)
             data_df['wind_code'] = wind_code
             data_df_list.append(data_df)
             # if len(data_df_list) > 10:
@@ -199,5 +208,5 @@ def import_cb_daily():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
 
-    import_cb_info()
-    # import_cb_daily()
+    # import_cb_info()
+    import_cb_daily()
