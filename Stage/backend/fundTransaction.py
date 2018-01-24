@@ -94,7 +94,6 @@ class Transaction(object):
             d['share'] = float(d['share']) * -1
         if d['operating_type'] == "申购":
             d['amount'] = float(d['amount']) * -1
-        print(d)
         return d
 
     def importDate(self, df_dict):

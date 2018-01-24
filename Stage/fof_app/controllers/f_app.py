@@ -706,8 +706,8 @@ def add_acc():
                         start = batch_acc[-2]
                         end = batch_acc[-1]
                     elif len(batch_acc) == 1:
-                        start = batch_acc[-1]
-                        end = batch_acc[-1]
+                        start = batch_acc[0]
+                        end = batch_acc[0]
                     tr_range = query_range_tr(return_data['wind_code'],start['nav_date'],end['nav_date'])
                     b_list = []
                     for b in batch_acc:

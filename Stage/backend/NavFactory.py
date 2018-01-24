@@ -80,21 +80,24 @@ class InitTarget(object):
         self.normal = True if self.fund.nav_date != self.target['confirm_date'] else False
 
     def _last_nav(self):
-        last_nav = FUND_NAV.query.filter_by(wind_code=self.fund.wind_code).order_by(
-            FUND_NAV.nav_date.desc()).all()
-        if len(last_nav) > 1:
-            return last_nav[-2]
-        else:
-            return last_nav[-1]
+        last_nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code==self.fund.wind_code,
+                                              FUND_NAV.nav_date < self.fund.nav_date)).order_by(
+            FUND_NAV.nav_date.desc()).first()
+        return last_nav
 
     def _last_batch_nav(self):
-        last_nav = FUND_NAV.query.filter_by(wind_code=self.target['wind_code_s']).order_by(
+        last_nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code==self.target['wind_code_s'],
+                                              FUND_NAV.nav_date < self.fund.nav_date
+                                              )).order_by(
             FUND_NAV.nav_date.desc()).first()
         return last_nav
 
     def normal_cal(self):
         logger.info("use normal cal method")
         if self.recent_batch_nav:
+            print(self.fund.nav,"fund_nav")
+            print(self.recent_nav.nav,"recent_nav")
+            print(self.recent_batch_nav.nav,"recent_batch_nav")
             self.normalized_nav = self.fund.nav / self.recent_nav.nav * self.recent_batch_nav.nav
         logger.info("批次{} [{}] ,{} 归一后净值:{}".format(self.target['sec_name_s'], self.target['operating_type'],
                                                     self.fund.nav_date, self.normalized_nav))
@@ -115,9 +118,10 @@ class ShareDividends(CalcBase, InitTarget):
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(
-                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(and_(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s'],FUND_TRANSACTION.confirm_date < self.target['confirm_date'])).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
+            print(last_batch)
             batch_last_cap = last_batch.total_share * self.recent_nav.nav
             batch_new_cap = self.target['market_cap']
             logger.info("上一条资本记录{},最新资本记录{}".format(batch_last_cap, batch_new_cap))
@@ -136,8 +140,8 @@ class CashDividends(CalcBase, InitTarget):
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(
-                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(and_(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s'],FUND_TRANSACTION.confirm_date < self.target['confirm_date'])).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             batch_last_cap = last_batch.total_share * self.recent_nav.nav
             self.normalized_nav = (self.target['amount'] + self.target[
@@ -156,8 +160,9 @@ class SharePlusMinus(CalcBase, InitTarget):
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(
-                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(and_(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s'],
+                FUND_TRANSACTION.confirm_date < self.target['confirm_date'])).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             batch_last_cap = last_batch.total_share * self.recent_nav.nav
             self.normalized_nav = self.target['market_cap'] / batch_last_cap * self.recent_batch_nav.nav
@@ -175,8 +180,9 @@ class TaskCash(CalcBase, InitTarget):
         if self.normal:
             return self.normal_cal()
         else:
-            last_batch = FUND_TRANSACTION.query.filter(
-                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s']).order_by(
+            last_batch = FUND_TRANSACTION.query.filter(and_(
+                FUND_TRANSACTION.wind_code_s == self.target['wind_code_s'],
+                FUND_TRANSACTION.confirm_date < self.target['confirm_date'])).order_by(
                 FUND_TRANSACTION.confirm_date.desc()).first()
             this_cap = self.target['market_cap']
             this_amount = self.target['amount']
@@ -213,7 +219,7 @@ class SpecialCal(object):
                 "confirm_date": self.target[-1]['confirm_date']}
 
     def _last_batch_nav(self):
-        last_nav = FUND_NAV.query.filter_by(wind_code=self.wind_code).order_by(
+        last_nav = FUND_NAV.query.filter(FUND_NAV.wind_code==self.wind_code).order_by(
             FUND_NAV.nav_date.desc()).first()
         return last_nav.nav
 
@@ -226,25 +232,20 @@ class SpecialCal(object):
 
 
 def query_recent_tr(wind_code: str, confirm_date: str) -> list:
-    tr_list =[]
+    tr_list = []
     tr = FUND_TRANSACTION.query.filter(
-        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).all()
-    if len(tr) == 0:
+        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
+    if tr is None:
         tr = FUND_TRANSACTION.query.filter(
-            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
-        tr_list.append(tr)
-        if tr is None:
-            tr = FUND_TRANSACTION.query.filter(
-                and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).first()
-            tr_list.append(tr)
-    else:
-        tr_list.extend(tr)
-    tr_list = [ i.as_dict() for i in tr_list if i is not None ]
+            and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).order_by(
+            FUND_TRANSACTION.confirm_date.desc()).first()
+    tr_list.append(tr)
+    tr_list = [i.as_dict() for i in tr_list]
     return tr_list
 
 def query_range_tr(wind_code,start,end):
     tr = FUND_TRANSACTION.query.filter(
-        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date >= start,
+        and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date > start,
              FUND_TRANSACTION.confirm_date <= end)).all()
     if len(tr) > 0:
         tr_list = [i.as_dict() for i in tr]
@@ -282,12 +283,9 @@ if __name__ == "__main__":
                     start = batch_acc[0]
                     end = batch_acc[0]
 
-
-                s = start['nav_date']
-                e = end['nav_date']
-                tr = query_recent_tr(value['wind_code'],s,e)
-                if tr is not None:
-                    print(tr)
+                for x in batch_acc:
+                    tr = query_recent_tr(value['wind_code'],x['nav_date'])
+                    print(x['nav_date'],tr)
                     #     pass
                 # acc = [{"nav_acc": "%0.4f" % z['nav_acc'], "pct": "%0.4f" % z['pct'],
                 #         "sec_name": i['sec_name_s'],

@@ -673,7 +673,7 @@ def new_transaction(target):
     if len(record) == 0:
         # new
         target.total_share = target.share
-        target.total_cost = target.amount
+        target.total_cost = target.amount * -1
         db.session.add(target)
         db.session.commit()
     else:
@@ -699,15 +699,15 @@ def new_transaction(target):
             db.session.add(target)
             db.session.commit()
             for i in range(len(record_list)):
-                tot_share = float(tot_share) + record_list[i].share
-                tot_cost = tot_cost + (float(record_list[i].amount))
+                tot_share = (float(tot_share) + record_list[i].share)
+                tot_cost = (tot_cost - (float(record_list[i].amount)))
                 record_list[i].total_share = tot_share
                 record_list[i].total_cost = tot_cost
                 db.session.commit()
         else:
             last_record = record[-1]
             target.total_share = float(target.share) + last_record.total_share
-            target.total_cost = float(target.amount) + last_record.total_cost
+            target.total_cost = (float(target.amount)*-1) + last_record.total_cost
             db.session.add(target)
             db.session.commit()
 
@@ -739,7 +739,7 @@ def delete_transaction(target):
         record_list.pop(0)
         for i in range(len(record_list)):
             tot_share = tot_share + record_list[i].share
-            tot_cost = tot_cost + (float(record_list[i].amount))
+            tot_cost = tot_cost + (float(record_list[i].amount) * -1)
             record_list[i].total_share = tot_share
             record_list[i].total_cost = tot_cost
             db.session.commit()
