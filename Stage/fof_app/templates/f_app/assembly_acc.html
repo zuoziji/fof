@@ -275,6 +275,7 @@
 
         
         function ajax(obj) {
+            $("#save").attr("disabled","disabled");
             var table = $("#accTable").DataTable();
             $.ajax({
                 url:'/f_app/add_acc' ,
@@ -300,6 +301,10 @@
                         $("#myModalLabel").text("新增");
                         clear();
                     }else if(data.acc == "add"){
+                        $("#myModal").modal("hide");
+                        $("#save").removeAttr("disabled");
+                        $("#myModalLabel").text("新增");
+                        clear();
                         var batch= data.result.batch;
                         var fund= data.result.fund;
                         var range= data.result.tr_range;
@@ -437,9 +442,6 @@
                         fund[fund.length-1]["operate"]="true";
                         fund[fund.length-2]["rate"]="true";
 
-                        $("#myModal").modal("hide");
-                        $("#myModalLabel").text("新增");
-                        clear();
                         $("#tableModal").modal("show");
                         $("#table-modal").html(`
                         <table id="Table" class="table table-bordered center-all ">
@@ -534,7 +536,10 @@
                             if(len.length==0){
                                 return '没有操作记录';
                             }else{
+                                var fixed=`<tr><td></td><td></td><td></td><td></td></tr>`;
+                                var height=Math.round((max+1)*35)+'px';
                                 for(var i=0; i<max;i++){
+                                    fixed+=`<tr><td></td><td></td><td></td><td></td></tr>`;
                                     tBody+=`<tr>`;
                                     d.forEach(function(val,index){  
                                         if(val&&val[i]){
@@ -545,7 +550,7 @@
                                     })
                                     tBody+=`</tr>`;
                                 }
-                                return `<table id="operate" class="table-bordered center-all  dataTable"><thead><tr>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
+                                return `<table class="table-bordered center-all  dataTable" style="width: 469px;height: ${height};position: fixed;background: #f1f1f1;margin-left:-1px;"><tbody>${fixed}</tbody></table><table id="operate" class="table-bordered center-all  dataTable"><thead><tr>${tHead}</tr></thead><tbody>${tBody}</tbody></table>`;
                             }
                         }
                         $("#edit").click(function(){
