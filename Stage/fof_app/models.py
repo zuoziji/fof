@@ -16,6 +16,7 @@ import logging
 from .tasks import send_email
 from sqlalchemy.types import TypeDecorator, String
 from cryptography.fernet import Fernet
+from functools import reduce
 from flask_sqlalchemy import SQLAlchemy
 
 key = "lNXHXIz61VOA6Q1Zc1v5K-udwN1dEfHK8d8DBXA3-MQ="
@@ -686,28 +687,26 @@ def new_transaction(target):
                                                       FUND_TRANSACTION.confirm_date.desc()).first()
             if last is not None:
                 logger.info("-------------(add to middle)------------")
-                tot_share, tot_cost = last.total_share, last.total_cost
-                target.total_share = 0
-                target.total_cost = 0
-                record_list.insert(0, target)
+                target.total_share = float(last.total_share) + float(target.share)
+                target.total_cost = float(last.total_cost) + (float(target.amount) * -1)
             else:
                 logger.info("-------------(add to first)------------")
-                tot_share = target.share
-                tot_cost = target.amount
                 target.total_share = target.share
-                target.total_cost = target.amount
+                target.total_cost = target.amount * -1
             db.session.add(target)
             db.session.commit()
-            for i in range(len(record_list)):
-                tot_share = (float(tot_share) + record_list[i].share)
-                tot_cost = (tot_cost - (float(record_list[i].amount)))
+            record_list.insert(0, target)
+            for i in range(1, len(record_list)):
+                tot_cost = float(record_list[i-1].total_cost) + (float(record_list[i].amount) * -1)
+                tot_share = float(record_list[i-1].total_share) + (float(record_list[i].share))
                 record_list[i].total_share = tot_share
                 record_list[i].total_cost = tot_cost
                 db.session.commit()
         else:
+            logger.info("-----------------------last-----------------")
             last_record = record[-1]
             target.total_share = float(target.share) + last_record.total_share
-            target.total_cost = (float(target.amount)*-1) + last_record.total_cost
+            target.total_cost = float(last_record.total_cost) + (float(target.amount) * -1)
             db.session.add(target)
             db.session.commit()
 
@@ -727,23 +726,21 @@ def delete_transaction(target):
             FUND_TRANSACTION.confirm_date.desc()).first()
         if last is not None:
             logger.info("-------------(delete middle)------------")
-            tot_share, tot_cost = last.total_share, last.total_cost
             record_list.insert(0, last)
         else:
             logger.info("--------------(delete first)-------------")
-            tot_share, tot_cost = record_list[0].share, record_list[0].amount
             record_list[0].total_share = record_list[0].share
-            record_list[0].total_cost = record_list[0].amount
+            record_list[0].total_cost = float(record_list[0].amount) * -1
         db.session.delete(target)
         db.session.commit()
-        record_list.pop(0)
-        for i in range(len(record_list)):
-            tot_share = tot_share + record_list[i].share
-            tot_cost = tot_cost + (float(record_list[i].amount) * -1)
+        for i in range(1, len(record_list)):
+            tot_cost = float(record_list[i - 1].total_cost) + (float(record_list[i].amount) * -1)
+            tot_share = float(record_list[i - 1].total_share) + (float(record_list[i].share))
             record_list[i].total_share = tot_share
             record_list[i].total_cost = tot_cost
             db.session.commit()
     else:
+        logger.info("-------------------(delete last)------------------------")
         db.session.delete(target)
         db.session.commit()
 
@@ -758,25 +755,27 @@ def edit_transaction(target):
     record_list = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
                                                      FUND_TRANSACTION.confirm_date > target.confirm_date)).order_by(
                                                      FUND_TRANSACTION.confirm_date.asc()).all()
+    print([x.confirm_date for x in record_list])
     if len(record_list) > 0:
         last = FUND_TRANSACTION.query.filter(and_(FUND_TRANSACTION.wind_code_s == target.wind_code_s,
                                                   FUND_TRANSACTION.confirm_date < target.confirm_date)).order_by(
             FUND_TRANSACTION.confirm_date.desc()).first()
         if last is not None:
+
             logger.info("------------(edit middle)-----------")
-            target.total_share = last.total_share + target.share
-            target.total_cost = last.total_cost + target.amount
+            target.total_share = float(last.total_share) + float(target.share)
+            target.total_cost = float(last.total_cost) + (float(target.amount) * -1)
             record_list.insert(0, target)
-            tot_share, tot_cost = last.total_share, last.total_cost
+            print([x.confirm_date for x in record_list])
         else:
             logger.info("-------------(edit first)------------")
             target.total_share = target.share
-            target.total_cost = target.amount
-            tot_share, tot_cost = target.total_share, target.total_cost
+            target.total_cost = target.amount * -1
         db.session.commit()
-        for i in range(len(record_list)):
-            tot_share = tot_share + record_list[i].share
-            tot_cost = tot_cost + (float(record_list[i].amount))
+        print([x.confirm_date for x in record_list])
+        for i in range(1, len(record_list)):
+            tot_cost = float(record_list[i - 1].total_cost) + (float(record_list[i].amount) * -1)
+            tot_share = float(record_list[i - 1].total_share) + (float(record_list[i].share))
             record_list[i].total_share = tot_share
             record_list[i].total_cost = tot_cost
             db.session.commit()
