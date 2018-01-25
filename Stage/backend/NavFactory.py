@@ -232,6 +232,7 @@ class SpecialCal(object):
 
 
 def query_recent_tr(wind_code: str, confirm_date: str) -> list:
+    print(wind_code,confirm_date)
     tr_list = []
     tr = FUND_TRANSACTION.query.filter(
         and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date == confirm_date)).first()
@@ -240,7 +241,9 @@ def query_recent_tr(wind_code: str, confirm_date: str) -> list:
             and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).order_by(
             FUND_TRANSACTION.confirm_date.desc()).first()
     tr_list.append(tr)
-    tr_list = [i.as_dict() for i in tr_list]
+    tr_list = [i.as_dict() for i in tr_list if i is not None]
+    print(tr_list)
+
     return tr_list
 
 def query_range_tr(wind_code,start,end):
@@ -282,7 +285,7 @@ if __name__ == "__main__":
                 elif len(batch_acc) == 1:
                     start = batch_acc[0]
                     end = batch_acc[0]
-
+                print([i['nav_date'] for i in batch_acc])
                 for x in batch_acc:
                     tr = query_recent_tr(value['wind_code'],x['nav_date'])
                     print(x['nav_date'],tr)
