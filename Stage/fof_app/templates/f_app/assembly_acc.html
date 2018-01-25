@@ -299,7 +299,7 @@
                         $("#myModal").modal("hide");
                         $("#myModalLabel").text("新增");
                         clear();
-                    }else{
+                    }else if(data.acc == "add"){
                         var batch= data.result.batch;
                         var fund= data.result.fund;
                         var range= data.result.tr_range;
@@ -580,6 +580,16 @@
                             title: '添加成功',
                             text:  '',
                             type: 'success',
+                            styling: 'bootstrap3'
+                        });
+                    }else{
+                        $("#myModal").modal("hide");
+                        $("#myModalLabel").text("新增");
+                        clear();
+                        new PNotify({
+                            title: '该条净值不能添加',
+                            text:  '',
+                            type: 'warn',
                             styling: 'bootstrap3'
                         });
                     }
