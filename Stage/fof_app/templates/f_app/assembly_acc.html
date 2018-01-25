@@ -351,7 +351,7 @@
                                 if($.inArray(3+4*index,obj.last)!=-1){
                                     sendObj.push({
                                         "nav_date": obj["nav_date"+index],
-                                        "nav_acc": obj["nav_acc"+index],
+                                        "nav_acc": obj["nav"+index],
                                         "nav": obj["nav"+index],
                                         "wind_code":obj["wind_code"+index]
                                     })
@@ -490,6 +490,7 @@
                             $(this).css({"color":"#0353f1","fontWeight":800});
                             $(this).parent().next().next().next().html(Math.round((nav/navPre-1)*10000)/100);
                             sendObj[index].nav=$(this).val();
+                            sendObj[index].nav_acc=$(this).val();
                             if($.inArray(index,sendObjIndex)==-1){
                                 sendObjIndex.push(index);
                             }
