@@ -6,16 +6,6 @@
 table.dataTable tbody tr.selected {
     background-color: #c4e1ff;
 }
-table .desc:hover{
-    background: rgba(0,0,0,0.8) !important;
-    color:#fff;
-    position: absolute;
-    white-space: pre-line!important;
-    padding: 5px!important;
-    border-radius: 2px;
-    z-index: 9;
-    word-wrap: break-word;
-}
 .dropdown-menu span.glyphicon-ok:before{
     content: "";
 }
@@ -26,7 +16,7 @@ table .desc:hover{
   width:100%!important;
 }
 td {
-  min-width:52px;
+  min-width:70px;
 }
 tbody .my_class {
   background: #d9edf7;
@@ -276,7 +266,7 @@ tbody .my_class {
           {data:null,
             render:function(obj){
                 if(obj.description){
-                    return `<div class="desc" style="padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:120px;">${obj.description||''}</div>`;
+                    return `<div title=${obj.description||''} style="padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:120px;">${obj.description||''}</div>`;
                 }else{
                     return '';
                 }
