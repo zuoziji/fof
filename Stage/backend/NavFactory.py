@@ -241,8 +241,9 @@ def query_recent_tr(wind_code: str, confirm_date: str) -> list:
             and_(FUND_TRANSACTION.wind_code_s == wind_code, FUND_TRANSACTION.confirm_date < confirm_date)).order_by(
             FUND_TRANSACTION.confirm_date.desc()).first()
     tr_list.append(tr)
+    tr_list = [i.as_dict() for i in tr_list if i is not None]
     print(tr_list)
-    tr_list = [i.as_dict() for i in tr_list]
+
     return tr_list
 
 def query_range_tr(wind_code,start,end):
