@@ -78,7 +78,7 @@ tbody .my_class {
                                </optgroup>
 
                                 {% for i in fof_list %}
-                                    <optgroup label="{{ i.primary }}">
+                                    <optgroup label="{{ i.primary }}" code="{{ i.primary.wind_code }}">
                                         <option value="{{ i.primary }}" code="{{ i.primary.wind_code }}">{{ i.primary }}</option>
                                         {% for x in i.child %}
                                             <option value="{{ x.name }}" code={{ x.code }}>{{ x.name }}</option>
@@ -476,7 +476,7 @@ tbody .my_class {
         }
     });
 
-    var id,type;
+    var id,type,wind_code;
     //edit 
     $(".x_panel").on('click','.edit',function(){
         var checked=[];
@@ -562,10 +562,11 @@ tbody .my_class {
     $('.selectpicker').on('change',function (e) {
         var selectParent= $(this).find("option:selected").parents().attr("label");
         var selectItem= $(this).find("option:selected").attr("code");
+        wind_code= $(this).find("option:selected").parents().attr("code");
         $("#wind_code_s").val(selectItem);
         $("#fof_name").val(selectParent);
         $("#confirm_date").removeAttr("disabled");
-        sendAjax();
+        sendAjax(wind_code);
     })
     //change operation type || confirm_date ||  sec_name_s
     $('#operating_type').on('change',function (e) {
@@ -601,7 +602,8 @@ tbody .my_class {
                     request_date:$("#request_date").val(),
                     sec_name_s:$("#sec_name_s").val(),
                     share:$("#share").val(),
-                    wind_code_s:$("#wind_code_s").val()
+                    wind_code_s:$("#wind_code_s").val(),
+                    wind_code:wind_code
                 }),
                 success: function(resp) {
                     if(resp.status == "ok"){
