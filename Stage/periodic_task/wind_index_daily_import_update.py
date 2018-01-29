@@ -6,12 +6,12 @@ Created on Thu Apr  6 11:11:26 2017
 """
 
 from fh_tools.windy_utils_rest import WindRest, APIError
-from fh_tools.fh_utils import get_first, get_last, str_2_date, date_2_str
+from fh_tools.fh_utils import get_first, get_last, str_2_date, date_2_str, get_cache_file_path
 import pandas as pd
 from datetime import date, timedelta, datetime
 from sqlalchemy.types import String, Date
 from sqlalchemy.dialects.mysql import DOUBLE
-from config_fh import get_db_engine, WIND_REST_URL, get_db_session
+from config_fh import get_db_engine, WIND_REST_URL, get_db_session, ANALYSIS_CACHE_FILE_NAME
 import logging
 logger = logging.getLogger()
 ONE_DAY = timedelta(days=1)
@@ -197,6 +197,22 @@ def import_wind_index_info(wind_codes):
     logger.info('%d 条指数信息导入成功\n%s', info_df.shape[0], info_df)
 
 
+def export_index_daily(wind_code_list):
+    """
+    供王淳使用，每天收盘后导出最新的指数数据
+    :param wind_code_list: 
+    :return: 
+    """
+    engine = get_db_engine()
+    for wind_code in wind_code_list:
+        sql_str = """select trade_date 'DATETIME', OPEN, HIGH, LOW, CLOSE, VOLUME, 0 OI
+    from wind_index_daily where wind_code = %s order by trade_date"""
+        data_df = pd.read_sql(sql_str, engine, params=[wind_code])
+        file_path = get_cache_file_path(ANALYSIS_CACHE_FILE_NAME, "%s.csv" % wind_code)
+        data_df.to_csv(file_path, index=False)
+        logger.info("生成指数行情文件： %s 完成\n%s", wind_code, file_path)
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
 
@@ -212,6 +228,10 @@ if __name__ == '__main__':
     # 每日更新指数信息
     import_wind_index_daily()
     # fill_wind_index_daily_col()
+
+    # 每日生成指数导出文件给王淳
+    wind_code_list = ['HSI.HI', 'HSCEI.HI']
+    export_index_daily(wind_code_list)
 
     # file_path = r'd:\Downloads\CES120.xlsx'
     # wind_code, index_name = "CES120.CSI", "中华120"
