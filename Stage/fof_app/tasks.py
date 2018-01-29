@@ -45,7 +45,7 @@ daily_task_group = OrderedDict([
     ('stock daily', {'func': import_stock_daily, 'params': []}),
     ('stock daily wch', {'func': import_stock_daily_wch, 'params': []}),
     ('factor exposure', {'func': update_factors, 'params': []}),
-    # ('convertible bond daily', {'func': import_cb_daily, 'params': []}),
+    ('convertible bond daily', {'func': import_cb_daily, 'params': []}),
     ('futurn daily', {'func': import_wind_future_daily, 'params': []}),
     ('index daily', {'func': import_wind_index_daily, 'params': []}),
 ])
@@ -53,7 +53,7 @@ daily_task_group = OrderedDict([
 daily_night_task_group = OrderedDict([
     ('pub fund daily', {'func': import_pub_fund_daily, 'params': []}),
     ('stock info hk', {'func': import_wind_stock_info_hk, 'params': []}),
-    # ('stock daily hk', {'func': import_stock_daily_hk, 'params': []}),
+    ('stock daily hk', {'func': import_stock_daily_hk, 'params': []}),
 ])
 
 stress_testing_group = OrderedDict([
@@ -66,7 +66,7 @@ weekly_task_group = OrderedDict([
     ('pub fund info', {'func': import_pub_fund_info, 'params': []}),
     ('futurn info', {'func': import_wind_future_info, 'params': []}),
     ('fund info', {'func': update_wind_fund_info, 'params': [], }),
-    # ('convertible bond info', {'func': import_cb_info, 'params': []}),
+    ('convertible bond info', {'func': import_cb_info, 'params': []}),
     ('stock quertarly', {'func': import_stock_quertarly, 'params': []}),
     ('stock quertarly hk', {'func': import_wind_stock_info_hk, 'params': []}),
 ])
