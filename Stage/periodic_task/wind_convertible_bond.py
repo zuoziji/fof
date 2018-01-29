@@ -73,7 +73,7 @@ def import_cb_info(first_time=False):
         sub_list = wind_code_list[n:(n+seg_count)]
         # 尝试将 stock_code_list_sub 直接传递给wss，是否可行
         stock_info_df = w.wss(sub_list,
-                              "issue_announcement,trade_code,fullname,sec_name,clause_conversion_2_swapsharestartdate,clause_conversion_2_swapshareenddate,ipo_date,underlyingcode,underlyingname,clause_conversion_code,clause_interest_5,clause_interest_8,clause_interest_6,clause_interest_compensationinterest,issueamount,term",
+                              "issue_announcement,trade_code,fullname,sec_name,clause_conversion_2_swapsharestartdate,clause_conversion_2_swapshareenddate,ipo_date,underlyingcode,underlyingname,clause_conversion_code,clause_interest_5,clause_interest_8,clause_interest_6,clause_interest_compensationinterest,issueamount,term,redemption_beginning",
                               "unit=1")
         data_info_df_list.append(stock_info_df)
 
