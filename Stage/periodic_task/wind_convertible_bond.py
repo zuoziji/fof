@@ -2,9 +2,13 @@
 """
 Created on 2017/12/5
 @author: MG
+稍后需要通过wind或者ts补充一下可转债交易日期间 OHLCV
+另外，信息表里面需要补充“兑付日” redemption_beginning 数据 行情数据兑付日后就没有交易数据更新了。不必每日获取数据
+import tushare as ts
+ts.get_k_data('sz128011')
+
 """
 from datetime import date, datetime, timedelta
-
 import math
 import pandas as pd
 import numpy as np
@@ -96,10 +100,11 @@ def import_cb_info(first_time=False):
         'term': 'TERM',
         'underlying_code': 'UNDERLYINGCODE',
         'underlying_name': 'UNDERLYINGNAME',
+        'redemption_beginning': 'redemption_beginning'
     }
     name_list = list(sql_name_param_dic.keys())
     name_list_str = ', '.join(name_list)
-    param_list_str = ', '.join([':' + sql_name_param_dic[name] for name in name_list])
+    param_list_str = ', '.join([':' + sql_name_param_dic[name].upper() for name in name_list])
     sql_str = "REPLACE INTO wind_convertible_bond_info (%s) values (%s)" % (name_list_str, param_list_str)
     # sql_str = "insert INTO wind_stock_info (wind_code, trade_code, sec_name, ipo_date, delist_date, mkt, exch_city, exch_eng, prename) values (:WIND_CODE, :TRADE_CODE, :SEC_NAME, :IPO_DATE, :DELIST_DATE, :MKT, :EXCH_CITY, :EXCH_ENG, :PRENAME)"
     with get_db_session(engine) as session:
@@ -128,8 +133,14 @@ def import_cb_daily():
         trade_date_sorted_list = [t[0] for t in table.fetchall()]
         trade_date_sorted_list.sort()
         # 获取每只股票上市日期、退市日期
-        table = session.execute('SELECT wind_code, ifnull(ipo_date, issue_announcement_date), end_date FROM wind_convertible_bond_info')
-        stock_date_dic = {wind_code: (str_2_date(ipo_date), end_date if end_date is None or end_date > UN_AVAILABLE_DATE else None) for
+        sql_str = """SELECT wind_code, ifnull(ipo_date, issue_announcement_date) date_from, 
+if(end_date is not null and redemption_beginning is not null, 
+  if(end_date<redemption_beginning,end_date,redemption_beginning),
+  ifnull(end_date, redemption_beginning)) date_to
+FROM wind_convertible_bond_info
+        """
+        table = session.execute(sql_str)
+        stock_date_dic = {wind_code: (str_2_date(ipo_date), str_2_date(end_date) if end_date is None or str_2_date(end_date) > UN_AVAILABLE_DATE else None) for
                           wind_code, ipo_date, end_date in table.fetchall()}
     today_t_1 = date.today() - ONE_DAY
     data_df_list = []
@@ -151,7 +162,11 @@ def import_cb_daily():
         'underlyingpb': 'underlying_pb',
         'diluterate': 'dilute_rate',
         'ldiluterate': 'ldilute_rate',
+        'open': 'open',
+        'high': 'high',
+        'low': 'low',
         'close': 'close',
+        'volume': 'volume',
     }
     wind_indictor_str = ",".join(field_col_name_dic.keys())
     upper_col_2_name_dic = {name.upper(): val for name, val in field_col_name_dic.items()}
@@ -205,8 +220,166 @@ def import_cb_daily():
             data_df_all.to_sql('wind_convertible_bond_daily', engine, if_exists='append')
             logging.info("更新 wind_convertible_bond_daily 结束 %d 条信息被更新", data_df_all.shape[0])
 
+
+def fill_col_by_wss(col_name_dic, table_name):
+    """补充历史col数据"""
+
+    engine = get_db_engine()
+
+    # 股票列表
+    col_name_list = [col_name.lower() for col_name in col_name_dic.keys()]
+    # 获取每只股票ipo 日期 及 最小的交易日前一天
+    sql_str = """select wind_code from %s""" % table_name
+    w = WindRest(WIND_REST_URL)
+    with get_db_session(engine) as session:
+        table = session.execute(sql_str)
+        wind_code_set = {content[0] for content in table.fetchall()}
+    data_count = len(wind_code_set)
+    data_df_list = []
+    try:
+        # for n, (wind_code, (date_from, date_to)) in enumerate(stock_trade_date_range_dic.items()):
+        for data_num, wind_code in enumerate(wind_code_set, start=1):
+            if wind_code not in wind_code_set:
+                continue
+            # 获取股票量价等行情数据
+            wind_indictor_str = col_name_list
+            data_df = w.wss(wind_code, wind_indictor_str)
+            if data_df is None:
+                logger.warning('%d) %s has no data during %s %s', data_num, wind_code)
+                continue
+            logger.debug('%d/%d) 获取 %s', data_num, data_count, wind_code)
+            # data_df['wind_code'] = wind_code
+            data_df_list.append(data_df)
+            # 仅供调试使用
+            # if data_num > 10:
+            #     break
+    finally:
+        # 导入数据库
+        if len(data_df_list) > 0:
+            data_df_all = pd.concat(data_df_list)
+            data_df_all.index.rename('wind_code', inplace=True)
+            data_df_all.reset_index(inplace=True)
+            # 只有全部列为空的项才需要剔除
+            is_na_s = None
+            for col_name in col_name_dic.keys():
+                col_name = col_name.upper()
+                if is_na_s is None:
+                    is_na_s = data_df_all[col_name].isna()
+                else:
+                    is_na_s = is_na_s & data_df_all[col_name].isna()
+            data_df_not_null = data_df_all[~is_na_s]
+            data_df_not_null.fillna('null', inplace=True)
+            data_dic_list = data_df_not_null.to_dict(orient='records')
+            sql_str = "update %s set " % table_name + \
+                      ",".join(["%s=:%s" % (db_col_name, col_name.upper()) for col_name, db_col_name in col_name_dic.items()]) +\
+                      " where wind_code=:wind_code"
+            with get_db_session(engine) as session:
+                table = session.execute(sql_str, params=data_dic_list)
+            logger.info('%d data updated', data_df_not_null.shape[0])
+        else:
+            logger.warning('no data for update')
+
+
+def fill_col_by_wsd(col_name_dic: dict, table_name, top_n=None):
+    """补充历史col数据"""
+
+    # 股票列表
+
+    # db_col_name_list = [col_name.lower() for col_name in col_name_dic.values()]
+    col_name_list = [col_name.lower() for col_name in col_name_dic.keys()]
+    # 获取每只股票ipo 日期 及 最小的交易日前一天
+    #     sql_str = """select si.wind_code, td_from, td_to
+    # from wind_stock_info si,
+    # (select wind_code, min(trade_date) td_from, max(trade_date) td_to from wind_stock_daily where ev2_to_ebitda is null group by wind_code) sd
+    # where si.wind_code = sd.wind_code"""
+    where_sub_str = ' and '.join([col_name + ' is null' for col_name in col_name_dic.values()])
+    sql_str = """select wsd.wind_code, min_trade_date, max_trade_date
+    from
+    (
+    select wind_code, min(trade_date) min_trade_date, max(trade_date) max_trade_date
+    from wind_convertible_bond_daily
+    group by wind_code
+    ) wsd
+    INNER JOIN
+    (
+    select wind_code
+    from """ + table_name + """ where """ + where_sub_str + """
+    group by wind_code
+    ) wsd_not_null
+    on wsd.wind_code = wsd_not_null.wind_code"""
+    w = WindRest(WIND_REST_URL)
+    engine = get_db_engine()
+    with get_db_session(engine) as session:
+        table = session.execute(sql_str)
+        stock_trade_date_range_dic = {content[0]: (content[1], content[2]) for content in table.fetchall()}
+    data_df_list = []
+    data_count = len(stock_trade_date_range_dic)
+    try:
+        # for n, (wind_code, (date_from, date_to)) in enumerate(stock_trade_date_range_dic.items()):
+        for data_num, (wind_code, (date_from, date_to)) in enumerate(stock_trade_date_range_dic.items(), start=1):
+            if top_n is not None and data_num > top_n:
+                break
+            # 获取股票量价等行情数据
+            wind_indictor_str = col_name_list
+            data_df = w.wsd(wind_code, wind_indictor_str, date_from, date_to)
+            if data_df is None:
+                logger.warning('%d/%d) %s has no data during %s %s',
+                               data_num, data_count, wind_code, date_from, date_to)
+                continue
+            logger.info('%d/%d) %d data of %s between %s and %s',
+                        data_num, data_count, data_df.shape[0], wind_code, date_from, date_to)
+            data_df['wind_code'] = wind_code
+            data_df_list.append(data_df)
+            # 仅供调试使用
+            # if data_num >= 10:
+            #     break
+    finally:
+        # 导入数据库
+        if len(data_df_list) > 0:
+            data_df_all = pd.concat(data_df_list)
+            data_df_all.index.rename('trade_date', inplace=True)
+            data_df_all.reset_index(inplace=True)
+            # 只有全部列为空的项才需要剔除
+            is_na_s = None
+            for col_name in col_name_dic.keys():
+                col_name = col_name.upper()
+                if is_na_s is None:
+                    is_na_s = data_df_all[col_name].isna()
+                else:
+                    is_na_s = is_na_s & data_df_all[col_name].isna()
+            data_df_not_null = data_df_all[~is_na_s]
+            data_df_not_null.fillna(0, inplace=True)
+            if data_df_not_null.shape[0] > 0:
+                data_dic_list = data_df_not_null.to_dict(orient='records')
+                sql_str = "update %s set " % table_name + \
+                          ",".join(
+                              ["%s=:%s" % (db_col_name, col_name.upper()) for col_name, db_col_name in col_name_dic.items()]) + \
+                          " where wind_code=:wind_code and trade_date=:trade_date"
+                with get_db_session(engine) as session:
+                    session.execute(sql_str, params=data_dic_list)
+            logger.info('%d data updated on %s', data_df_not_null.shape[0], table_name)
+        else:
+            logger.warning('no data for updating on %s', table_name)
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s:%(funcName)s] %(message)s')
 
     # import_cb_info()
     import_cb_daily()
+
+    # 更新 wind_convertible_bond_info 信息
+    # col_name_dic = {
+    #     'redemption_beginning': 'redemption_beginning',
+    # }
+    # table_name = 'wind_convertible_bond_info'
+    # fill_col_by_wss(col_name_dic, table_name)
+
+    # 更新 wind_convertible_bond_daily
+    # col_name_dic = {
+    #     'open': 'open',
+    #     'high': 'high',
+    #     'low': 'low',
+    #     'volume': 'volume',
+    # }
+    # table_name = 'wind_convertible_bond_daily'
+    # fill_col_by_wsd(col_name_dic, table_name)
