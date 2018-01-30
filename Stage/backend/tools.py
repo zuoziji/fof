@@ -269,14 +269,17 @@ def query_fund_cap(wind_code, query_day):
         tr['f_code'] = primary.wind_code
         tr['f_name'] = primary.sec_name
         tr['cap'] = i['total_share'] * nav.nav
+        tr['total_share'] = i['total_share']
+        tr['nav'] = nav.nav
         tr_list.append(tr)
     cap_dict = {}
     for x in tr_list:
         if x['f_code'] in cap_dict:
-            cap_dict[x['f_code']] = cap_dict[x['f_code']] + x['cap']
+            cap_dict[x['f_code']][0] = cap_dict[x['f_code']][0] + x['cap']
+            cap_dict[x['f_code']][1] = cap_dict[x['f_code']][1] + x['total_share']
         else:
-            cap_dict[x['f_code']] = 0
-    cap_list = [{"code": k, "cap": v, "sec_name": code_get_name(k)} for k, v in cap_dict.items()]
+            cap_dict[x['f_code']] = [0, 0, x['f_name'], x['nav']]
+    cap_list = [{"code": k, "cap": v[0], "total_share":v[1], "name": v[2], "nav":v[3]} for k, v in cap_dict.items()]
     return cap_list
 
 
