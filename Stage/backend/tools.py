@@ -6,7 +6,7 @@
 """
 from functools import wraps
 from fof_app.models import FoFModel, FUND_ESSENTIAL, global_user_cache, db, FOF_FUND_PCT, FUND_STG_PCT, code_get_name, \
-    Fund_Core_Info, FUND_NAV
+    Fund_Core_Info, FUND_NAV, FUND_TRANSACTION
 from flask import request, current_app, redirect, flash
 from flask_login import current_user
 from datetime import date
@@ -14,10 +14,12 @@ import logging, json
 from config_fh import get_redis
 from fh_tools.fh_utils import return_risk_analysis, drawback_analysis
 from analysis.factor_analysis import temp_load_method
-from sqlalchemy import and_
+from sqlalchemy import and_, text
 from pandas import DataFrame
 import pandas as pd
-import numpy as  np
+import numpy as np
+from random import randrange
+from datetime import timedelta
 
 logger = logging.getLogger()
 
@@ -237,6 +239,53 @@ def calc_periods(wind_code):
     else:
         return None, None, None
 
+def random_date(start, end):
+    """
+    This function will return a random datetime between two datetime
+    objects.
+    """
+    delta = end - start
+    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+    random_second = randrange(int_delta)
+    gen_date = start + timedelta(seconds=random_second)
+    return gen_date.strftime('%Y-%m-%d')
+
+
+def query_fund_cap(wind_code, query_day):
+    sql = text("""
+            select * from fund_transaction ft inner join (select max(id) ft_id from fund_transaction ft inner join(
+            select wind_code_s, max(confirm_date) confirm_date_min from fund_transaction ft 
+            where wind_code= :wind_code and confirm_date<= :query_day 
+            group by wind_code_s) fg on ft.wind_code_s = fg.wind_code_s and ft.confirm_date = fg.confirm_date_min 
+            group by ft.wind_code_s ) fg on ft.id = fg.ft_id;""")
+    result = db.session.execute(sql, {"wind_code": wind_code, "query_day": query_day})
+    tr_list = []
+    for i in result:
+        tr = dict(i)
+        batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=i['wind_code_s']).first()
+        primary = FoFModel.query.filter_by(wind_code=batch.wind_code).first()
+        nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == primary.wind_code, FUND_NAV.nav_date <= query_day))\
+            .order_by(FUND_NAV.nav_date.desc()).first()
+        tr['f_code'] = primary.wind_code
+        tr['f_name'] = primary.sec_name
+        tr['cap'] = i['total_share'] * nav.nav
+        tr_list.append(tr)
+    cap_dict = {}
+    for x in tr_list:
+        if x['f_code'] in cap_dict:
+            cap_dict[x['f_code']] = cap_dict[x['f_code']] + x['cap']
+        else:
+            cap_dict[x['f_code']] = 0
+    cap_list = [{"code": k, "cap": v, "sec_name": code_get_name(k)} for k, v in cap_dict.items()]
+    return cap_list
+
 
 if __name__ == "__main__":
-    print(check_code_order('XT1605537.XT'))
+    import os
+    from fof_app import create_app
+    env = os.environ.get('APP_ENV', 'dev')
+    flask_app = create_app('fof_app.config.%sConfig' % env.capitalize())
+    with flask_app.test_request_context():
+        db.init_app(flask_app)
+        query_fund_cap("FHF-101601","2017-12-20")
+

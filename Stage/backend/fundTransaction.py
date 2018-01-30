@@ -79,10 +79,10 @@ class Transaction(object):
             errors.append("赎回基金净值不能为空")
         if d['confirm_date'] is None:
             errors.append("确认日期不能为空")
-        if d['share'] is None:
-            errors.append("份额不能为空")
-        if d['amount'] is None:
-            errors.append("金额不能为空")
+        # if d['share'] is None:
+        #     errors.append("份额不能为空")
+        # if d['amount'] is None:
+        #     errors.append("金额不能为空")
         return errors
 
     def formatData(self, d):
@@ -101,10 +101,21 @@ class Transaction(object):
         write data to db
         :return:
         """
-        for k, v in df_dict.items():
-            record = FUND_TRANSACTION(**v)
-            new_transaction(record, import_tag=True)
-            #print(self.formatData(v))
+        error = []
+        for k,v in df_dict.items():
+            e = self.checkdfrole(v)
+            if len(e) > 0:
+                print(k)
+                print(v['wind_code_s'],v['sec_name_s'])
+                error.extend(e)
+        if len(error) == 0:
+            for k, v in df_dict.items():
+                print(v)
+                tr = FUND_TRANSACTION(**v)
+                new_transaction(tr)
+        else:
+            for i in error:
+                print(i)
 
 
 if __name__ == "__main__":

@@ -288,6 +288,8 @@ class FoFModel(db.Model):
     fund_stg = db.relationship('FUND_STG_PCT', backref='fund_info', lazy='dynamic')
     fund_event = db.relationship('FUND_EVENT', backref='fund_info', lazy='dynamic')
     core_info = db.relationship('Fund_Core_Info', backref='fund_info', lazy='dynamic')
+    fund_transaction = db.relationship('FUND_TRANSACTION', backref='fund_info', lazy='dynamic')
+
 
     def __repr__(self):
         return self.wind_code
@@ -608,7 +610,6 @@ class FUND_NAV_CALC(db.Model):
     def to_json(self):
         d = {}
         for k, v in self.__dict__.items():
-            print(type(v), v)
             if v is None:
                 d[k] = ''
             elif isinstance(v, float):
@@ -637,6 +638,8 @@ class FUND_TRANSACTION(db.Model):
     description = db.Column(db.String(100))
     total_share = db.Column(MyReal)
     total_cost = db.Column(MyReal)
+    wind_code = db.Column(db.String(20), db.ForeignKey('fund_info.wind_code'))
+
 
     def __str__(self):
         return self.wind_code_s
@@ -706,7 +709,7 @@ def new_transaction(target):
             logger.info("-----------------------last-----------------")
             last_record = record[-1]
             target.total_share = float(target.share) + last_record.total_share
-            target.total_cost = float(last_record.total_cost) + (float(target.amount) * -1)
+            target.total_cost = float(last_record.total_cost) - (float(target.amount))
             db.session.add(target)
             db.session.commit()
 

@@ -267,3 +267,11 @@ class Invest_corp_file_admin(ModelView):
     column_list = ('file_id','mgrcomp_id','file_type','upload_user_id','upload_datetime','file_name')
 
 
+class TransactionAdmin(ModelView):
+    column_display_pk = True
+    column_searchable_list = ('wind_code',)
+    form_ajax_refs = {
+        'fund_info': {
+            'fields': (FoFModel.wind_code, FoFModel.sec_name, FoFModel.alias)
+        }
+    }

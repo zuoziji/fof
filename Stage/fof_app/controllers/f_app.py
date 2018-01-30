@@ -25,7 +25,7 @@ from analysis.portfolio_optim_fund import calc_portfolio_optim_fund as c4
 from analysis.portfolio_optim_strategy import calc_portfolio_optim_fund
 from backend import upload_file, data_handler, fund_nav_import_csv
 from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, \
-    get_stress_data, get_stg, child_charts, get_core_info, calc_periods
+    get_stress_data, get_stg, child_charts, get_core_info, calc_periods,query_fund_cap
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, global_user_cache, PCT_SCHEME, INFO_SCHEME, \
@@ -601,6 +601,7 @@ def maintain_acc():
                 fund = FoFModel.query.filter_by(wind_code=batch.wind_code).first()
             fund_list.add(fund)
     fund_list = [i.to_json() for i in fund_list]
+    print(primary_list)
     return render_template('maintain_acc.html', fof_list=fof_list, fund_list=fund_list, primary_list=primary_list)
 
 
@@ -817,6 +818,7 @@ def upload_acc(wind_code):
 def asset_details(wind_code):
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
+
         return render_template('asset_details.html', fof_list=fof_list, wind_code=wind_code)
 
 
@@ -842,6 +844,7 @@ def show_batch_asset(wind_code):
                     batch_dict = b.as_dict()
                     batch_dict['name'] = c['name']
                     batch_dict['nav_date'] = batch_dict['nav_date'].strftime('%Y-%m-%d')
+                    batch_dict['cap_list'] = query_fund_cap(wind_code, batch_dict['nav_date'])
                     batch_data.append(batch_dict)
         return jsonify(status='ok', data=batch_data)
     else:
@@ -868,6 +871,7 @@ def show_primary_asset(wind_code):
             primary_fund = list(
                 map(lambda x: {k: v if k != 'nav_date' else v.strftime('%Y-%m-%d') for k, v in x.items()},
                     primary_fund))
+
             return jsonify(status='ok', data=primary_fund)
         else:
             return jsonify(status='error')
@@ -1960,6 +1964,8 @@ def edit_batch(wind_code_s):
         batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=wind_code_s).first()
         for k, v in data.items():
             if k == 'date_end' and len(v) == 0:
+                v = None
+            if k == 'closed_period'and len(v) == 0:
                 v = None
             setattr(batch, k, v)
         db.session.commit()
