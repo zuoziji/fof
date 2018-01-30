@@ -844,7 +844,6 @@ def show_batch_asset(wind_code):
                     batch_dict = b.as_dict()
                     batch_dict['name'] = c['name']
                     batch_dict['nav_date'] = batch_dict['nav_date'].strftime('%Y-%m-%d')
-                    batch_dict['cap_list'] = query_fund_cap(wind_code, batch_dict['nav_date'])
                     batch_data.append(batch_dict)
         return jsonify(status='ok', data=batch_data)
     else:
@@ -871,7 +870,8 @@ def show_primary_asset(wind_code):
             primary_fund = list(
                 map(lambda x: {k: v if k != 'nav_date' else v.strftime('%Y-%m-%d') for k, v in x.items()},
                     primary_fund))
-
+            for i in primary_fund:
+                i['cap_list'] = query_fund_cap(wind_code, i['nav_date'])
             return jsonify(status='ok', data=primary_fund)
         else:
             return jsonify(status='error')
