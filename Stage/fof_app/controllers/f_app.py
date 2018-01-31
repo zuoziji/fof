@@ -25,7 +25,7 @@ from analysis.portfolio_optim_fund import calc_portfolio_optim_fund as c4
 from analysis.portfolio_optim_strategy import calc_portfolio_optim_fund
 from backend import upload_file, data_handler, fund_nav_import_csv
 from backend.tools import fund_owner, chunks, get_Value, range_years, check_code_order, \
-    get_stress_data, get_stg, child_charts, get_core_info, calc_periods,query_fund_cap
+    get_stress_data, get_stg, child_charts, get_core_info, calc_periods, query_fund_cap
 from config_fh import get_redis, STRATEGY_EN_CN_DIC, JSON_DB, get_db_engine
 from fof_app.models import db, FoFModel, FUND_STG_PCT, FOF_FUND_PCT, FileType, FundFile, FUND_NAV, \
     strategy_index_val, FUND_EVENT, FUND_ESSENTIAL, code_get_name, global_user_cache, PCT_SCHEME, INFO_SCHEME, \
@@ -42,7 +42,7 @@ from config_fh import get_db_session
 from backend.market_report import gen_report
 from backend.fund_nav_import_csv import check_fund_nav_multi, import_fund_nav_multi
 from backend.fundTransaction import Transaction
-from backend.NavFactory import CalcBase, query_batch, SpecialCal, query_recent_tr,query_range_tr
+from backend.NavFactory import CalcBase, query_batch, SpecialCal, query_recent_tr, query_range_tr
 import pandas as pd
 
 logger = logging.getLogger()
@@ -709,7 +709,7 @@ def add_acc():
                     elif len(batch_acc) == 1:
                         start = batch_acc[0]
                         end = batch_acc[0]
-                    tr_range = query_range_tr(return_data['wind_code'],start['nav_date'],end['nav_date'])
+                    tr_range = query_range_tr(return_data['wind_code'], start['nav_date'], end['nav_date'])
                     b_list = []
                     for b in batch_acc:
                         tr = query_recent_tr(return_data['wind_code'], b['nav_date'])
@@ -858,13 +858,15 @@ def show_primary_asset(wind_code):
     :return: 所有的资产信息 select * from fund_nav_calc where wind_code = wind_code;
     '''
     next_nav_date_str = "select func_get_next_nav_date(:wind_code)"
-    with get_db_session(get_db_engine()) as session:
-        sql_return = session.execute(next_nav_date_str, {'wind_code': wind_code})
+    with get_db_session(get_db_engine()) as s:
+        sql_return = s.execute(next_nav_date_str, {'wind_code': wind_code})
         tag_date = sql_return.first()[0]
         if tag_date is not None:
             next_date_nav = calc_fof_nav(wind_code, tag_date)
             next_date_nav['db'] = False
-            primary_fund = FUND_NAV_CALC.query.filter_by(wind_code=wind_code).all()
+            today = datetime.datetime.today().strftime("%Y-%d-%m")
+            primary_fund = FUND_NAV_CALC.query.filter(and_(FUND_NAV_CALC.wind_code == wind_code,
+                                                           FUND_NAV_CALC.nav_date <= today)).order_by(FUND_NAV_CALC.nav_date.desc()).limit(10)
             primary_fund = [dict(i.as_dict(), **{"db": True}) for i in primary_fund]
             primary_fund.append(next_date_nav)
             primary_fund = list(
@@ -877,7 +879,24 @@ def show_primary_asset(wind_code):
             return jsonify(status='error')
 
 
+@f_app_blueprint.route('/delete_asset', methods=['GET', 'POST'])
+@login_required
+def delete_asset():
+    if request.method == 'POST':
+        wind_code = request.json['wind_code']
+        nav_date = request.json['date']
+        asset_record = FUND_NAV_CALC.query.filter(and_(FUND_NAV_CALC.wind_code == wind_code,
+                                              FUND_NAV_CALC.nav_date == nav_date)).first()
+        if asset_record is not None:
+            db.session.delete(asset_record)
+            db.session.commit()
+            return jsonify(status="ok", message="删除成功")
+        else:
+            return jsonify(status="error", message="删除失败,没有这条记录")
+
+
 @f_app_blueprint.route('/confirm_asset/<string:wind_code>', methods=['GET', 'POST'])
+@login_required
 def confirm_asset(wind_code):
     """
     资产表确认按钮提交的数据,获取前端提交的数据中的日期,首先在fund info表中查询基金代码和成立时间 True 新基金;
@@ -1965,7 +1984,7 @@ def edit_batch(wind_code_s):
         for k, v in data.items():
             if k == 'date_end' and len(v) == 0:
                 v = None
-            if k == 'closed_period'and len(v) == 0:
+            if k == 'closed_period' and len(v) == 0:
                 v = None
             setattr(batch, k, v)
         db.session.commit()
