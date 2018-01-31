@@ -94,6 +94,7 @@ class Transaction(object):
             d['share'] = float(d['share']) * -1
         if d['operating_type'] == "申购":
             d['amount'] = float(d['amount']) * -1
+
         return d
 
     def importDate(self, df_dict):
@@ -110,6 +111,12 @@ class Transaction(object):
                 error.extend(e)
         if len(error) == 0:
             for k, v in df_dict.items():
+                if v['fof_name'] == '复华鑫隆FOF私募证券投资基金':
+                    v['wind_code'] = "FHF-101601"
+                if v['fof_name'] == "鑫隆稳进FOF私募证券投资基金(契约型)":
+                    v['wind_code'] = "FHF-101701"
+                if v['fof_name'] == "东方恒泰量化对冲":
+                    v['wind_code'] = "XT1619361.XT"
                 print(v)
                 tr = FUND_TRANSACTION(**v)
                 new_transaction(tr)

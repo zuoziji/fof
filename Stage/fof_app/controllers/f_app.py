@@ -864,7 +864,9 @@ def show_primary_asset(wind_code):
         if tag_date is not None:
             next_date_nav = calc_fof_nav(wind_code, tag_date)
             next_date_nav['db'] = False
-            primary_fund = FUND_NAV_CALC.query.filter_by(wind_code=wind_code).all()
+            today = datetime.datetime.today().strftime("%Y-%d-%m")
+            primary_fund = FUND_NAV_CALC.query.filter(and_(FUND_NAV_CALC.wind_code == wind_code,
+                                                           FUND_NAV_CALC.nav_date <= today)).order_by(FUND_NAV_CALC.nav_date.desc()).limit(10)
             primary_fund = [dict(i.as_dict(), **{"db": True}) for i in primary_fund]
             primary_fund.append(next_date_nav)
             primary_fund = list(
