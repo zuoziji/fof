@@ -253,11 +253,19 @@ def random_date(start, end):
 
 def query_fund_cap(wind_code, query_day):
     sql = text("""
-            select * from fund_transaction ft inner join (select max(id) ft_id from fund_transaction ft inner join(
-            select wind_code_s, max(confirm_date) confirm_date_min from fund_transaction ft 
-            where wind_code= :wind_code and confirm_date<= :query_day 
-            group by wind_code_s) fg on ft.wind_code_s = fg.wind_code_s and ft.confirm_date = fg.confirm_date_min 
-            group by ft.wind_code_s ) fg on ft.id = fg.ft_id;""")
+            select * from fund_transaction ft 
+            inner join (
+              select max(id) ft_id from fund_transaction ft 
+              inner join(
+                select wind_code_s, max(confirm_date) confirm_date_min 
+                from fund_transaction ft 
+                where wind_code= :wind_code and confirm_date<= :query_day 
+                group by wind_code_s) fg 
+              on ft.wind_code_s = fg.wind_code_s and ft.confirm_date = fg.confirm_date_min 
+            group by ft.wind_code_s ) fg 
+            on ft.id = fg.ft_id
+            where ft.total_share > 0
+            """)
     result = db.session.execute(sql, {"wind_code": wind_code, "query_day": query_day})
     tr_list = []
     for i in result:
