@@ -3,7 +3,32 @@
 
 {% block css %}
     <link rel="stylesheet" href="../../static/vendors/sweetalert2/sweetalert2.css">
-    <link href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../static/vendors/bootstrapvalidator-0.5.3/dist/css/bootstrapValidator.css" />
+    <link rel="stylesheet" href="../../static/css/dataTables.bootstrap.css">
+
+    <style>
+      .DTFC_LeftBodyLiner{
+          width:100%!important;
+      }
+      .DTFC_LeftBodyLiner{
+          top:2px!important;
+        }
+      .DTFC_RightBodyWrapper{
+        }
+        .DTFC_RightBodyLiner{
+          top:-1px!important;
+          overflow: hidden!important;
+        }
+      .DTFC_LeftBodyLiner table.dataTable tbody tr,.DTFC_RightBodyLiner table.dataTable tbody tr {
+          background: #f1f1f1!important;
+      }
+      th,td{
+          min-width: 70px;
+      }
+      .asset{
+        margin-top:20px;
+      }
+    </style>
 {% endblock %}
 
 {% block manager %}
@@ -16,42 +41,23 @@
     <h2>{{ wind_code }}</h2>
 </div>
 <div>
-    <table class="table table-bordered center-all" id="batch" width="100%">
+  <table class="table table-bordered center-all" id="batch" width="100%">
 
-        <thead>
-        <tr>
-            <th>批次</th>
-            <th>日期</th>
-            <th>单位净值</th>
-            <th>份额</th>
-            <th>市值</th>
-            <th>操作</th>
-        </tr>
-        </thead>
+    <thead>
+      <tr>
+        <th>批次</th>
+        <th>日期</th>
+        <th>单位净值</th>
+        <th>份额</th>
+        <th>市值</th>
+        <th>操作</th>
+      </tr>
+    </thead>
 
-    </table>
+  </table>
 </div>
 
-<div>
-    <table class="table table-bordered center-all" id="asset" width="100%">
-        <thead>
-        <tr>
-            <th>日期</th>
-            <th>资产总值</th>
-            <th>资产净值</th>
-            <th>单位净值</th>
-            <th>份额</th>
-            <th>市值</th>
-            <th>银行余额</th>
-            <th>行政管理费</th>
-            <th>资金保管费</th>
-            <th>管理费</th>
-            <th>托管费</th>
-            <th>其他</th>
-            <th></th>
-        </tr>
-        </thead>
-    </table>
+<div class="asset">
 </div>
 
 
@@ -59,6 +65,7 @@
 {% endblock %}
 
 {% block script %}
+<script src="../../static/js/dataTables.fixedColumns.min.js"></script>
 <script src="../../static/vendors/moment/moment.js"></script>
 <script src="../../static/js/handlebars-v4.0.10.js"></script>
 <script src="../../static/vendors/sweetalert2/sweetalert2.js"></script>
@@ -75,303 +82,391 @@
 <script>
 
 
- $.LoadingOverlay("show",{
+  $.LoadingOverlay("show",{
     image: "",
     fontawesome: "fa fa-spinner fa-spin",
     maxSize: "200px",
     minSize: "20px",
- });
-   var table;
-    var editFlag = false;
-    $(function () {
-        var tpl = $("#tpl").html();
-        var template = Handlebars.compile(tpl);
-        table = $('#batch').DataTable({
-            ajax: {
-                url: "/f_app/show_batch_asset/"+{{ wind_code|tojson |safe }},
-                "dataSrc":function (json) {
-                    for(var i=0; i<json.data.length;i++){
-                      for(var key in json.data[i]){
-                        if(key=="market_value"){
-                          json.data[i][key]=Math.round(json.data[i][key]* 100) / 100;
-                        }else if(key=="nav"){
-                          json.data[i][key]=Math.round(json.data[i][key]* 10000) / 10000;
-                        }
-                      }
-                    }
-                    $.LoadingOverlay("hide");
-                    return json.data;
-                }
-
-            },
-            "order": [[1, 'desc']],
-            "serverSide": false,
-            "columns": [
-            {"data": "name"},
-            {'data': "nav_date"},
-            {"data": "nav"},
-            {"data": "share"},
-            {"data": "market_value"},
-            {"data":null}
-            ],
-            "columnDefs": [
-              {
-                  "searchable": false, "orderable": false, "targets": [0,1,2,3,4]
-
-              },
-              { "visible": false, "targets": 1 },
-
-              {
-                  "targets": 5,
-                  "render": function (a, b, c, d) {
-                      var context =
-                      {
-                          func: [
-                          {"name": "edit", "fn": "edit(\'" + c.nav_date + "\',\'" + c.nav_acc + "\',\'" + c.nav + "\',\'" + c.pct + "\',\'" +  "\')", "type": "primary"},
-                          {"name": "remove", "fn": "del(\'" + {{ wind_code |tojson|safe }} + "\',\'" + c.nav_date + "\')", "type": "danger"}
-                          ]
-                      };
-                      var html = template(context);
-                      return html;
-                  }
+  });
+  var table;
+  var editFlag = false;
+  $(function () {
+    var tpl = $("#tpl").html();
+    var template = Handlebars.compile(tpl);
+    table = $('#batch').DataTable({
+      ajax: {
+        url: "/f_app/show_batch_asset/"+{{ wind_code|tojson |safe }},
+        "dataSrc":function (json) {
+          for(var i=0; i<json.data.length;i++){
+            for(var key in json.data[i]){
+              if(key=="market_value"){
+                json.data[i][key]=Math.round(json.data[i][key]* 100) / 100;
+              }else if(key=="nav"){
+                json.data[i][key]=Math.round(json.data[i][key]* 10000) / 10000;
               }
-            ],
-            "language": {
-                "lengthMenu": "每页 _MENU_ 条记录",
-                "zeroRecords": "没有找到记录",
-                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
-                "infoEmpty": "无记录",
-                "search": "搜索：",
-                "infoFiltered": "(从 _MAX_ 条记录过滤)",
-                "paginate": {
-                    "previous": "上一页",
-                    "next": "下一页"
-                }
-            },
-            "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
-            "t" +
-            "<'row'<'col-xs-6'i><'col-xs-6'p>>",
-
-            "drawCallback": function ( settings ) {
-            var api = this.api();
-            var rows = api.rows( {page:'current'} ).nodes();
-            var last=null;
-            api.column(1, {page:'current'} ).data().each( function ( group, i ) {
-                if ( last !== group ) {
-                    $(rows).eq( i ).before(
-                        '<tr class="group danger"><td colspan="5">'+group+'</td></tr>'
-                    );
-                    last = group;
-                }
-            } );
+            }
+          }
+          $.LoadingOverlay("hide");
+          return json.data;
         }
+
+      },
+      "order": [[1, 'asc']],
+      "serverSide": false,
+      "columns": [
+        {"data": "name"},
+        {'data': "nav_date"},
+        {"data": "nav"},
+        {"data": "share"},
+        {"data": "market_value"},
+        {"data":null}
+      ],
+      "columnDefs": [
+        {
+          "searchable": false, "orderable": false, "targets": [0,1,2,3,4]
+        },
+        { "visible": false, "targets": 1 },
+        {
+          "targets": 5,
+          "render": function (a, b, c, d) {
+            var context =
+            {
+              func: [
+                {"name": "edit", "fn": "edit(\'" + c.nav_date + "\',\'" + c.nav_acc + "\',\'" + c.nav + "\',\'" + c.pct + "\',\'" +  "\')", "type": "primary"},
+                {"name": "remove", "fn": "del(\'" + {{ wind_code |tojson|safe }} + "\',\'" + c.nav_date + "\')", "type": "danger"}
+              ]
+            };
+            var html = template(context);
+            return html;
+          }
+        }
+      ],
+      "language": {
+        "lengthMenu": "每页 _MENU_ 条记录",
+        "zeroRecords": "没有找到记录",
+        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+        "infoEmpty": "无记录",
+        "search": "搜索：",
+        "infoFiltered": "(从 _MAX_ 条记录过滤)",
+        "paginate": {
+            "previous": "上一页",
+            "next": "下一页"
+        }
+      },
+      "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
+      "t" +
+      "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+
+      "drawCallback": function ( settings ) {
+        var api = this.api();
+        var rows = api.rows( {page:'current'} ).nodes();
+        var last=null;
+        api.column(1, {page:'current'} ).data().each( function ( group, i ) {
+          if ( last !== group ) {
+            $(rows).eq( i ).before(
+              '<tr class="group danger"><td colspan="5">'+group+'</td></tr>'
+            );
+            last = group;
+          }
         });
-
-
-
-        //添加序号
-        //不管是排序，还是分页，还是搜索最后都会重画，这里监听draw事件即可
-        table.on('draw.dt',function() {
-            table.column(0, {
-                search: 'applied',
-                order: 'applied'
-            }).nodes().each(function(cell, i) {
-                i = i+1;
-                var page = table.page.info();
-                var pageno = page.page;
-                var length = page.length;
-                var columnIndex = (i+pageno*length);
-            });
-        }).draw();
-
+      }
     });
 
-   var assetTable = $('#asset').DataTable({
-        ajax: {
-                url: "/f_app/show_primary_asset/"+{{ wind_code|tojson |safe }},
-                "dataSrc":function (json) {
-                    for(var i=0; i<json.data.length;i++){
-                      for(var key in json.data[i]){
-                        if(key!="nav_date"&&key!="nav"&&key!=null&&key!="db"){
-                          json.data[i][key]=Math.round(json.data[i][key]* 100) / 100;
-                        }else if(key=="nav"){
-                          json.data[i][key]=Math.round(json.data[i][key]* 10000) / 10000;
-                        }
-                      }
-                    }
-                    $.LoadingOverlay("hide");
-                    return json.data;
-                }
-            },
-            "order": [[0,'desc']],
-            "serverSide": false,
-            "columns": [
-                {"data": "nav_date"},
-                {"data":"cap_tot"},
-                {'data': "cap_net"},
-                {"data": "nav"},
-                {"data":'share'},
-                {"data":"market_value"},
-                {"data":"cash_amount"},
-                {"data": "admin_fee"},
-                {"data": "storage_fee"},
-                {"data": "manage_fee"},
-                {"data":"custodian_fee"},
-                {"data":"other_fee"},
-                {"data":null,
-                    "render": function (data, type, row) {
-                     if(data.db === false){
-                         return '<button type="button" class="btn btn-info btn-xs confirm">确认</button>' +
-                    '<button type="button" class="btn btn-success btn-xs changeRecord">修改</button>';
-                     }else{
-                         return '<button type="button" class="btn btn-default btn-xs disabled">已确认</button>'
-                     }
 
+
+    //添加序号
+    //不管是排序，还是分页，还是搜索最后都会重画，这里监听draw事件即可
+    table.on('draw.dt',function() {
+      table.column(0, {
+        search: 'applied',
+        order: 'applied'
+      }).nodes().each(function(cell, i) {
+        i = i+1;
+        var page = table.page.info();
+        var pageno = page.page;
+        var length = page.length;
+        var columnIndex = (i+pageno*length);
+      });
+    }).draw();
+
+  });
+  function sendAjax(){
+    $(".asset").html(`
+      <table class="table table-bordered center-all" id="asset" width="100%">
+        <thead>
+        </thead>
+      </table>`);
+    $.ajax({
+      url: "/f_app/show_primary_asset/"+{{ wind_code|tojson |safe }},
+      type: 'GET',
+      dataType: 'JSON',
+      success: function (result) {
+        if(result.status=="ok"){
+          var data=result.data;
+          var len=[];
+          var list=[];
+          var thead;
+          var thead2;
+          var max;
+          var columns=[
+            {"data": "nav_date"},
+            {"data": "admin_fee"},
+            {"data": "storage_fee"},
+            {"data": "manage_fee"},
+            {"data":"custodian_fee"},
+            {"data":"other_fee"}
+          ];
+          var more=[
+            {"data":"cash_amount"},
+            {"data":"cap_tot"},
+            {'data': "cap_net"},
+            {"data":'share'},
+            {"data": "nav"},
+            {"data":null,
+              "render": function (data, type, row) {
+                if(data.db === false){
+                     return '<button type="button" class="btn btn-info btn-xs confirm">确认</button>' +
+                '<button type="button" class="btn btn-success btn-xs changeRecord">修改</button>';
+                }else{
+                  if(data.del === true){
+                     return '<button type="button" class="btn btn-default btn-xs disabled">已确认</button><button class="btn btn-danger btn-xs del">删除</btton>'
+                  }else{
+                    return '<button type="button" class="btn btn-default btn-xs disabled">已确认</button><button class="btn btn-default disabled btn-xs">删除</btton>'
                   }
+                     
                 }
-            ],
+
+              }
+            }
+          ];
+
+          data.forEach(function(val,index){
+            for(var key in val){
+              if(key!="nav_date"&&key!="wind_code"&&key!=null&&key!="cap_list"&&key!="db"){
+                val[key]=Math.round(val[key]* 100) / 100;
+              }
+            }
+            if(val.cap_list){
+              len.push(val.cap_list.length);
+              var total_cap=0;
+              val.cap_list.forEach(function(v,i){
+                total_cap+=v.cap;
+                if(!list.includes(v.name)){
+                  list.push(v.name);
+                  thead+=`<th colspan="3">${v.name}</th>`;
+                  thead2+=`<th>份额</th><th>净值</th><th>市值</th>`;
+                  columns.push({"data":null,
+                    render:function(obj){
+                      if(obj[v.name+"total_share"]||obj[v.name+"total_share"]==0){
+                        return obj[v.name+"total_share"];
+                      }else{
+                        return "";
+                      }
+                  }});
+                  columns.push({"data":null,
+                    render:function(obj){
+                      if(obj[v.name+"nav"]||obj[v.name+"nav"]==0){
+                        return obj[v.name+"nav"];
+                      }else{
+                        return "";
+                      }
+                  }});
+                  columns.push({"data":null,
+                    render:function(obj){
+                      if(obj[v.name+"cap"]||obj[v.name+"cap"]==0){
+                        return obj[v.name+"cap"];
+                      }else{
+                        return "";
+                      }
+                  }});
+                }
+                val[v.name+"total_share"]=Math.round(v.total_share*100)/100;
+                val[v.name+"nav"]=Math.round(v.nav*100)/100;
+                val[v.name+"cap"]=Math.round(v.cap*100)/100;
+              })
+              val["total_cap"]=Math.round(total_cap*100)/100;
+            }
+          });
+          columns=columns.concat(more);
+          data[0]["del"]=true;
+          max=Math.max(...len);
+          $("#asset thead").html(`
+            <tr><th colspan="6">费用</th>${thead}<th colspan="6"></th></tr>
+            <tr><th>日期</th><th>行政管理费</th><th>资金保管费</th><th>管理费</th><th>托管费</th><th>其他</th>${thead2}<th>银行余额</th><th>资产总值</th><th>资产净值</th><th>份额</th><th>单位净值</th><th style="width:120px!important">操作</th></tr>`);
+          $.LoadingOverlay("hide");
+
+          var assetTable = $('#asset').DataTable({
+            "data":data,
+            "scrollX":true,
+            "fixedColumns":{
+              leftColumns: 6,
+              rightColumns: 1
+            },
+            "displayLength": 25,
+            "serverSide": false,
+            "columns": columns,
             "language": {
-                "lengthMenu": "每页 _MENU_ 条记录",
-                "zeroRecords": "没有找到记录",
-                "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
-                "infoEmpty": "无记录",
-                "search": "搜索：",
-                "infoFiltered": "(从 _MAX_ 条记录过滤)",
-                "paginate": {
-                    "previous": "上一页",
-                    "next": "下一页"
-                }
+              "lengthMenu": "每页 _MENU_ 条记录",
+              "zeroRecords": "没有找到记录",
+              "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+              "infoEmpty": "无记录",
+              "search": "搜索：",
+              "infoFiltered": "(从 _MAX_ 条记录过滤)",
+              "paginate": {
+                "previous": "上一页",
+                "next": "下一页"
+              }
             },
 
-   });
-        $('#asset tbody').on( 'click', '.confirm', function (e) {            
+          });
+          $('.asset tbody').on( 'click', '.del', function (e) {  
+            let data = assetTable.row( $(this).parents('tr') ).data(); 
+            var wind_code={{ wind_code |tojson }};     
+            $.ajax({
+              url:'/f_app/delete_asset',
+              type:'POST',
+              contentType: 'application/json',
+              data:JSON.stringify({date:data.nav_date,wind_code:wind_code}),
+              dataType:'JSON',
+              success:function (callback) {
+                if(callback.status==="ok") {
+                  sendAjax();
+                }
+              }
+            })
+          })          
+          $('.asset tbody').on( 'click', '.confirm', function (e) {            
             let now = new Date();
             let day = ("0" + now.getDate()).slice(-2);
             let month = ("0" + (now.getMonth() + 1)).slice(-2);
             let today = now.getFullYear() + (month) + (day);
             let date = $(this).parents('td').siblings('.sorting_1').text().split('-').join('');
             if(date > today){
-                new PNotify({
-                  title: '该条记录不可以确认',
-                  text: '资产记录交易日不可以超过今天',
-                  type: 'warning',
-                  styling: 'bootstrap3'
-                })
+              new PNotify({
+                title: '该条记录不可以确认',
+                text: '资产记录交易日不可以超过今天',
+                type: 'warning',
+                styling: 'bootstrap3'
+              })
               return;
             }
             let data = assetTable.row( $(this).parents('tr') ).data();
-            data['check'] = true;
+            let {admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check}=data;
+            let sendDate={admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check};
+            sendDate['check'] = true;
             let cell = $(this).parents('td');
             e.preventDefault();
             $.ajax({
-                  url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
-                  type:'POST',
-                  contentType: 'application/json',
-                  data:JSON.stringify(data),
-                  dataType:'JSON',
-                  success:function (callback) {
-                      if(callback.status==="ok") {
-                          swal({
-                              html:`<div class="panel panel-default">
-                                    <div class="panel-heading"><span class="glyphicon glyphicon-check" aria-hidden="true" style="margin-top:2px;"></span>确认</div>
-                                    <table class="table table-hover text-left" style="font-size:14px;">
-                                    <tr><td>日期</td><td>${data.nav_date}</td></tr>
-                                    <tr><td>资产总值</td><td>${data.cap_tot}</td></tr>
-                                    <tr><td>资产净值</td><td>${data.cap_net}</td></tr>
-                                    <tr><td>单位净值</td><td>${data.nav}</td></tr>
-                                    <tr><td>份额</td><td>${data.share}</td></tr>
-                                    <tr><td>市值</td><td>${data.market_value}</td></tr>
-                                    <tr><td>银行余额</td><td>${data.cash_amount}</td></tr>
-                                    <tr><td>行政管理费</td><td>${data.admin_fee}</td></tr>
-                                    <tr><td>资金保管费</td><td>${data.storage_fee}</td></tr>
-                                    <tr><td>管理费</td><td>${data.manage_fee}</td></tr>
-                                    <tr><td>托管费</td><td>${data.custodian_fee}</td></tr>
-                                    <tr><td>其他</td><td>${data.other_fee}</td></tr>
-                                    </table>
-                                    </div>`,
-                              showCancelButton: true,
-                              confirmButtonColor: '#3085d6',
-                              cancelButtonColor: '#d9534f',
-                              confirmButtonText: '确认',
-                              cancelButtonText: '取消',
-                              confirmButtonClass: 'swal2-styled-btn',
-                              cancelButtonClass: 'swal2-styled-btn'
-                          }).then(function () {
-                              data['check'] = false;
-                              $.ajax({
-                                  url: '/f_app/confirm_asset/' +{{ wind_code |tojson }},
-                                  type: 'POST',
-                                  contentType: 'application/json',
-                                  data: JSON.stringify(data),
-                                  dataType: 'JSON',
-                                  success: function (callback) {
-                                      cell.html("<button class='btn btn-default disabled btn-xs'>已确认</btton>");
-                                      new PNotify({
-                                          title: '已确认',
-                                          text: '确认成功',
-                                          type: 'success',
-                                          styling: 'bootstrap3'
-                                      });
-                                      window.location.reload();
-                                  }
-                              })
-                          }).catch(function (result) {
-                              });
-                      }else{
-                          new PNotify({
-                            title: '还有未确认的记录',
-                            text: '必须按照交易日确认资产记录',
-                            type: 'warning',
-                            styling: 'bootstrap3'
-                          })
+              url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
+              type:'POST',
+              contentType: 'application/json',
+              data:JSON.stringify(sendDate),
+              dataType:'JSON',
+              success:function (callback) {
+                if(callback.status==="ok") {
+                  swal({
+                    html:`<div class="panel panel-default">
+                      <div class="panel-heading"><span class="glyphicon glyphicon-check" aria-hidden="true" style="margin-top:2px;"></span>确认</div>
+                      <table class="table table-hover text-left" style="font-size:14px;">
+                      <tr><td>日期</td><td>${data.nav_date}</td></tr>
+                      <tr><td>资产总值</td><td>${data.cap_tot}</td></tr>
+                      <tr><td>资产净值</td><td>${data.cap_net}</td></tr>
+                      <tr><td>单位净值</td><td>${data.nav}</td></tr>
+                      <tr><td>份额</td><td>${data.share}</td></tr>
+                      <tr><td>银行余额</td><td>${data.cash_amount}</td></tr>
+                      <tr><td>行政管理费</td><td>${data.admin_fee}</td></tr>
+                      <tr><td>资金保管费</td><td>${data.storage_fee}</td></tr>
+                      <tr><td>管理费</td><td>${data.manage_fee}</td></tr>
+                      <tr><td>托管费</td><td>${data.custodian_fee}</td></tr>
+                      <tr><td>其他</td><td>${data.other_fee}</td></tr>
+                      </table>
+                      </div>`,
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d9534f',
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    confirmButtonClass: 'swal2-styled-btn',
+                    cancelButtonClass: 'swal2-styled-btn'
+                  }).then(function () {
+                    sendDate['check'] = false;
+                    $.ajax({
+                      url: '/f_app/confirm_asset/' +{{ wind_code |tojson }},
+                      type: 'POST',
+                      contentType: 'application/json',
+                      data: JSON.stringify(sendDate),
+                      dataType: 'JSON',
+                      success: function (callback) {
+                        $(".del").attr("disabled","disabled");
+                        $(".del").removeClass('btn-danger').addClass('btn-default');
+                        cell.html("<button class='btn btn-default disabled btn-xs'>已确认</btton><button class='btn btn-danger btn-xs del'>删除</btton>");
+                        new PNotify({
+                          title: '已确认',
+                          text: '确认成功',
+                          type: 'success',
+                          styling: 'bootstrap3'
+                        });
+                        // window.location.reload();
                       }
-                  }
+                    })
+                  }).catch(function (result) {
+                  });
+                }else{
+                  new PNotify({
+                    title: '还有未确认的记录',
+                    text: '必须按照交易日确认资产记录',
+                    type: 'warning',
+                    styling: 'bootstrap3'
+                  })
+                }
+              }
             })
-    });
-    $('#asset tbody').on( 'click', '.changeRecord', function (e) {
-      var dataN=[];
-      let data = assetTable.row( $(this).parents('tr') ).data();
-      data['check'] = true;
-      let cell = $(this).parents('td');
-      $(this).parents('tr').find('td').map(function(){
-        dataN.push($(this).text());
-      }).get().join(",");
-      e.preventDefault();
-      $('body').on('change keyup click', '.panel input', function (e) {
-        var bv = $('#crud-form').data('bootstrapValidator');
-        bv.validate();
-        if(bv.isValid()){
-          if($(this).attr('id')=='share' && data.share!=$(this).val()){
-              data.share=$(this).val();
-              data.nav=data.cap_net/data.share;
-              $("#nav").html(Math.round(data.nav* 10000) / 10000);
-          }else if($(this).attr('id')=='cash_amount' && data.cash_amount!=$(this).val()){
-              data.cash_amount=$(this).val();
-              data.cap_tot=Number(data.cash_amount)+Number(data.market_value);
-              data.cap_net=data.cap_tot-data.admin_fee-data.storage_fee-data.manage_fee-data.custodian_fee-data.other_fee;
-              data.nav=data.cap_net/data.share;
-              $("#cap_tot").html(Math.round(data.cap_tot* 100) / 100);
-              $("#cap_net").html(Math.round(data.cap_net* 100) / 100);
-              $("#nav").html(Math.round(data.nav* 10000) / 10000);
-          }else if($(this).attr('id')=='other_fee' && data.other_fee!=$(this).val()){
-              data.other_fee=$(this).val();
-              data.cap_net=data.cap_tot-data.admin_fee-data.storage_fee-data.manage_fee-data.custodian_fee-data.other_fee;
-              data.nav=data.cap_net/data.share;
-              $("#cap_net").html(Math.round(data.cap_net* 100) / 100);
-              $("#nav").html(Math.round(data.nav* 10000) / 10000);
-          }
-        }
-      });
-      $.ajax({
-            url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
-            type:'POST',
-            contentType: 'application/json',
-            data:JSON.stringify(data),
-            dataType:'JSON',
-            success:function (callback) {
-          if(callback.status==="ok"){
-            swal({
-                html:`
+          });
+          $('.asset tbody').on( 'click', '.changeRecord', function (e) {
+            let data = assetTable.row( $(this).parents('tr') ).data();
+            let {admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check}=data;
+            let sendDate={admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check};
+            sendDate['check'] = true;
+            let cell = $(this).parents('td');
+            // $(this).parents('tr').find('td').map(function(){
+            // }).get().join(",");
+            e.preventDefault();
+            $('body').on('change propertychange input', '.panel input', function (e) {
+              var bv = $('#crud-form').data('bootstrapValidator');
+              bv.validate();
+              if(bv.isValid()){
+                var id=$(this).attr('id');
+                var cap_tot=$("#cap_tot").html()||0;
+                var admin_fee=$("#admin_fee").val()||0;
+                var storage_fee=$("#storage_fee").val()||0;
+                var manage_fee=$("#manage_fee").val()||0;
+                var custodian_fee=$("#custodian_fee").val()||0;
+                var other_fee=$("#other_fee").val()||0;
+                var share=$("#share").html()||0;
+                if(id=='cash_amount'){
+                  var cap_tot=Number($(this).attr("total_cap"))+Number($(this).val());
+                  var cap_net=cap_tot-admin_fee-storage_fee-manage_fee-custodian_fee-other_fee;
+                  $("#cap_tot").html(Math.round(cap_tot* 100) / 100);
+                  $("#cap_net").html(Math.round(cap_net*100)/100);
+                  $("#nav").html(Math.round(cap_net/share*100)/100);
+
+                }else if(id=='admin_fee'||id=='storage_fee'||id=='manage_fee'||id=='custodian_fee'||id=='other_fee'){
+                  var cap_net=cap_tot-admin_fee-storage_fee-manage_fee-custodian_fee-other_fee;
+                  $("#cap_net").html(Math.round(cap_net*100)/100);
+                    $("#nav").html(Math.round(cap_net/share*100)/100);
+                }
+              }
+            });
+            $.ajax({
+              url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
+              type:'POST',
+              contentType: 'application/json',
+              data:JSON.stringify(sendDate),
+              dataType:'JSON',
+              success:function (callback) {
+                if(callback.status==="ok"){
+                  swal({
+                    html:`
                       <from id="crud-form"><div class="panel panel-default">
                       <div class="panel-heading"><span class="glyphicon glyphicon-edit" aria-hidden="true" style="margin-top:2px;"></span>修改</div>
                       <table class="table table-hover text-left" style="font-size:14px;">
@@ -379,111 +474,140 @@
                       <tr><td>资产总值</td><td id="cap_tot">${data.cap_tot}</td></tr>
                       <tr><td>资产净值</td><td id="cap_net">${data.cap_net}</td></tr>
                       <tr><td>单位净值</td><td id="nav">${data.nav}</td></tr>
-                      <tr><td>份额</td><td><div class="form-group"><input name="share" id="share" type="number" class="form-control input-sm" step=0.01 min="0.01" value="${data.share}"/></div></td></tr>
-                      <tr><td>市值</td><td>${data.market_value}</td></tr>
-                      <tr><td>银行余额</td><td><div class="form-group"><input name="cash_amount" id="cash_amount" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.cash_amount}"/></div></td></tr>
-                      <tr><td>行政管理费</td><td>${data.admin_fee}</td></tr>
-                      <tr><td>资金保管费</td><td>${data.storage_fee}</td></tr>
-                      <tr><td>管理费</td><td>${data.manage_fee}</td></tr>
-                      <tr><td>托管费</td><td>${data.custodian_fee}</td></tr>
+                      <tr><td>份额</td><td id="share">${data.share}</td></tr>
+                      <tr><td>银行余额</td><td><div class="form-group"><input name="cash_amount" id="cash_amount" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.cash_amount}" total_cap="${data.total_cap}"/></div></td></tr>
+                      <tr><td>行政管理费</td><td><div class="form-group"><input name="admin_fee" id="admin_fee" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.admin_fee}"/></div></td></tr>
+                      <tr><td>资金保管费</td><td><div class="form-group"><input name="storage_fee" id="storage_fee" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.storage_fee}"/></div></td></tr>
+                      <tr><td>管理费</td><td><div class="form-group"><input name="manage_fee" id="manage_fee" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.manage_fee}"/></div></td></tr>
+                      <tr><td>托管费</td><td><div class="form-group"><input name="custodian_fee" id="custodian_fee" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.custodian_fee}"/></div></td></tr>
                       <tr><td>其他</td><td><div class="form-group"><input name="other_fee" id="other_fee" type="number" class="form-control input-sm" step=0.01 min="0" value="${data.other_fee}"/></div></td></tr>
                       </table>
                       </div>
                       </from>`,
-                preConfirm: function() {
-                  return new Promise(function(resolve, reject) {
-                    data.share=$("#share").val();
-                    data.cash_amount=$("#cash_amount").val();
-                    data.other_fee=$("#other_fee").val();           //提交批次
-                    var bv = $('#crud-form').data('bootstrapValidator');
-                    bv.validate();
-                      console.log(bv.validate())
-                    if(bv.isValid()){
-                      resolve();
-                    }else{
-                      reject('注意:份额应大于0，银行余额不能小于0，份额/银行余额/其他为数字,不能为空');
+                    preConfirm: function() {
+                      return new Promise(function(resolve, reject) {
+                        data.share=$("#share").val();
+                        data.cash_amount=$("#cash_amount").val();
+                        data.other_fee=$("#other_fee").val();           //提交批次
+                        var bv = $('#crud-form').data('bootstrapValidator');
+                        bv.validate();
+                        if(bv.isValid()){
+                          resolve();
+                        }else{
+                          reject('注意:银行余额不能小于0');
+                        }
+                      });
+                    },
+                    allowOutsideClick: true,
+                    showConfirmButton: true,
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d9534f',
+                    confirmButtonText: '保存',
+                    cancelButtonText:'取消',
+                    confirmButtonClass: 'swal2-styled-btn',
+                    cancelButtonClass: 'swal2-styled-btn'
+                  }).then(function (isConfirm) {
+                    sendDate['check'] = false;
+                      $.ajax({
+                        url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
+                        type:'POST',
+                        contentType: 'application/json',
+                        data:JSON.stringify(sendDate),
+                        dataType:'JSON',
+                        success:function (callback) {
+                          $(".del").attr("disabled","disabled");
+                          $(".del").removeClass('btn-danger').addClass('btn-default');
+                          cell.html("<button class='btn btn-default disabled btn-xs'>已确认</btton><button class='btn btn-danger btn-xs del'>删除</btton>");
+                          new PNotify({
+                            title: '已确认',
+                            text: '确认成功',
+                            type: 'success',
+                            styling: 'bootstrap3'
+                          });
+                          // window.location.reload();
+                        }
+                      });
+                  },function(){         
+                  }).catch(function (result) {
+                  });
+                  $("#crud-form").bootstrapValidator({            //表单验证
+                    feedbackIcons: {
+                      valid: 'glyphicon glyphicon-ok',
+                      invalid: 'glyphicon glyphicon-remove',
+                      validating: 'glyphicon glyphicon-refresh',
+                      framework: 'bootstrap'
+                    }, fields: {
+                      share: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      },
+                      cash_amount: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      },
+                      admin_fee: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      },
+                      storage_fee: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      },
+                      manage_fee: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      },
+                      custodian_fee: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      },
+                      other_fee: {
+                        validators: {
+                          notEmpty: {
+                            message: '不能为空'
+                          }
+                        }
+                      }
                     }
                   });
-                },
-                allowOutsideClick: true,
-                showConfirmButton: true,
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d9534f',
-                confirmButtonText: '保存',
-                cancelButtonText:'取消',
-                confirmButtonClass: 'swal2-styled-btn',
-                cancelButtonClass: 'swal2-styled-btn'
-            }).then(function (isConfirm) {
-              data['check'] = false;
-                $.ajax({
-                  url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
-                  type:'POST',
-                  contentType: 'application/json',
-                  data:JSON.stringify(data),
-                  dataType:'JSON',
-                  success:function (callback) {
-                    cell.html("<button class='btn btn-default disabled btn-xs'>已确认</btton>");
-                    new PNotify({
-                      title: '已确认',
-                      text: '确认成功',
-                      type: 'success',
-                      styling: 'bootstrap3'
-                    });
-                    window.location.reload();
-                  }
-                });
-            },function(){                
-              data.cap_tot=dataN[1];
-              data.cap_net=dataN[2];
-              data.nav=dataN[3];
-              data.share=dataN[4];
-              data.cash_amount=dataN[6];
-              data.other_fee=dataN[11];
-            }).catch(function (result) {
-            });
-            $("#crud-form").bootstrapValidator({            //表单验证
-                feedbackIcons: {
-                    valid: 'glyphicon glyphicon-ok',
-                    invalid: 'glyphicon glyphicon-remove',
-                    validating: 'glyphicon glyphicon-refresh',
-                    framework: 'bootstrap'
-                }, fields: {
-                    share: {
-                        validators: {
-                            notEmpty: {
-                                message: '不能为空'
-                            }
-                        }
-                    },
-                    cash_amount: {
-                        validators: {
-                            notEmpty: {
-                                message: '不能为空'
-                            }
-                        }
-                    },
-                    other_fee: {
-                        validators: {
-                            notEmpty: {
-                                message: '不能为空'
-                            }
-                        }
-                    }
+                }else{
+                  new PNotify({
+                    title: '还有未确认的记录',
+                    text: '必须按照交易日确认资产记录',
+                    type: 'warning',
+                    styling: 'bootstrap3'
+                  })
                 }
+              }
             });
-          }else{
-           new PNotify({
-            title: '还有未确认的记录',
-            text: '必须按照交易日确认资产记录',
-            type: 'warning',
-            styling: 'bootstrap3'
           })
-          }
-        }
-      });
-  })
 
+        }else{
+
+        }
+      }
+    })
+  }
+  sendAjax();
 
 </script>
 
