@@ -39,22 +39,6 @@
 <div x_title>
     <h2>{{ wind_code }}</h2>
 </div>
-<div>
-  <table class="table table-bordered center-all" id="batch" width="100%">
-
-    <thead>
-      <tr>
-        <th>批次</th>
-        <th>日期</th>
-        <th>单位净值</th>
-        <th>份额</th>
-        <th>市值</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-
-  </table>
-</div>
 
 <div class="asset">
 </div>
@@ -80,114 +64,11 @@
 
 <script>
 
-
-  $.LoadingOverlay("show",{
+  $(".asset").LoadingOverlay("show",{
     image: "",
     fontawesome: "fa fa-spinner fa-spin",
     maxSize: "200px",
     minSize: "20px",
-  });
-  var table;
-  var editFlag = false;
-  $(function () {
-    var tpl = $("#tpl").html();
-    var template = Handlebars.compile(tpl);
-    table = $('#batch').DataTable({
-      ajax: {
-        url: "/f_app/show_batch_asset/"+{{ wind_code|tojson |safe }},
-        "dataSrc":function (json) {
-          for(var i=0; i<json.data.length;i++){
-            for(var key in json.data[i]){
-              if(key=="market_value"){
-                json.data[i][key]=Math.round(json.data[i][key]* 100) / 100;
-              }else if(key=="nav"){
-                json.data[i][key]=Math.round(json.data[i][key]* 10000) / 10000;
-              }
-            }
-          }
-          $.LoadingOverlay("hide");
-          return json.data;
-        }
-
-      },
-      "order": [[1, 'asc']],
-      "serverSide": false,
-      "columns": [
-        {"data": "name"},
-        {'data': "nav_date"},
-        {"data": "nav"},
-        {"data": "share"},
-        {"data": "market_value"},
-        {"data":null}
-      ],
-      "columnDefs": [
-        {
-          "searchable": false, "orderable": false, "targets": [0,1,2,3,4]
-        },
-        { "visible": false, "targets": 1 },
-        {
-          "targets": 5,
-          "render": function (a, b, c, d) {
-            var context =
-            {
-              func: [
-                {"name": "edit", "fn": "edit(\'" + c.nav_date + "\',\'" + c.nav_acc + "\',\'" + c.nav + "\',\'" + c.pct + "\',\'" +  "\')", "type": "primary"},
-                {"name": "remove", "fn": "del(\'" + {{ wind_code |tojson|safe }} + "\',\'" + c.nav_date + "\')", "type": "danger"}
-              ]
-            };
-            var html = template(context);
-            return html;
-          }
-        }
-      ],
-      "language": {
-        "lengthMenu": "每页 _MENU_ 条记录",
-        "zeroRecords": "没有找到记录",
-        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
-        "infoEmpty": "无记录",
-        "search": "搜索：",
-        "infoFiltered": "(从 _MAX_ 条记录过滤)",
-        "paginate": {
-            "previous": "上一页",
-            "next": "下一页"
-        }
-      },
-      "dom": "<'row'<'col-xs-2'l><'#mytool.col-xs-4'><'col-xs-6'f>r>" +
-      "t" +
-      "<'row'<'col-xs-6'i><'col-xs-6'p>>",
-
-      "drawCallback": function ( settings ) {
-        var api = this.api();
-        var rows = api.rows( {page:'current'} ).nodes();
-        var last=null;
-        api.column(1, {page:'current'} ).data().each( function ( group, i ) {
-          if ( last !== group ) {
-            $(rows).eq( i ).before(
-              '<tr class="group danger"><td colspan="5">'+group+'</td></tr>'
-            );
-            last = group;
-          }
-        });
-      }
-    });
-
-
-
-    //添加序号
-    //不管是排序，还是分页，还是搜索最后都会重画，这里监听draw事件即可
-    table.on('draw.dt',function() {
-      table.column(0, {
-        search: 'applied',
-        order: 'applied'
-      }).nodes().each(function(cell, i) {
-        i = i+1;
-        var page = table.page.info();
-        var pageno = page.page;
-        var length = page.length;
-        var columnIndex = (i+pageno*length);
-      });
-    }).draw();
-
   });
   function sendAjax(){
     $(".asset").html(`
@@ -330,8 +211,8 @@
               success:function (callback) {
                 if(callback.status==="ok") {              
                   new PNotify({
-                    title: '',
-                    text: '删除成功',
+                    title: '删除成功',
+                    text: '',
                     type: 'success',
                     styling: 'bootstrap3'
                   })
@@ -345,13 +226,13 @@
                 }
               }
             })
-          })          
+          }) 
+          let now = new Date();
+          let day = ("0" + now.getDate()).slice(-2);
+          let month = ("0" + (now.getMonth() + 1)).slice(-2);
+          let today = now.getFullYear() + (month) + (day);         
           $('.asset tbody').on( 'click', '.confirm', function (e) { 
-            let data = assetTable.row( $(this).parents('tr') ).data();           
-            let now = new Date();
-            let day = ("0" + now.getDate()).slice(-2);
-            let month = ("0" + (now.getMonth() + 1)).slice(-2);
-            let today = now.getFullYear() + (month) + (day);
+            let data = assetTable.row( $(this).parents('tr') ).data();
             let date = data.nav_date.split('-').join('');
             if(date > today){
               new PNotify({
@@ -363,15 +244,15 @@
               return;
             }
             let {admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check}=data;
-            let sendDate={admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check};
-            sendDate['check'] = true;
+            let sendData={admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check};
+            sendData['check'] = true;
             let cell = $(this).parents('td');
             e.preventDefault();
             $.ajax({
               url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
               type:'POST',
               contentType: 'application/json',
-              data:JSON.stringify(sendDate),
+              data:JSON.stringify(sendData),
               dataType:'JSON',
               success:function (callback) {
                 if(callback.status==="ok") {
@@ -400,12 +281,12 @@
                     confirmButtonClass: 'swal2-styled-btn',
                     cancelButtonClass: 'swal2-styled-btn'
                   }).then(function () {
-                    sendDate['check'] = false;
+                    sendData['check'] = false;
                     $.ajax({
                       url: '/f_app/confirm_asset/' +{{ wind_code |tojson }},
                       type: 'POST',
                       contentType: 'application/json',
-                      data: JSON.stringify(sendDate),
+                      data: JSON.stringify(sendData),
                       dataType: 'JSON',
                       success: function (callback) {
                         $(".del").attr("disabled","disabled");
@@ -441,9 +322,19 @@
           });
           $('.asset tbody').on( 'click', '.changeRecord', function (e) {
             let data = assetTable.row( $(this).parents('tr') ).data();
+            let date = data.nav_date.split('-').join('');
+            if(date > today){
+              new PNotify({
+                title: '该条记录不可以修改',
+                text: '资产记录交易日不可以超过今天',
+                type: 'warning',
+                styling: 'bootstrap3'
+              })
+              return;
+            }
             let {admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check}=data;
-            let sendDate={admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check};
-            sendDate['check'] = true;
+            let sendData={admin_fee,cap_net,cap_tot,cash_amount,custodian_fee,db,manage_fee,market_value,nav,nav_date,other_fee,share,storage_fee,check};
+            sendData['check'] = true;
             let cell = $(this).parents('td');
             e.preventDefault();
             $('body').on('change propertychange input', '.panel input', function (e) {
@@ -476,7 +367,7 @@
               url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
               type:'POST',
               contentType: 'application/json',
-              data:JSON.stringify(sendDate),
+              data:JSON.stringify(sendData),
               dataType:'JSON',
               success:function (callback) {
                 if(callback.status==="ok"){
@@ -523,12 +414,12 @@
                     confirmButtonClass: 'swal2-styled-btn',
                     cancelButtonClass: 'swal2-styled-btn'
                   }).then(function (isConfirm) {
-                    sendDate['check'] = false;
+                    sendData['check'] = false;
                       $.ajax({
                         url:'/f_app/confirm_asset/'+{{ wind_code |tojson }},
                         type:'POST',
                         contentType: 'application/json',
-                        data:JSON.stringify(sendDate),
+                        data:JSON.stringify(sendData),
                         dataType:'JSON',
                         success:function (callback) {
                           $(".del").attr("disabled","disabled");
