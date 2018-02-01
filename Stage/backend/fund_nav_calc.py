@@ -152,25 +152,57 @@ def calc_fof_nav(wind_code, nav_date, fund_calc_info=None,
     """
     nav_date = str_2_date(nav_date)
     # 获取子基金【规模、净值、市值】
-    sql_str = """select ffc.wind_code_s wind_code,ifnull(fnc.share ,0) share, ifnull(fnc.nav ,0) nav, ifnull(fnc.market_value ,0) market_value
-from (select wind_code_s from fof_fund_pct 
-	where wind_code_p = %s
-	and date_adj= (select max(date_adj) from fof_fund_pct where wind_code_p = %s and date_adj <= %s)
-	and wind_code_s <> 'fh0000'
-    ) ffc
-    left outer join
-    (	
-		select fnc_sub.* from fund_nav_calc fnc_sub,
-		(select wind_code, max(nav_date) nav_date_max from fund_nav_calc where nav_date<=%s group by wind_code) fnc_max
-		where fnc_sub.wind_code = fnc_max.wind_code and fnc_sub.nav_date = fnc_max.nav_date_max
-    ) fnc
-    on fnc.wind_code = ffc.wind_code_s"""
-    # with get_db_session() as session:
-    #     table = session.execute(sql_str, {'wind_code_p': wind_code, 'wind_code_p1': wind_code, "nav_date": nav_date})
-    #     wind_code_s = [content[0] for content in table.fetchall()]
-    engine = get_db_engine()
-    fund_nav_calc_s_df = pd.read_sql(sql_str, engine, params=[wind_code, wind_code, nav_date, nav_date])
 
+
+    engine = get_db_engine()
+    with get_db_session(engine) as session:
+        # 获取子基金产品、及总份额对应关系
+        sql_str_tot_share = """select wind_code, sum(w_tot_share.total_share) total_share
+        from fund_essential_info fei
+        inner join
+        (    
+        	select wind_code_s, total_share 
+        	from fund_transaction ft 
+        	inner join (
+        	  select max(id) ft_id from fund_transaction ft 
+        	  inner join(
+        		select wind_code_s, max(confirm_date) confirm_date_min 
+        		from fund_transaction ft 
+        		where wind_code= :wind_code and confirm_date<= :confirm_date
+        		group by wind_code_s) fg 
+        	  on ft.wind_code_s = fg.wind_code_s and ft.confirm_date = fg.confirm_date_min 
+        	group by ft.wind_code_s ) fg 
+        	on ft.id = fg.ft_id
+        	where ft.total_share > 0
+        ) w_tot_share
+        on fei.wind_code_s = w_tot_share.wind_code_s
+        group by fei.wind_code"""
+        table = session.execute(sql_str_tot_share, params={'wind_code': wind_code, 'confirm_date': nav_date})
+        wind_code_tot_share_dic = dict(table.fetchall())
+        # 获取子基金指定日期的最新净值
+        if len(wind_code_tot_share_dic) > 0:
+            in_str = "'" + "','".join(wind_code_tot_share_dic.keys()) + "'"
+
+            sql_str_nav = """select fund_nav.wind_code, nav from fund_nav
+inner join
+(
+	select wind_code, max(nav_date) nav_date_max
+	from fund_nav fn
+	where wind_code in (%s)
+	and nav_date <= :nav_date
+	group by wind_code
+) fn_latest
+on fund_nav.wind_code = fn_latest.wind_code
+and fund_nav.nav_date = fn_latest.nav_date_max""" % in_str
+            table = session.execute(sql_str_nav, params={'nav_date': nav_date})
+            wind_code_nav_dic = dict(table.fetchall())
+            wind_cap_df = pd.DataFrame({"tot_share":wind_code_tot_share_dic, "nav": wind_code_nav_dic})
+            wind_cap_df["market_value"] = wind_cap_df['tot_share'] * wind_cap_df['nav']
+            market_value = wind_cap_df["market_value"].sum()
+        else:
+            market_value = 0
+
+    # fund_nav_calc_s_df = pd.read_sql(sql_str, engine, params=[wind_code, nav_date])
     # 获取净值计算需要的基本信息
     if fund_calc_info is None:
         fund_calc_info = get_fund_calc_info(wind_code)
@@ -184,7 +216,7 @@ from (select wind_code_s from fof_fund_pct
     storage_fee = calc_fee(fund_calc_info, nav_date, 'storage_fee', fund_nav_calc_data_last_dic)
 
     # 计算母基金净值
-    market_value = fund_nav_calc_s_df['market_value'].sum()
+
     if share_default is not None:
         share = share_default
     else:
@@ -262,8 +294,8 @@ def calc_fee(fund_calc_info, nav_date, fee_name, fund_nav_calc_data_last_dic, sh
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s [%(name)s] %(message)s')
 
-    wind_code = 'FHF-P-101703'
-    nav_date = '2017-03-20'
+    wind_code = 'FHF-101601'
+    nav_date = '2017-11-22'
     fund_nav_calc_dic = calc_fof_nav(wind_code, nav_date)
     print('fund_nav_calc_dic', fund_nav_calc_dic)
     # 获取最近一个净值日期的 fund_nav_calc 数据作为参考计算数据
