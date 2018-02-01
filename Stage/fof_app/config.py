@@ -85,7 +85,7 @@ class ProdConfig(Config):
 
 
 class DevConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql://mg:Abcd1234@10.0.3.66/fof_ams_dev'
+    SQLALCHEMY_DATABASE_URI = 'mysql://mg:Abcd1234@10.0.3.66/fof_ams_dev?charset=utf8'
     CACHE_DB = '127.0.0.1'
     @classmethod
     def init_app(cls, app):

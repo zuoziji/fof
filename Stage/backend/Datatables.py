@@ -38,6 +38,7 @@ class DataTablesServer(object):
 
     def run_queries(self):
         dataCursor = self.dbh
+
         result = dataCursor.execute("""
             SELECT SQL_CALC_FOUND_ROWS %(columns)s
             FROM   %(table)s %(where)s %(order)s %(limit)s""" % dict(
@@ -63,6 +64,7 @@ class DataTablesServer(object):
             for i in range(len(self.columns)):
                 filter += "%s LIKE '%%%s%%' OR " % (self.columns[i], self.request_values['sSearch'])
             filter = filter[:-3]
+            print(filter)
             return filter
         elif self.request_values['sSearch_6'] != "" and (self.request_values['sSearch_6'] != "5"):
             tag = self.request_values['sSearch_6']
@@ -73,6 +75,7 @@ class DataTablesServer(object):
                 key = "review_status"
             filter = "WHERE %s = %s" %(key,tag)
             return filter
+
     def ordering(self):
         order = ""
         if (self.request_values['iSortCol_0'] != "") and (int(self.request_values['iSortingCols']) > 0):

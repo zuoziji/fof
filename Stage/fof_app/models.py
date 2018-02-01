@@ -16,8 +16,8 @@ import logging
 from .tasks import send_email
 from sqlalchemy.types import TypeDecorator, String
 from cryptography.fernet import Fernet
-from functools import reduce
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.mysql import DOUBLE,FLOAT
 
 key = "lNXHXIz61VOA6Q1Zc1v5K-udwN1dEfHK8d8DBXA3-MQ="
 logger = logging.getLogger()
@@ -632,12 +632,12 @@ class FUND_TRANSACTION(db.Model):
     accounting_date = db.Column(db.Date, nullable=False)
     request_date = db.Column(db.Date)
     confirm_date = db.Column(db.Date, nullable=False)
-    confirm_benchmark = db.Column(MyReal)
-    share = db.Column(MyReal)
-    amount = db.Column(MyReal)
+    confirm_benchmark = db.Column(FLOAT())
+    share = db.Column(DOUBLE())
+    amount = db.Column(DOUBLE())
     description = db.Column(db.String(100))
-    total_share = db.Column(MyReal)
-    total_cost = db.Column(MyReal)
+    total_share = db.Column(DOUBLE(precision=4,scale=4))
+    total_cost = db.Column(DOUBLE(precision=4,scale=4))
     wind_code = db.Column(db.String(20), db.ForeignKey('fund_info.wind_code'))
 
 
@@ -708,7 +708,7 @@ def new_transaction(target):
         else:
             logger.info("-----------------------last-----------------")
             last_record = record[-1]
-            target.total_share = float(target.share) + last_record.total_share
+            target.total_share = float(target.share) + float(last_record.total_share)
             target.total_cost = float(last_record.total_cost) - (float(target.amount))
             db.session.add(target)
             db.session.commit()

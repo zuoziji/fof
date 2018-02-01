@@ -272,6 +272,7 @@ def query_fund_cap(wind_code, query_day):
         tr = dict(i)
         batch = FUND_ESSENTIAL.query.filter_by(wind_code_s=i['wind_code_s']).first()
         primary = FoFModel.query.filter_by(wind_code=batch.wind_code).first()
+
         nav = FUND_NAV.query.filter(and_(FUND_NAV.wind_code == primary.wind_code, FUND_NAV.nav_date <= query_day))\
             .order_by(FUND_NAV.nav_date.desc()).first()
         tr['f_code'] = primary.wind_code
@@ -286,7 +287,7 @@ def query_fund_cap(wind_code, query_day):
             cap_dict[x['f_code']][0] = cap_dict[x['f_code']][0] + x['cap']
             cap_dict[x['f_code']][1] = cap_dict[x['f_code']][1] + x['total_share']
         else:
-            cap_dict[x['f_code']] = [0, 0, x['f_name'], x['nav']]
+            cap_dict[x['f_code']] = [x['cap'], x['total_share'], x['f_name'], x['nav']]
     cap_list = [{"code": k, "cap": v[0], "total_share":v[1], "name": v[2], "nav":v[3]} for k, v in cap_dict.items()]
     return cap_list
 
@@ -298,5 +299,5 @@ if __name__ == "__main__":
     flask_app = create_app('fof_app.config.%sConfig' % env.capitalize())
     with flask_app.test_request_context():
         db.init_app(flask_app)
-        query_fund_cap("FHF-101601","2017-12-20")
+        print(query_fund_cap("FHF-101601","2017-11-22"))
 

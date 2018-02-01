@@ -49,3 +49,4 @@ if __name__ == "__main__":
     actions *= 2
     for action in actions:
         print(action)
+

@@ -117,7 +117,6 @@ class Transaction(object):
                     v['wind_code'] = "FHF-101701"
                 if v['fof_name'] == "东方恒泰量化对冲":
                     v['wind_code'] = "XT1619361.XT"
-                print(v)
                 tr = FUND_TRANSACTION(**v)
                 new_transaction(tr)
         else:
@@ -136,3 +135,7 @@ if __name__ == "__main__":
         x = Transaction(file)
         data = x.formatFile()
         x.importDate(data)
+        tr = FUND_TRANSACTION.query.filter_by(sec_name_s="杉树欣欣鑫隆FOF第二笔").order_by(FUND_TRANSACTION.confirm_date.desc()).all()
+        for i in tr:
+            print(i.share)
+        print(sum([i.share for i in tr]))
