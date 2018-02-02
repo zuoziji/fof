@@ -818,8 +818,9 @@ def upload_acc(wind_code):
 def asset_details(wind_code):
     if request.method == 'GET':
         fof_list = cache.get(str(current_user.id))
+        fund = FoFModel.query.filter_by(wind_code=wind_code).first()
 
-        return render_template('asset_details.html', fof_list=fof_list, wind_code=wind_code)
+        return render_template('asset_details.html', fof_list=fof_list, wind_code=wind_code,fund=fund)
 
 
 @f_app_blueprint.route("/show_batch_asset/<string:wind_code>", methods=['POST', 'GET'])
@@ -880,7 +881,6 @@ def show_primary_asset(wind_code):
 
 
 @f_app_blueprint.route('/delete_asset', methods=['GET', 'POST'])
-@login_required
 def delete_asset():
     if request.method == 'POST':
         wind_code = request.json['wind_code']
